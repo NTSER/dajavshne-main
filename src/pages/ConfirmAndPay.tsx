@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,6 @@ const ConfirmAndPay = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
   
   const bookingData = location.state as BookingData;
   
@@ -54,7 +52,11 @@ const ConfirmAndPay = () => {
 
   const handleContinue = () => {
     if (!user && currentStep === 1) {
-      setShowAuthDialog(true);
+      // For non-authenticated users, we'll show a message instead of opening a dialog
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to continue with your booking.",
+      });
       return;
     }
     
@@ -125,12 +127,22 @@ const ConfirmAndPay = () => {
                     </div>
                   </div>
                   {currentStep === 1 && (
-                    <Button 
-                      onClick={handleContinue}
-                      className="pulse-glow"
-                    >
-                      {user ? 'Continue' : 'Log in'}
-                    </Button>
+                    <>
+                      {user ? (
+                        <Button 
+                          onClick={handleContinue}
+                          className="pulse-glow"
+                        >
+                          Continue
+                        </Button>
+                      ) : (
+                        <AuthDialog defaultMode="signin">
+                          <Button className="pulse-glow">
+                            Log in
+                          </Button>
+                        </AuthDialog>
+                      )}
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -285,12 +297,6 @@ const ConfirmAndPay = () => {
           </div>
         </div>
       </div>
-
-      <AuthDialog
-        open={showAuthDialog}
-        onOpenChange={setShowAuthDialog}
-        defaultMode="signin"
-      />
     </div>
   );
 };

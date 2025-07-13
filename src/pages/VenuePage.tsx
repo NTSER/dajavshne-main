@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -227,8 +226,10 @@ const VenuePage = () => {
                 </div>
                 
                 <BookingForm 
-                  venue={venue} 
-                  service={selectedService}
+                  venueId={venue.id}
+                  venueName={venue.name}
+                  venuePrice={venue.price}
+                  services={selectedService ? [selectedService] : services}
                 />
               </div>
 
