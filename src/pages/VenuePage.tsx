@@ -58,7 +58,7 @@ const VenuePage = () => {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto py-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Venue not found</h1>
+          <h1 className="text-2xl font-bold mb-4 text-foreground">Venue not found</h1>
           <Link to="/">
             <Button>Return to Home</Button>
           </Link>
@@ -73,11 +73,11 @@ const VenuePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header Navigation */}
-      <div className="sticky top-0 z-10 bg-white border-b">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to venues
           </Link>
@@ -95,28 +95,28 @@ const VenuePage = () => {
               {/* Title and Actions */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h1 className="text-3xl font-semibold text-gray-900 mb-2">{venue.name}</h1>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <h1 className="text-3xl font-semibold text-foreground mb-2">{venue.name}</h1>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-black text-black" />
-                      <span className="font-medium">{venue.rating}</span>
+                      <Star className="h-4 w-4 fill-primary text-primary" />
+                      <span className="font-medium text-foreground">{venue.rating}</span>
                       <span>·</span>
-                      <span className="underline">{venue.review_count} reviews</span>
+                      <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.review_count} reviews</span>
                     </div>
                     <span>·</span>
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span className="underline">{venue.location}</span>
+                      <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.location}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary">
                     <Share className="h-4 w-4" />
                     Share
                   </Button>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary">
                     <Heart className="h-4 w-4" />
                     Save
                   </Button>
@@ -124,7 +124,7 @@ const VenuePage = () => {
               </div>
 
               {/* Image Gallery */}
-              <div className="rounded-xl overflow-hidden">
+              <div className="rounded-xl overflow-hidden bg-card">
                 <Carousel className="w-full">
                   <CarouselContent>
                     {venue.images?.map((image, index) => (
@@ -139,8 +139,8 @@ const VenuePage = () => {
                       </CarouselItem>
                     )) || (
                       <CarouselItem>
-                        <div className="aspect-[16/10] bg-gray-200 rounded-xl flex items-center justify-center">
-                          <span className="text-gray-500">No images available</span>
+                        <div className="aspect-[16/10] bg-muted rounded-xl flex items-center justify-center">
+                          <span className="text-muted-foreground">No images available</span>
                         </div>
                       </CarouselItem>
                     )}
@@ -151,34 +151,34 @@ const VenuePage = () => {
               </div>
 
               {/* Host Info */}
-              <div className="flex items-center gap-4 py-6 border-b">
-                <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-gray-600 font-medium">H</span>
+              <div className="flex items-center gap-4 py-6 border-b border-border">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <span className="text-muted-foreground font-medium">H</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Hosted by Venue Manager</h3>
-                  <p className="text-sm text-gray-600">Superhost · 2 years hosting</p>
+                  <h3 className="font-semibold text-foreground">Hosted by Venue Manager</h3>
+                  <p className="text-sm text-muted-foreground">Superhost · 2 years hosting</p>
                 </div>
               </div>
 
               {/* Description */}
-              <div className="py-6 border-b">
-                <p className="text-gray-700 leading-relaxed text-base">
+              <div className="py-6 border-b border-border">
+                <p className="text-muted-foreground leading-relaxed text-base">
                   {venue.description || "Experience premium gaming in a state-of-the-art facility designed for both casual and competitive gaming. Our venue offers cutting-edge equipment and an atmosphere perfect for tournaments and casual gaming sessions."}
                 </p>
               </div>
 
               {/* Amenities */}
               {venue.amenities && venue.amenities.length > 0 && (
-                <div className="py-6 border-b">
-                  <h2 className="text-xl font-semibold mb-6 text-gray-900">What this place offers</h2>
+                <div className="py-6 border-b border-border">
+                  <h2 className="text-xl font-semibold mb-6 text-foreground">What this place offers</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {venue.amenities.map((amenity) => {
                       const IconComponent = amenityIcons[amenity];
                       return (
                         <div key={amenity} className="flex items-center gap-4 py-3">
-                          {IconComponent && <IconComponent className="h-6 w-6 text-gray-600" />}
-                          <span className="text-gray-700">{amenity}</span>
+                          {IconComponent && <IconComponent className="h-6 w-6 text-muted-foreground" />}
+                          <span className="text-foreground">{amenity}</span>
                         </div>
                       );
                     })}
@@ -189,23 +189,23 @@ const VenuePage = () => {
               {/* Reviews Section */}
               <div className="py-6">
                 <div className="flex items-center gap-2 mb-6">
-                  <Star className="h-5 w-5 fill-black text-black" />
-                  <span className="text-xl font-semibold">{venue.rating} · {venue.review_count} reviews</span>
+                  <Star className="h-5 w-5 fill-primary text-primary" />
+                  <span className="text-xl font-semibold text-foreground">{venue.rating} · {venue.review_count} reviews</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[1, 2, 3, 4].map((review) => (
                     <div key={review} className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span className="text-sm font-medium">U</span>
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-sm font-medium text-muted-foreground">U</span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">User {review}</p>
-                          <p className="text-sm text-gray-600">January 2024</p>
+                          <p className="font-medium text-foreground">User {review}</p>
+                          <p className="text-sm text-muted-foreground">January 2024</p>
                         </div>
                       </div>
-                      <p className="text-gray-700 text-sm">
+                      <p className="text-muted-foreground text-sm">
                         Great venue with excellent facilities. The gaming setup is top-notch and the atmosphere is perfect for competitive gaming.
                       </p>
                     </div>
@@ -220,10 +220,10 @@ const VenuePage = () => {
             <div className="h-full overflow-y-auto pl-4 space-y-6">
               
               {/* Price and Basic Info */}
-              <div className="bg-white border rounded-xl p-6 shadow-lg sticky top-0 z-10">
+              <div className="bg-card border border-border rounded-xl p-6 shadow-lg sticky top-0 z-10 glass-effect">
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-2xl font-semibold">${venue.price}</span>
-                  <span className="text-gray-600">per hour</span>
+                  <span className="text-2xl font-semibold text-foreground">${venue.price}</span>
+                  <span className="text-muted-foreground">per hour</span>
                 </div>
                 
                 <BookingForm 
@@ -235,34 +235,34 @@ const VenuePage = () => {
               {/* Services List */}
               {!servicesLoading && services && services.length > 0 && (
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Available Services</h3>
+                  <h3 className="text-xl font-semibold text-foreground">Available Services</h3>
                   <div className="space-y-4">
                     {services.map((service) => (
                       <Card 
                         key={service.id}
-                        className={`cursor-pointer transition-all border hover:border-gray-300 ${
+                        className={`cursor-pointer transition-all border hover:border-primary/50 hover-lift ${
                           selectedService?.id === service.id 
-                            ? 'border-black shadow-md' 
-                            : 'border-gray-200'
+                            ? 'border-primary shadow-lg shadow-primary/20' 
+                            : 'border-border'
                         }`}
                         onClick={() => setSelectedService(service)}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-3">
                             <div>
-                              <h4 className="font-semibold text-gray-900">{service.name}</h4>
-                              <p className="text-sm text-gray-600">{service.duration} · ${service.price}/hour</p>
+                              <h4 className="font-semibold text-foreground">{service.name}</h4>
+                              <p className="text-sm text-muted-foreground">{service.duration} · ${service.price}/hour</p>
                             </div>
-                            <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                            <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
                               ${service.price}
                             </Badge>
                           </div>
                           {service.description && (
-                            <p className="text-sm text-gray-600 mb-3">
+                            <p className="text-sm text-muted-foreground mb-3">
                               {service.description}
                             </p>
                           )}
-                          <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                          <div className="w-16 h-16 bg-muted rounded-lg"></div>
                         </CardContent>
                       </Card>
                     ))}
@@ -272,7 +272,7 @@ const VenuePage = () => {
 
               {/* Additional Info */}
               <div className="space-y-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   You can message the host to customize or make changes.
                 </p>
               </div>
