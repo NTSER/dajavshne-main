@@ -1,340 +1,253 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon, Minus, Plus, X, Clock, Users, Star } from "lucide-react";
+import { CalendarDays, Clock, Users, MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import AuthDialog from "./AuthDialog";
 
 interface BookingFormProps {
-  venue: {
-    id: string;
-    name: string;
-    price: number;
-  };
-  service?: {
+  venueId: string;
+  venueName: string;
+  venuePrice: number;
+  services?: Array<{
     id: string;
     name: string;
     price: number;
     duration: string;
-  };
+  }>;
 }
 
-// Organized time slots in a more user-friendly format
-const availableTimeSlots = [
-  "12:45PM", "1:15PM", "1:45PM", "2:15PM", "2:45PM", "3:00PM",
-  "3:15PM", "3:45PM", "4:00PM", "4:15PM", "4:45PM", "5:00PM",
-  "5:15PM", "5:45PM", "6:00PM", "6:15PM", "6:45PM", "7:00PM",
-  "7:15PM", "7:45PM", "8:15PM"
-];
-
-// Mock unavailable times - in a real app, this would come from your backend
-const getUnavailableSlots = (date: Date | undefined) => {
-  if (!date) return [];
-  
-  // Mock logic: some slots are unavailable on weekends
-  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-  if (isWeekend) {
-    return ["12:45PM", "1:15PM", "7:45PM", "8:15PM"];
-  }
-  
-  // Mock some random unavailable slots for weekdays
-  return ["2:15PM", "4:00PM", "6:15PM"];
-};
-
-const BookingForm = ({ venue, service }: BookingFormProps) => {
+const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingFormProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    date: undefined as Date | undefined,
-    time: '',
+    date: "",
+    time: "",
     guests: 1,
-    specialRequests: '',
+    serviceId: "",
+    specialRequests: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const basePrice = service ? service.price : venue.price;
-  const totalPrice = basePrice * formData.guests;
-  const unavailableSlots = getUnavailableSlots(formData.date);
-
-  const handleGuestChange = (increment: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      guests: increment ? prev.guests + 1 : Math.max(1, prev.guests - 1)
-    }));
-  };
-
-  const handleTimeSelect = (time: string) => {
-    if (unavailableSlots.includes(time)) return; // Prevent selection of unavailable slots
-    
-    setFormData(prev => ({
-      ...prev,
-      time
-    }));
-  };
+  const selectedService = services.find(s => s.id === formData.serviceId);
+  const totalPrice = selectedService ? selectedService.price : venuePrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.date || !formData.time) {
+    if (!user) {
       toast({
-        title: "Missing Information",
-        description: "Please select both date and time for your booking.",
+        title: "Authentication required",
+        description: "Please sign in to make a booking.",
         variant: "destructive",
       });
       return;
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
     
     try {
-      // Navigate to confirm and pay page with booking data
-      navigate('/confirm-and-pay', {
+      // Create the booking
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          user_id: user.id,
+          user_email: user.email,
+          venue_id: venueId,
+          service_id: formData.serviceId || null,
+          booking_date: formData.date,
+          booking_time: formData.time,
+          guest_count: formData.guests,
+          total_price: totalPrice,
+          special_requests: formData.specialRequests || null,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (bookingError) {
+        throw bookingError;
+      }
+
+      // Call the booking notifications edge function
+      const { error: notificationError } = await supabase.functions.invoke('booking-notifications', {
+        body: {
+          bookingId: booking.id,
+          userId: user.id,
+          userEmail: user.email,
+          venueName: venueName,
+          bookingDate: formData.date,
+          bookingTime: formData.time,
+        },
+      });
+
+      if (notificationError) {
+        console.error("Error creating notifications:", notificationError);
+        // Don't fail the booking if notifications fail
+      }
+
+      // Navigate to confirmation page
+      navigate("/confirm-and-pay", {
         state: {
-          venueId: venue.id,
-          serviceId: service?.id || null,
-          date: format(formData.date, 'yyyy-MM-dd'),
-          time: formData.time,
-          guests: formData.guests,
-          specialRequests: formData.specialRequests || null,
-          totalPrice: totalPrice
+          booking: {
+            ...booking,
+            venue_name: venueName,
+            service_name: selectedService?.name,
+          }
         }
       });
 
-      setIsOpen(false);
-
-    } catch (error) {
-      console.error('Navigation error:', error);
       toast({
-        title: "Error",
-        description: "There was an error processing your request. Please try again.",
+        title: "Booking submitted!",
+        description: "Your booking has been created successfully.",
+      });
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      toast({
+        title: "Booking failed",
+        description: error.message || "There was an error creating your booking. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <>
-      {/* Enhanced Reserve Button */}
-      <Card className="glass-effect border-primary/20 hover-lift">
-        <CardContent className="p-8">
-          <div className="space-y-6">
-            {/* Price Display */}
-            <div className="text-center">
-              <div className="text-4xl font-bold gradient-text mb-2">
-                ${basePrice}
-              </div>
-              <div className="text-muted-foreground">per hour · per guest</div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-primary text-primary" />
-                <span>4.9</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>Max 8 guests</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>Instant booking</span>
-              </div>
-            </div>
-
-            <Button 
-              onClick={() => setIsOpen(true)}
-              className="w-full h-14 text-lg pulse-glow"
-              size="lg"
-            >
-              Reserve Your Spot
-            </Button>
-          </div>
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Sign In Required</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground mb-4">
+            Please sign in to make a booking.
+          </p>
+          <AuthDialog>
+            <Button className="w-full">Sign In</Button>
+          </AuthDialog>
         </CardContent>
       </Card>
+    );
+  }
 
-      {/* Enhanced Booking Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-background/95 backdrop-blur-xl border border-primary/20 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-primary/10">
-            {/* Enhanced Header */}
-            <div className="flex items-center justify-between p-8 border-b border-border/50">
-              <div>
-                <h2 className="text-2xl font-bold gradient-text">Reserve Your Experience</h2>
-                <p className="text-muted-foreground mt-1">Book your gaming session</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="rounded-full hover:bg-destructive/10 hover:text-destructive"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Book Your Session</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="date" className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Date
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                min={new Date().toISOString().split('T')[0]}
+                required
+              />
             </div>
-
-            <div className="p-8 space-y-8">
-              {/* Enhanced Guest Counter */}
-              <div className="flex items-center justify-between p-6 bg-muted/20 rounded-2xl border border-border/50">
-                <div>
-                  <span className="text-lg font-semibold">Guests</span>
-                  <p className="text-sm text-muted-foreground">How many will join?</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleGuestChange(false)}
-                    disabled={formData.guests <= 1}
-                    className="rounded-full border-primary/30 hover:border-primary/50"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-12 text-center font-bold text-xl text-primary">{formData.guests}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleGuestChange(true)}
-                    className="rounded-full border-primary/30 hover:border-primary/50"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Enhanced Date Selection */}
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">Select Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-between text-left font-normal h-14 rounded-xl border-primary/30 hover:border-primary/50",
-                        !formData.date && "text-muted-foreground"
-                      )}
-                    >
-                      {formData.date ? format(formData.date, "EEEE, MMMM do, yyyy") : "Choose your date"}
-                      <CalendarIcon className="h-5 w-5" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 glass-effect border-primary/20" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.date}
-                      onSelect={(date) => {
-                        setFormData(prev => ({ ...prev, date, time: '' }));
-                      }}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Enhanced Service Info */}
-              {service && (
-                <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-primary/10 via-secondary/5 to-primary/10 rounded-2xl border border-primary/20">
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
-                    <span className="text-white font-bold text-lg">SV</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-foreground">{service.name}</h3>
-                    <p className="text-muted-foreground">
-                      ${service.price} per guest • {service.duration}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Enhanced Time Slots */}
-              {formData.date && (
-                <div className="space-y-6">
-                  <Label className="text-lg font-semibold">Available Times</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {availableTimeSlots.map((time) => {
-                      const isUnavailable = unavailableSlots.includes(time);
-                      const isSelected = formData.time === time;
-                      
-                      return (
-                        <Button
-                          key={time}
-                          variant={isSelected ? "default" : "outline"}
-                          onClick={() => handleTimeSelect(time)}
-                          disabled={isUnavailable}
-                          className={cn(
-                            "h-12 text-sm font-medium rounded-xl transition-all duration-200",
-                            isUnavailable && "opacity-30 cursor-not-allowed",
-                            isSelected && "shadow-lg shadow-primary/30 scale-105",
-                            !isSelected && !isUnavailable && "border-primary/30 hover:border-primary/50 hover:scale-105"
-                          )}
-                        >
-                          {time}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                  
-                  {unavailableSlots.length > 0 && (
-                    <p className="text-sm text-muted-foreground bg-muted/20 p-3 rounded-xl">
-                      ℹ️ Grayed out times are unavailable for the selected date
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Enhanced Special Requests */}
-              <div className="space-y-4">
-                <Label className="text-lg font-semibold">Special Requests <span className="text-muted-foreground font-normal">(Optional)</span></Label>
-                <Textarea
-                  placeholder="Any special requirements, dietary restrictions, or requests..."
-                  value={formData.specialRequests}
-                  onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
-                  rows={4}
-                  className="resize-none rounded-xl border-primary/30 focus:border-primary/50"
-                />
-              </div>
-
-              {/* Enhanced Total and Submit */}
-              <div className="space-y-6 pt-6 border-t border-border/50">
-                <div className="flex justify-between items-center p-6 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl">
-                  <div>
-                    <span className="text-lg font-semibold">Total Amount</span>
-                    <p className="text-sm text-muted-foreground">{formData.guests} guest{formData.guests > 1 ? 's' : ''} × ${basePrice}</p>
-                  </div>
-                  <span className="text-3xl font-bold gradient-text">
-                    ${totalPrice.toFixed(2)}
-                  </span>
-                </div>
-                
-                <Button 
-                  onClick={handleSubmit}
-                  className="w-full h-14 text-lg pulse-glow" 
-                  disabled={loading || !formData.date || !formData.time}
-                  size="lg"
-                >
-                  {loading ? 'Processing...' : 'Confirm Booking'}
-                </Button>
-              </div>
+            <div>
+              <Label htmlFor="time" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Time
+              </Label>
+              <Input
+                id="time"
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                required
+              />
             </div>
           </div>
-        </div>
-      )}
-    </>
+
+          <div>
+            <Label htmlFor="guests" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Number of Guests
+            </Label>
+            <Input
+              id="guests"
+              type="number"
+              min="1"
+              max="20"
+              value={formData.guests}
+              onChange={(e) => setFormData(prev => ({ ...prev, guests: parseInt(e.target.value) }))}
+              required
+            />
+          </div>
+
+          {services.length > 0 && (
+            <div>
+              <Label>Service Package</Label>
+              <Select
+                value={formData.serviceId}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, serviceId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a service package" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Basic Session - ${venuePrice}</SelectItem>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name} - ${service.price} ({service.duration})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="requests" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Special Requests (Optional)
+            </Label>
+            <Textarea
+              id="requests"
+              value={formData.specialRequests}
+              onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
+              placeholder="Any special requirements or requests..."
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="flex justify-between items-center text-lg font-semibold">
+              <span>Total Price:</span>
+              <span className="text-primary">${totalPrice}</span>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Creating Booking..." : "Confirm Booking"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
