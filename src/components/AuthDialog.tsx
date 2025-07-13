@@ -10,18 +10,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AuthDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
   defaultMode?: 'signin' | 'signup';
 }
 
-const AuthDialog = ({ open, onOpenChange, defaultMode = 'signin' }: AuthDialogProps) => {
+const AuthDialog = ({ children, defaultMode = 'signin' }: AuthDialogProps) => {
+  const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'signin' | 'signup'>(defaultMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,7 +51,7 @@ const AuthDialog = ({ open, onOpenChange, defaultMode = 'signin' }: AuthDialogPr
           title: "Success",
           description: mode === 'signin' ? "Signed in successfully!" : "Account created successfully!",
         });
-        onOpenChange(false);
+        setOpen(false);
         setEmail('');
         setPassword('');
       }
@@ -95,7 +96,10 @@ const AuthDialog = ({ open, onOpenChange, defaultMode = 'signin' }: AuthDialogPr
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">
