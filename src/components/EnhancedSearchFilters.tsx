@@ -1,9 +1,14 @@
 
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, MapPin, Users, Clock, Search, Building } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon, MapPin, Users, Clock, Search, Building } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SearchSuggestion {
@@ -16,7 +21,7 @@ interface SearchSuggestion {
 interface SearchFilters {
   businessName: string;
   location: string;
-  date: string;
+  date: Date | undefined;
   time: string;
   guests: string;
 }
@@ -28,10 +33,11 @@ interface VenueData {
 }
 
 const EnhancedSearchFilters = () => {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<SearchFilters>({
     businessName: "",
     location: "",
-    date: "",
+    date: undefined,
     time: "",
     guests: ""
   });
@@ -141,6 +147,10 @@ const EnhancedSearchFilters = () => {
     }
   };
 
+  const handleDateChange = (date: Date | undefined) => {
+    setFilters(prev => ({ ...prev, date }));
+  };
+
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     if (activeSuggestionField === 'businessName') {
       setFilters(prev => ({ ...prev, businessName: suggestion.name }));
@@ -157,12 +167,29 @@ const EnhancedSearchFilters = () => {
 
   const handleSearch = () => {
     console.log('Search filters:', filters);
-    // Here you would implement the actual search logic
-    // For now, we'll just log the filters
+    
+    // Build search parameters
+    const searchParams = new URLSearchParams();
+    
+    if (filters.businessName) {
+      searchParams.append('businessName', filters.businessName);
+    }
+    if (filters.location) {
+      searchParams.append('location', filters.location);
+    }
+    if (filters.date) {
+      searchParams.append('date', format(filters.date, 'yyyy-MM-dd'));
+    }
+    if (filters.time) {
+      searchParams.append('time', filters.time);
+    }
+    if (filters.guests) {
+      searchParams.append('guests', filters.guests);
+    }
+    
+    // Navigate to search results page with filters
+    navigate(`/search?${searchParams.toString()}`);
   };
-
-  // Get today's date in YYYY-MM-DD format for min date
-  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-6 bg-background/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
@@ -242,19 +269,36 @@ const EnhancedSearchFilters = () => {
         )}
       </div>
       
-      {/* Check-in Date */}
+      {/* Check-in Date with Calendar */}
       <div className="space-y-2">
         <Label className="text-sm font-medium flex items-center gap-2 text-foreground">
-          <Calendar className="h-4 w-4" />
+          <CalendarIcon className="h-4 w-4" />
           Check-in Date
         </Label>
-        <Input
-          type="date"
-          value={filters.date}
-          onChange={(e) => handleInputChange('date', e.target.value)}
-          min={today}
-          className="bg-background/50 border-white/20"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal bg-background/50 border-white/20",
+                !filters.date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {filters.date ? format(filters.date, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={filters.date}
+              onSelect={handleDateChange}
+              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+              initialFocus
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       
       {/* Time */}

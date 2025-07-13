@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import VenuePage from "./pages/VenuePage";
 import CategoryPage from "./pages/CategoryPage";
+import SearchResults from "./pages/SearchResults";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/venue/:id" element={<VenuePage />} />
             <Route path="/category/:category" element={<CategoryPage />} />
+            <Route path="/search" element={<SearchResults />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
