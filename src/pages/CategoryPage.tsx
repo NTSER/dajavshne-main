@@ -4,15 +4,19 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import VenueCard from "@/components/VenueCard";
-import { categories, popularVenues } from "@/data/mockData";
+import { categories } from "@/data/mockData";
+import { useVenues } from "@/hooks/useVenues";
 
 const CategoryPage = () => {
   const { category } = useParams();
+  const { data: venues, isLoading } = useVenues();
   
   const categoryData = categories.find(c => c.id === category);
-  const filteredVenues = popularVenues.filter(venue => 
+  
+  // Filter venues from database instead of mock data
+  const filteredVenues = venues?.filter(venue => 
     venue.category.toLowerCase().includes(category?.replace('-', ' ') || '')
-  );
+  ) || [];
 
   if (!categoryData) {
     return (
@@ -69,7 +73,17 @@ const CategoryPage = () => {
           </motion.div>
 
           {/* Venues Grid */}
-          {filteredVenues.length > 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-muted h-64 rounded-lg mb-4" />
+                  <div className="bg-muted h-4 rounded mb-2" />
+                  <div className="bg-muted h-4 rounded w-2/3" />
+                </div>
+              ))}
+            </div>
+          ) : filteredVenues.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredVenues.map((venue, index) => (
                 <motion.div

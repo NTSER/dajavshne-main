@@ -4,27 +4,10 @@ import EnhancedSearchFilters from "@/components/EnhancedSearchFilters";
 import VenueCard from "@/components/VenueCard";
 import CategoryCard from "@/components/CategoryCard";
 import { useVenues } from "@/hooks/useVenues";
+import { categories } from "@/data/mockData";
 
 const Index = () => {
   const { data: venues, isLoading } = useVenues();
-
-  const categories = [
-    {
-      name: "Gaming Lounges",
-      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800",
-      count: venues?.filter(v => v.category === "Gaming Lounge").length || 0
-    },
-    {
-      name: "Gaming Arenas", 
-      image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800",
-      count: venues?.filter(v => v.category === "Gaming Arena").length || 0
-    },
-    {
-      name: "Arcade",
-      image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=800",
-      count: venues?.filter(v => v.category === "Arcade").length || 0
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background">
@@ -78,7 +61,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {categories.map((category, index) => (
               <motion.div
-                key={category.name}
+                key={category.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
