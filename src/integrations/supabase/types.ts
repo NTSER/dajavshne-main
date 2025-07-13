@@ -14,7 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_date: string
+          booking_time: string
+          created_at: string | null
+          guest_count: number
+          id: string
+          service_id: string | null
+          special_requests: string | null
+          status: string | null
+          total_price: number
+          updated_at: string | null
+          user_id: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          booking_date: string
+          booking_time: string
+          created_at?: string | null
+          guest_count?: number
+          id?: string
+          service_id?: string | null
+          special_requests?: string | null
+          status?: string | null
+          total_price: number
+          updated_at?: string | null
+          user_id?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string
+          created_at?: string | null
+          guest_count?: number
+          id?: string
+          service_id?: string | null
+          special_requests?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id?: string | null
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "venue_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      venue_services: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration: string
+          id: string
+          name: string
+          price: number
+          venue_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration: string
+          id?: string
+          name: string
+          price: number
+          venue_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration?: string
+          id?: string
+          name?: string
+          price?: number
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_services_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venues: {
+        Row: {
+          amenities: string[] | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          location: string
+          name: string
+          price: number
+          rating: number | null
+          review_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: string[] | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          location: string
+          name: string
+          price: number
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: string[] | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          location?: string
+          name?: string
+          price?: number
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

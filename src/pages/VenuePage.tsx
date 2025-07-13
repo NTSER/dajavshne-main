@@ -1,291 +1,201 @@
 
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
-  ArrowLeft, 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
+import { 
   Star, 
   MapPin, 
   Wifi, 
   Car, 
-  Coffee,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Clock,
-  Users
+  ArrowLeft 
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { popularVenues } from "@/data/mockData";
+import { Link } from "react-router-dom";
+import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
+import BookingForm from "@/components/BookingForm";
+import VenueServices from "@/components/VenueServices";
+import { useState } from "react";
 
 const VenuePage = () => {
-  const { id } = useParams();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const [selectedService, setSelectedService] = useState<VenueService | undefined>();
   
-  const venue = popularVenues.find(v => v.id === id);
-  
-  if (!venue) {
+  const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
+  const { data: services, isLoading: servicesLoading } = useVenueServices(id!);
+
+  if (venueLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/95 p-4">
+        <div className="container mx-auto py-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-muted rounded w-1/4" />
+            <div className="h-96 bg-muted rounded-lg" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="h-8 bg-muted rounded w-3/4" />
+                <div className="h-4 bg-muted rounded w-1/2" />
+                <div className="h-20 bg-muted rounded" />
+              </div>
+              <div className="h-96 bg-muted rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (venueError || !venue) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/95 p-4">
+        <div className="container mx-auto py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Venue not found</h1>
           <Link to="/">
-            <Button>Return Home</Button>
+            <Button>Return to Home</Button>
           </Link>
         </div>
       </div>
     );
   }
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === venue.images.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? venue.images.length - 1 : prev - 1
-    );
+  const amenityIcons: { [key: string]: any } = {
+    'WiFi': Wifi,
+    'Parking': Car,
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 glass-effect border-b border-white/10">
-        <div className="px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 hover:text-primary transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to search</span>
-            </Link>
-            <h1 className="font-semibold text-lg gradient-text">Dajavshne</h1>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/95">
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
+          <ArrowLeft className="h-4 w-4" />
+          Back to venues
+        </Link>
 
-      <div className="px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            {/* Left Column - Images and Basic Info */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Image Carousel */}
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
-                <img
-                  src={venue.images[currentImageIndex]}
-                  alt={venue.name}
-                  className="w-full h-full object-cover"
-                />
+        {/* Image Gallery */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-8"
+        >
+          <Carousel className="w-full max-w-5xl mx-auto">
+            <CarouselContent>
+              {venue.images?.map((image, index) => (
+                <CarouselItem key={index}>
+                  <div className="aspect-[16/9] relative overflow-hidden rounded-xl">
+                    <img
+                      src={image}
+                      alt={`${venue.name} - Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+              )) || (
+                <CarouselItem>
+                  <div className="aspect-[16/9] bg-muted rounded-xl flex items-center justify-center">
+                    <span className="text-muted-foreground">No images available</span>
+                  </div>
+                </CarouselItem>
+              )}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+        </motion.div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Venue Details */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-2 space-y-8"
+          >
+            {/* Header */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                  {venue.category}
+                </Badge>
+              </div>
+              
+              <h1 className="text-4xl font-bold mb-4">{venue.name}</h1>
+              
+              <div className="flex items-center gap-6 text-muted-foreground mb-4">
+                <div className="flex items-center gap-1">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">{venue.rating}</span>
+                  <span>({venue.review_count} reviews)</span>
+                </div>
                 
-                {venue.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 glass-effect p-2 rounded-full hover:bg-white/20 transition-colors"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 glass-effect p-2 rounded-full hover:bg-white/20 transition-colors"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                    
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                      {venue.images.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Venue Info */}
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold">{venue.name}</h1>
-                      <Badge variant="secondary" className="text-sm">
-                        {venue.category}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{venue.location}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span>{venue.rating} ({venue.reviewCount} reviews)</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">
-                      {venue.price}<span className="text-base text-muted-foreground">/hour</span>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-5 w-5" />
+                  <span>{venue.location}</span>
                 </div>
+              </div>
+            </div>
 
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  {venue.description}
+            {/* Description */}
+            <Card className="border-white/10 bg-card/50">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">About this venue</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {venue.description || "Experience premium gaming in a state-of-the-art facility designed for both casual and competitive gaming."}
                 </p>
+              </CardContent>
+            </Card>
 
-                {/* Amenities */}
-                <div className="flex flex-wrap gap-3">
-                  {venue.amenities.map((amenity) => (
-                    <div key={amenity} className="flex items-center gap-2 px-3 py-2 bg-card/50 rounded-lg">
-                      {amenity === 'WiFi' && <Wifi className="h-4 w-4" />}
-                      {amenity === 'Parking' && <Car className="h-4 w-4" />}
-                      {amenity === 'Food' && <Coffee className="h-4 w-4" />}
-                      <span className="text-sm">{amenity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Booking and Services */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Booking Card */}
-              <Card className="glass-effect border-white/10 sticky top-24">
-                <CardContent className="p-6 space-y-4">
-                  <h3 className="text-xl font-semibold">Book Your Session</h3>
-                  
-                  {/* Quick Booking Form */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <input
-                            type="date"
-                            className="w-full pl-10 pr-3 py-2 bg-background/50 border border-white/20 rounded-lg focus:ring-2 focus:ring-primary/50"
-                            defaultValue={new Date().toISOString().split('T')[0]}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Time</label>
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <input
-                            type="time"
-                            className="w-full pl-10 pr-3 py-2 bg-background/50 border border-white/20 rounded-lg focus:ring-2 focus:ring-primary/50"
-                            defaultValue="18:00"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Duration</label>
-                      <select className="w-full px-3 py-2 bg-background/50 border border-white/20 rounded-lg focus:ring-2 focus:ring-primary/50">
-                        <option>1 hour</option>
-                        <option>2 hours</option>
-                        <option>3 hours</option>
-                        <option>4 hours</option>
-                      </select>
-                    </div>
-
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-lg py-3">
-                      Book Now - {venue.price}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Services */}
-              <Card className="glass-effect border-white/10">
+            {/* Amenities */}
+            {venue.amenities && venue.amenities.length > 0 && (
+              <Card className="border-white/10 bg-card/50">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-4">Available Services</h3>
-                  <div className="space-y-3">
-                    {venue.services.map((service, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                          selectedService === service.name
-                            ? 'border-primary bg-primary/10'
-                            : 'border-white/20 hover:border-white/40 bg-background/30'
-                        }`}
-                        onClick={() => setSelectedService(
-                          selectedService === service.name ? null : service.name
-                        )}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h4 className="font-medium">{service.name}</h4>
-                            <p className="text-sm text-muted-foreground">{service.duration}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-semibold text-lg">${service.price}</span>
-                          </div>
+                  <h2 className="text-xl font-semibold mb-4">Amenities</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {venue.amenities.map((amenity) => {
+                      const IconComponent = amenityIcons[amenity];
+                      return (
+                        <div key={amenity} className="flex items-center gap-2">
+                          {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
+                          <span>{amenity}</span>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Reviews Preview */}
-              <Card className="glass-effect border-white/10">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-4">Recent Reviews</h3>
-                  <div className="space-y-4">
-                    {venue.reviews.slice(0, 2).map((review) => (
-                      <div key={review.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{review.author}</span>
-                          <div className="flex items-center gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-4 w-4 ${
-                                  i < review.rating
-                                    ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-gray-600'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{review.comment}</p>
-                      </div>
-                    ))}
-                    <Button variant="outline" className="w-full border-white/20">
-                      View All Reviews
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Services */}
+            {!servicesLoading && services && services.length > 0 && (
+              <VenueServices
+                services={services}
+                onServiceSelect={setSelectedService}
+                selectedService={selectedService}
+              />
+            )}
+          </motion.div>
 
-              {/* Map Preview */}
-              <Card className="glass-effect border-white/10">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-4">Location</h3>
-                  <div className="aspect-video bg-background/30 rounded-lg flex items-center justify-center border border-white/20">
-                    <div className="text-center text-muted-foreground">
-                      <MapPin className="h-8 w-8 mx-auto mb-2" />
-                      <p>Interactive map coming soon</p>
-                      <p className="text-sm">{venue.location}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          {/* Right Column - Booking Form */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="lg:sticky lg:top-8"
+          >
+            <BookingForm 
+              venue={venue} 
+              service={selectedService}
+            />
+          </motion.div>
         </div>
       </div>
     </div>

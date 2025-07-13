@@ -3,19 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Wifi, Car } from "lucide-react";
-
-interface Venue {
-  id: string;
-  name: string;
-  category: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  price: string;
-  image: string;
-  amenities: string[];
-  description: string;
-}
+import { Venue } from "@/hooks/useVenues";
 
 interface VenueCardProps {
   venue: Venue;
@@ -27,7 +15,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
       <Card className="hover-lift cursor-pointer group border-white/10 bg-card/50 hover:bg-card/70 transition-all duration-300 overflow-hidden">
         <div className="aspect-[4/3] relative overflow-hidden">
           <img
-            src={venue.image}
+            src={venue.images?.[0] || "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800"}
             alt={venue.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -46,7 +34,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             <div className="flex items-center gap-1 text-sm">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               <span>{venue.rating}</span>
-              <span className="text-muted-foreground">({venue.reviewCount})</span>
+              <span className="text-muted-foreground">({venue.review_count})</span>
             </div>
           </div>
           
@@ -61,7 +49,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
           
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
-              {venue.amenities.slice(0, 2).map((amenity) => (
+              {venue.amenities?.slice(0, 2).map((amenity) => (
                 <div key={amenity} className="flex items-center text-xs text-muted-foreground">
                   {amenity === 'WiFi' && <Wifi className="h-3 w-3 mr-1" />}
                   {amenity === 'Parking' && <Car className="h-3 w-3 mr-1" />}
@@ -70,7 +58,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               ))}
             </div>
             <div className="text-right">
-              <span className="font-semibold text-primary">{venue.price}</span>
+              <span className="font-semibold text-primary">${venue.price}</span>
               <span className="text-sm text-muted-foreground">/hour</span>
             </div>
           </div>
