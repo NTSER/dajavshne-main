@@ -9,12 +9,13 @@ import Index from "./pages/Index";
 import VenuePage from "./pages/VenuePage";
 import CategoryPage from "./pages/CategoryPage";
 import SearchResults from "./pages/SearchResults";
+import ConfirmAndPay from "./pages/ConfirmAndPay";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <QueryClient queryClient={queryClient}>
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/venue/:id" element={<VenuePage />} />
             <Route path="/category/:category" element={<CategoryPage />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

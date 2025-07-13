@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon, Minus, Plus, X, Clock, Users, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AuthDialog from "./AuthDialog";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface BookingFormProps {
@@ -54,7 +52,7 @@ const getUnavailableSlots = (date: Date | undefined) => {
 const BookingForm = ({ venue, service }: BookingFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   
@@ -88,11 +86,6 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      setShowAuthDialog(true);
-      return;
-    }
-
     if (!formData.date || !formData.time) {
       toast({
         title: "Missing Information",
@@ -105,44 +98,26 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
     setLoading(true);
     
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            user_id: user.id,
-            venue_id: venue.id,
-            service_id: service?.id || null,
-            booking_date: format(formData.date, 'yyyy-MM-dd'),
-            booking_time: formData.time,
-            guest_count: formData.guests,
-            total_price: totalPrice,
-            special_requests: formData.specialRequests || null,
-            status: 'pending'
-          }
-        ]);
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Booking Confirmed!",
-        description: "Your booking has been submitted successfully. You'll receive a confirmation email shortly.",
+      // Navigate to confirm and pay page with booking data
+      navigate('/confirm-and-pay', {
+        state: {
+          venueId: venue.id,
+          serviceId: service?.id || null,
+          date: format(formData.date, 'yyyy-MM-dd'),
+          time: formData.time,
+          guests: formData.guests,
+          specialRequests: formData.specialRequests || null,
+          totalPrice: totalPrice
+        }
       });
 
       setIsOpen(false);
-      setFormData({
-        date: undefined,
-        time: '',
-        guests: 1,
-        specialRequests: '',
-      });
 
     } catch (error) {
-      console.error('Booking error:', error);
+      console.error('Navigation error:', error);
       toast({
-        title: "Booking Failed",
-        description: "There was an error processing your booking. Please try again.",
+        title: "Error",
+        description: "There was an error processing your request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -352,19 +327,13 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
                   disabled={loading || !formData.date || !formData.time}
                   size="lg"
                 >
-                  {loading ? 'Processing...' : user ? 'Confirm Booking' : 'Sign In to Book'}
+                  {loading ? 'Processing...' : 'Confirm Booking'}
                 </Button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-      <AuthDialog
-        open={showAuthDialog}
-        onOpenChange={setShowAuthDialog}
-        defaultMode="signin"
-      />
     </>
   );
 };
