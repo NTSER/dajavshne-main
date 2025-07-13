@@ -21,6 +21,12 @@ interface SearchFilters {
   guests: string;
 }
 
+interface VenueData {
+  id: string;
+  name: string;
+  location: string;
+}
+
 const EnhancedSearchFilters = () => {
   const [filters, setFilters] = useState<SearchFilters>({
     businessName: "",
@@ -78,32 +84,43 @@ const EnhancedSearchFilters = () => {
         return;
       }
 
+      // Type guard to ensure venues data is properly typed
+      const typedVenues: VenueData[] = (venues || []).filter((venue): venue is VenueData => {
+        return venue && 
+               typeof venue.id === 'string' && 
+               typeof venue.name === 'string' && 
+               typeof venue.location === 'string';
+      });
+
       if (type === 'businessName') {
-        const venueSuggestions: SearchSuggestion[] = venues?.map(venue => ({
+        const venueSuggestions: SearchSuggestion[] = typedVenues.map(venue => ({
           id: venue.id,
           name: venue.name,
           location: venue.location,
           type: 'venue' as const
-        })) || [];
+        }));
         setSuggestions(venueSuggestions);
       } else {
-        const venueSuggestions: SearchSuggestion[] = venues?.map(venue => ({
+        const venueSuggestions: SearchSuggestion[] = typedVenues.map(venue => ({
           id: venue.id,
           name: venue.name,
           location: venue.location,
           type: 'venue' as const
-        })) || [];
+        }));
 
-        // Get unique locations
-        const uniqueLocations = [...new Set(venues?.map(v => v.location) || [])];
-        const locationSuggestions: SearchSuggestion[] = uniqueLocations
-          .filter(loc => loc.toLowerCase().includes(query.toLowerCase()))
-          .map(loc => ({
-            id: `location-${loc}`,
-            name: loc,
-            location: loc,
-            type: 'location' as const
-          }));
+        // Get unique locations with proper type checking
+        const uniqueLocations = [...new Set(
+          typedVenues
+            .map(v => v.location)
+            .filter(loc => loc && loc.toLowerCase().includes(query.toLowerCase()))
+        )];
+        
+        const locationSuggestions: SearchSuggestion[] = uniqueLocations.map(loc => ({
+          id: `location-${loc}`,
+          name: loc,
+          location: loc,
+          type: 'location' as const
+        }));
 
         setSuggestions([...venueSuggestions, ...locationSuggestions]);
       }
