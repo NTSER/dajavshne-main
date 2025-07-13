@@ -205,7 +205,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
                   <SelectValue placeholder="Select a service package" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Basic Session - ${venuePrice}</SelectItem>
+                  <SelectItem value="basic">Basic Session - ${venuePrice}</SelectItem>
                   {services.map((service) => (
                     <SelectItem key={service.id} value={service.id}>
                       {service.name} - ${service.price} ({service.duration})
