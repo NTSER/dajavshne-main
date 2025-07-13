@@ -29,13 +29,27 @@ interface BookingFormProps {
   };
 }
 
-const timeSlots = [
-  "8:45AM", "9:00AM", "9:15AM", "9:45AM", "10:00AM", "10:15AM",
-  "10:45AM", "11:00AM", "11:15AM", "11:45AM", "12:15PM", "12:45PM",
-  "1:15PM", "1:45PM", "2:15PM", "2:45PM", "3:15PM", "5:45PM",
-  "6:00PM", "6:15PM", "6:45PM", "7:00PM", "7:15PM", "7:45PM",
-  "8:15PM"
+// Organized time slots in a more user-friendly format
+const availableTimeSlots = [
+  "12:45PM", "1:15PM", "1:45PM", "2:15PM", "2:45PM", "3:00PM",
+  "3:15PM", "3:45PM", "4:00PM", "4:15PM", "4:45PM", "5:00PM",
+  "5:15PM", "5:45PM", "6:00PM", "6:15PM", "6:45PM", "7:00PM",
+  "7:15PM", "7:45PM", "8:15PM"
 ];
+
+// Mock unavailable times - in a real app, this would come from your backend
+const getUnavailableSlots = (date: Date | undefined) => {
+  if (!date) return [];
+  
+  // Mock logic: some slots are unavailable on weekends
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  if (isWeekend) {
+    return ["12:45PM", "1:15PM", "7:45PM", "8:15PM"];
+  }
+  
+  // Mock some random unavailable slots for weekdays
+  return ["2:15PM", "4:00PM", "6:15PM"];
+};
 
 const BookingForm = ({ venue, service }: BookingFormProps) => {
   const { user } = useAuth();
@@ -53,6 +67,7 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
 
   const basePrice = service ? service.price : venue.price;
   const totalPrice = basePrice * formData.guests;
+  const unavailableSlots = getUnavailableSlots(formData.date);
 
   const handleGuestChange = (increment: boolean) => {
     setFormData(prev => ({
@@ -62,6 +77,8 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
   };
 
   const handleTimeSelect = (time: string) => {
+    if (unavailableSlots.includes(time)) return; // Prevent selection of unavailable slots
+    
     setFormData(prev => ({
       ...prev,
       time
@@ -208,7 +225,9 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
                     <Calendar
                       mode="single"
                       selected={formData.date}
-                      onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
+                      onSelect={(date) => {
+                        setFormData(prev => ({ ...prev, date, time: '' })); // Reset time when date changes
+                      }}
                       disabled={(date) => date < new Date()}
                       initialFocus
                       className="pointer-events-auto"
@@ -234,21 +253,37 @@ const BookingForm = ({ venue, service }: BookingFormProps) => {
 
               {/* Time Slots */}
               {formData.date && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <Label className="text-sm font-medium">Available times</Label>
                   <div className="grid grid-cols-3 gap-2">
-                    {timeSlots.map((time) => (
-                      <Button
-                        key={time}
-                        variant={formData.time === time ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handleTimeSelect(time)}
-                        className="text-xs"
-                      >
-                        {time}
-                      </Button>
-                    ))}
+                    {availableTimeSlots.map((time) => {
+                      const isUnavailable = unavailableSlots.includes(time);
+                      const isSelected = formData.time === time;
+                      
+                      return (
+                        <Button
+                          key={time}
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleTimeSelect(time)}
+                          disabled={isUnavailable}
+                          className={cn(
+                            "text-xs h-10",
+                            isUnavailable && "opacity-30 cursor-not-allowed",
+                            isSelected && "bg-primary text-primary-foreground"
+                          )}
+                        >
+                          {time}
+                        </Button>
+                      );
+                    })}
                   </div>
+                  
+                  {unavailableSlots.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Grayed out times are unavailable for the selected date
+                    </p>
+                  )}
                 </div>
               )}
 
