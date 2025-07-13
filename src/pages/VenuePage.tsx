@@ -16,7 +16,9 @@ import {
   MapPin, 
   Wifi, 
   Car, 
-  ArrowLeft 
+  ArrowLeft,
+  Share,
+  Heart
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
@@ -71,138 +73,211 @@ const VenuePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+    <div className="min-h-screen bg-white">
+      {/* Header Navigation */}
+      <div className="sticky top-0 z-10 bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to venues
           </Link>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Image Gallery */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <Carousel className="w-full max-w-5xl mx-auto">
-            <CarouselContent>
-              {venue.images?.map((image, index) => (
-                <CarouselItem key={index}>
-                  <div className="aspect-[16/9] relative overflow-hidden rounded-xl">
-                    <img
-                      src={image}
-                      alt={`${venue.name} - Image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </CarouselItem>
-              )) || (
-                <CarouselItem>
-                  <div className="aspect-[16/9] bg-muted rounded-xl flex items-center justify-center">
-                    <span className="text-muted-foreground">No images available</span>
-                  </div>
-                </CarouselItem>
-              )}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </motion.div>
-
-        {/* Main Content Layout - Airbnb Style */}
-        <div className="flex flex-col lg:flex-row gap-8 relative">
-          {/* Left Column - Scrollable Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex-1 lg:max-w-2xl space-y-8"
-          >
-            {/* Header */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
-                  {venue.category}
-                </Badge>
-              </div>
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* Main Layout - Airbnb Style */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-screen overflow-hidden">
+          
+          {/* Left Side - Stationary Content */}
+          <div className="lg:col-span-7 overflow-hidden">
+            <div className="h-full overflow-y-auto pr-4 space-y-8">
               
-              <h1 className="text-3xl lg:text-4xl font-bold mb-4">{venue.name}</h1>
-              
-              <div className="flex items-center gap-6 text-muted-foreground mb-4">
-                <div className="flex items-center gap-1">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{venue.rating}</span>
-                  <span>({venue.review_count} reviews)</span>
+              {/* Title and Actions */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-semibold text-gray-900 mb-2">{venue.name}</h1>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-black text-black" />
+                      <span className="font-medium">{venue.rating}</span>
+                      <span>·</span>
+                      <span className="underline">{venue.review_count} reviews</span>
+                    </div>
+                    <span>·</span>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span className="underline">{venue.location}</span>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-5 w-5" />
-                  <span>{venue.location}</span>
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <Share className="h-4 w-4" />
+                    Share
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Save
+                  </Button>
                 </div>
               </div>
-            </div>
 
-            {/* Description */}
-            <div className="border-b pb-8">
-              <h2 className="text-xl font-semibold mb-4">About this venue</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                {venue.description || "Experience premium gaming in a state-of-the-art facility designed for both casual and competitive gaming."}
-              </p>
-            </div>
+              {/* Image Gallery */}
+              <div className="rounded-xl overflow-hidden">
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {venue.images?.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <div className="aspect-[16/10] relative overflow-hidden">
+                          <img
+                            src={image}
+                            alt={`${venue.name} - Image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </CarouselItem>
+                    )) || (
+                      <CarouselItem>
+                        <div className="aspect-[16/10] bg-gray-200 rounded-xl flex items-center justify-center">
+                          <span className="text-gray-500">No images available</span>
+                        </div>
+                      </CarouselItem>
+                    )}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-4" />
+                  <CarouselNext className="right-4" />
+                </Carousel>
+              </div>
 
-            {/* Amenities */}
-            {venue.amenities && venue.amenities.length > 0 && (
-              <div className="border-b pb-8">
-                <h2 className="text-xl font-semibold mb-4">What this place offers</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {venue.amenities.map((amenity) => {
-                    const IconComponent = amenityIcons[amenity];
-                    return (
-                      <div key={amenity} className="flex items-center gap-3 py-2">
-                        {IconComponent && <IconComponent className="h-5 w-5 text-muted-foreground" />}
-                        <span>{amenity}</span>
+              {/* Host Info */}
+              <div className="flex items-center gap-4 py-6 border-b">
+                <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">H</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Hosted by Venue Manager</h3>
+                  <p className="text-sm text-gray-600">Superhost · 2 years hosting</p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="py-6 border-b">
+                <p className="text-gray-700 leading-relaxed text-base">
+                  {venue.description || "Experience premium gaming in a state-of-the-art facility designed for both casual and competitive gaming. Our venue offers cutting-edge equipment and an atmosphere perfect for tournaments and casual gaming sessions."}
+                </p>
+              </div>
+
+              {/* Amenities */}
+              {venue.amenities && venue.amenities.length > 0 && (
+                <div className="py-6 border-b">
+                  <h2 className="text-xl font-semibold mb-6 text-gray-900">What this place offers</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {venue.amenities.map((amenity) => {
+                      const IconComponent = amenityIcons[amenity];
+                      return (
+                        <div key={amenity} className="flex items-center gap-4 py-3">
+                          {IconComponent && <IconComponent className="h-6 w-6 text-gray-600" />}
+                          <span className="text-gray-700">{amenity}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews Section */}
+              <div className="py-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <Star className="h-5 w-5 fill-black text-black" />
+                  <span className="text-xl font-semibold">{venue.rating} · {venue.review_count} reviews</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[1, 2, 3, 4].map((review) => (
+                    <div key={review} className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span className="text-sm font-medium">U</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">User {review}</p>
+                          <p className="text-sm text-gray-600">January 2024</p>
+                        </div>
                       </div>
-                    );
-                  })}
+                      <p className="text-gray-700 text-sm">
+                        Great venue with excellent facilities. The gaming setup is top-notch and the atmosphere is perfect for competitive gaming.
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
+            </div>
+          </div>
 
-            {/* Services */}
-            {!servicesLoading && services && services.length > 0 && (
-              <div className="border-b pb-8">
-                <VenueServices
-                  services={services}
-                  onServiceSelect={setSelectedService}
-                  selectedService={selectedService}
+          {/* Right Side - Scrollable Services/Booking */}
+          <div className="lg:col-span-5">
+            <div className="h-full overflow-y-auto pl-4 space-y-6">
+              
+              {/* Price and Basic Info */}
+              <div className="bg-white border rounded-xl p-6 shadow-lg sticky top-0 z-10">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-2xl font-semibold">${venue.price}</span>
+                  <span className="text-gray-600">per hour</span>
+                </div>
+                
+                <BookingForm 
+                  venue={venue} 
+                  service={selectedService}
                 />
               </div>
-            )}
 
-            {/* Additional spacing for mobile */}
-            <div className="lg:hidden h-20" />
-          </motion.div>
+              {/* Services List */}
+              {!servicesLoading && services && services.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Available Services</h3>
+                  <div className="space-y-4">
+                    {services.map((service) => (
+                      <Card 
+                        key={service.id}
+                        className={`cursor-pointer transition-all border hover:border-gray-300 ${
+                          selectedService?.id === service.id 
+                            ? 'border-black shadow-md' 
+                            : 'border-gray-200'
+                        }`}
+                        onClick={() => setSelectedService(service)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{service.name}</h4>
+                              <p className="text-sm text-gray-600">{service.duration} · ${service.price}/hour</p>
+                            </div>
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                              ${service.price}
+                            </Badge>
+                          </div>
+                          {service.description && (
+                            <p className="text-sm text-gray-600 mb-3">
+                              {service.description}
+                            </p>
+                          )}
+                          <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Right Column - Sticky Booking Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="lg:w-96 lg:sticky lg:top-24 lg:self-start"
-          >
-            <div className="lg:shadow-lg lg:border lg:rounded-xl lg:p-6 bg-background">
-              <BookingForm 
-                venue={venue} 
-                service={selectedService}
-              />
+              {/* Additional Info */}
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  You can message the host to customize or make changes.
+                </p>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>
