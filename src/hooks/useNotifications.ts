@@ -1,12 +1,13 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface Notification {
   id: string;
   user_id: string;
   booking_id: string;
-  type: 'booking_confirmation' | '2_hours_before' | '1_hour_before' | '10_minutes_before';
+  type: 'booking_confirmation' | '2_hours_before' | '1_hour_before' | '10_minutes_before' | 'friend_request' | 'lobby_invitation';
   title: string;
   message: string;
   read: boolean;
@@ -15,12 +16,17 @@ export interface Notification {
 }
 
 export const useNotifications = () => {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications', user?.id],
     queryFn: async () => {
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -29,6 +35,7 @@ export const useNotifications = () => {
 
       return data as Notification[];
     },
+    enabled: !!user,
   });
 };
 

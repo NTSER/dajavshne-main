@@ -28,8 +28,16 @@ const NotificationBell = () => {
     // Mark as read first
     markAsRead.mutate(notification.id);
     
-    // If it's a reminder notification, redirect to venue page
-    if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
+    // Handle different notification types
+    if (notification.type === 'friend_request') {
+      // Redirect to profile page to see friend requests
+      navigate('/');
+      // You could also open a specific friends dialog here
+    } else if (notification.type === 'lobby_invitation') {
+      // Redirect to lobbies section 
+      navigate('/');
+      // You could also open a specific lobby dialog here
+    } else if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
       try {
         // Fetch the booking to get venue_id
         const { data: booking, error } = await supabase
@@ -117,6 +125,16 @@ const NotificationBell = () => {
                   {(notification.type.includes('before') || notification.type === 'booking_confirmation') && (
                     <p className="text-xs text-primary font-medium">
                       Click to view venue →
+                    </p>
+                  )}
+                  {notification.type === 'friend_request' && (
+                    <p className="text-xs text-primary font-medium">
+                      Click to view friend requests →
+                    </p>
+                  )}
+                  {notification.type === 'lobby_invitation' && (
+                    <p className="text-xs text-primary font-medium">
+                      Click to view lobby invitation →
                     </p>
                   )}
                 </div>

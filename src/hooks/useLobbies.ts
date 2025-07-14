@@ -38,16 +38,47 @@ export const useLobbies = () => {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      // Get lobbies where user is creator
+      const { data: createdLobbies, error: createdError } = await supabase
         .from('lobbies')
         .select('*')
-        .or(`creator_id.eq.${user.id},id.in.(SELECT lobby_id FROM lobby_members WHERE user_id = '${user.id}')`)
+        .eq('creator_id', user.id)
         .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching lobbies:', error);
-        throw error;
+      if (createdError) {
+        console.error('Error fetching created lobbies:', createdError);
+        throw createdError;
       }
+
+      // Get lobbies where user is a member
+      const { data: memberLobbies, error: memberError } = await supabase
+        .from('lobby_members')
+        .select(`
+          lobby_id,
+          lobbies (*)
+        `)
+        .eq('user_id', user.id)
+        .order('invited_at', { ascending: false });
+
+      if (memberError) {
+        console.error('Error fetching member lobbies:', memberError);
+        throw memberError;
+      }
+
+      // Combine and deduplicate lobbies
+      const allLobbies = [
+        ...(createdLobbies || []),
+        ...(memberLobbies?.map(m => m.lobbies).filter(Boolean) || [])
+      ];
+
+      // Remove duplicates based on ID
+      const uniqueLobbies = allLobbies.filter((lobby, index, arr) => 
+        arr.findIndex(l => l.id === lobby.id) === index
+      );
+
+      const data = uniqueLobbies.sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
 
       if (!data || data.length === 0) {
         return [];
@@ -55,14 +86,14 @@ export const useLobbies = () => {
 
       // Get member counts for each lobby
       const lobbyIds = data.map(lobby => lobby.id);
-      const { data: memberCounts, error: memberError } = await supabase
+      const { data: memberCounts, error: memberCountError } = await supabase
         .from('lobby_members')
         .select('lobby_id, status')
         .in('lobby_id', lobbyIds);
 
-      if (memberError) {
-        console.error('Error fetching member counts:', memberError);
-        throw memberError;
+      if (memberCountError) {
+        console.error('Error fetching member counts:', memberCountError);
+        throw memberCountError;
       }
 
       // Transform data to include member counts

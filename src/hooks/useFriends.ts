@@ -212,6 +212,30 @@ export const useSendFriendRequest = () => {
         console.error('Error sending friend request:', error);
         throw error;
       }
+
+      // Get sender profile for notification
+      const { data: senderProfile, error: senderProfileError } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (senderProfileError) {
+        console.error('Error fetching sender profile:', senderProfileError);
+      }
+
+      const senderName = senderProfile?.full_name || user.email || 'Someone';
+
+      // Create website notification for the receiver
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: receiverProfile.id,
+          booking_id: receiverProfile.id, // Using booking_id to store friend_id for consistency
+          type: 'friend_request',
+          title: 'Friend Request',
+          message: `${senderName} sent you a friend request`,
+        });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
