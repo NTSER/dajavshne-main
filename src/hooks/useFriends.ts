@@ -303,18 +303,45 @@ export const useRemoveFriend = () => {
     mutationFn: async (friendshipId: string) => {
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      // First, get the friendship details to know which users are involved
+      const { data: friendship, error: friendshipError } = await supabase
+        .from('friends')
+        .select('user1_id, user2_id')
+        .eq('id', friendshipId)
+        .single();
+
+      if (friendshipError) {
+        console.error('Error fetching friendship:', friendshipError);
+        throw friendshipError;
+      }
+
+      const otherUserId = friendship.user1_id === user.id ? friendship.user2_id : friendship.user1_id;
+
+      // Delete the friendship
+      const { error: deleteError } = await supabase
         .from('friends')
         .delete()
         .eq('id', friendshipId);
 
-      if (error) {
-        console.error('Error removing friend:', error);
-        throw error;
+      if (deleteError) {
+        console.error('Error removing friend:', deleteError);
+        throw deleteError;
+      }
+
+      // Clean up any related friend requests between these users
+      const { error: requestError } = await supabase
+        .from('friend_requests')
+        .delete()
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${user.id})`);
+
+      if (requestError) {
+        console.error('Error cleaning up friend requests:', requestError);
+        // Don't throw here as the main friendship deletion succeeded
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
       toast({
         title: "Friend removed",
         description: "Friend has been removed from your friends list.",
