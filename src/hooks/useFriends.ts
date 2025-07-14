@@ -190,14 +190,11 @@ export const useSendFriendRequest = () => {
         .from('friend_requests')
         .select('id, status')
         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverProfile.id}),and(sender_id.eq.${receiverProfile.id},receiver_id.eq.${user.id})`)
+        .eq('status', 'pending')
         .maybeSingle();
 
       if (existingRequest) {
-        if (existingRequest.status === 'pending') {
-          throw new Error('Friend request is already pending');
-        } else {
-          throw new Error('Friend request already exists');
-        }
+        throw new Error('Friend request is already pending');
       }
 
       // Send the friend request
