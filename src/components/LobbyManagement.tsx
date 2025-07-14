@@ -80,8 +80,20 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
       const { data: invitationData, error } = await supabase
         .from('lobby_members')
         .select(`
-          *,
-          lobbies (*)
+          id,
+          lobby_id,
+          user_id,
+          status,
+          invited_at,
+          responded_at,
+          lobbies (
+            id,
+            name,
+            creator_id,
+            venue_id,
+            created_at,
+            updated_at
+          )
         `)
         .eq('user_id', user.id)
         .eq('status', 'invited');
