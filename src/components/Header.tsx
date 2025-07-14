@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, Heart, History } from "lucide-react";
+import { Menu, X, User, LogOut, Heart, History, Users, GamepadIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "./AuthDialog";
 import NotificationBell from "./NotificationBell";
@@ -72,6 +72,22 @@ const Header = () => {
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <User className="h-4 w-4" />
                           Edit Profile
+                        </button>
+                      </ProfileDialog>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <ProfileDialog>
+                        <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
+                          <Users className="h-4 w-4" />
+                          Friends
+                        </button>
+                      </ProfileDialog>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <ProfileDialog>
+                        <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
+                          <GamepadIcon className="h-4 w-4" />
+                          Create Lobby
                         </button>
                       </ProfileDialog>
                     </DropdownMenuItem>
