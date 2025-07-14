@@ -193,7 +193,12 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mt-16"
           >
-            <Button variant="outline" size="lg" className="group">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="group"
+              onClick={() => window.location.href = '/search'}
+            >
               View All Venues
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>

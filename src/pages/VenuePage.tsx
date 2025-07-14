@@ -23,6 +23,7 @@ import { Link } from "react-router-dom";
 import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import VenueServices from "@/components/VenueServices";
+import VenueMap from "@/components/VenueMap";
 import { useState } from "react";
 
 const VenuePage = () => {
@@ -270,6 +271,9 @@ const VenuePage = () => {
                   </div>
                 </div>
               )}
+
+              {/* Venue Location Map */}
+              <VenueMap location={venue.location} venueName={venue.name} />
 
               {/* Additional Info */}
               <div className="space-y-4">

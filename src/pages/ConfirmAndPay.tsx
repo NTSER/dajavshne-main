@@ -8,10 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useVenue } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 import AuthDialog from "@/components/AuthDialog";
 
 interface BookingData {
   venueId: string;
+  venueName: string;
   serviceId?: string;
   date: string;
   time: string;
@@ -20,13 +22,19 @@ interface BookingData {
   totalPrice: number;
 }
 
+interface LocationState {
+  bookingData: BookingData;
+  requiresAuth?: boolean;
+}
+
 const ConfirmAndPay = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const bookingData = location.state as BookingData;
+  const locationState = location.state as LocationState;
+  const bookingData = locationState?.bookingData;
   
   const { data: venue } = useVenue(bookingData?.venueId);
   
@@ -50,9 +58,9 @@ const ConfirmAndPay = () => {
     );
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!user && currentStep === 1) {
-      // For non-authenticated users, we'll show a message instead of opening a dialog
+      // Show auth dialog requirement
       toast({
         title: "Authentication Required",
         description: "Please sign in to continue with your booking.",
@@ -63,19 +71,78 @@ const ConfirmAndPay = () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Simulate payment processing
-      toast({
-        title: "Payment Processing",
-        description: "Your booking is being processed...",
-      });
-      
-      setTimeout(() => {
+      // Process the actual booking when user confirms payment
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to complete your booking.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        toast({
+          title: "Processing booking...",
+          description: "Creating your booking and processing payment...",
+        });
+
+        // Create the booking in the database
+        const { data: booking, error: bookingError } = await supabase
+          .from('bookings')
+          .insert({
+            user_id: user.id,
+            user_email: user.email,
+            venue_id: bookingData.venueId,
+            service_id: bookingData.serviceId || null,
+            booking_date: bookingData.date,
+            booking_time: bookingData.time,
+            guest_count: bookingData.guests,
+            total_price: bookingData.totalPrice,
+            special_requests: bookingData.specialRequests || null,
+            status: 'confirmed'
+          })
+          .select()
+          .single();
+
+        if (bookingError) {
+          throw bookingError;
+        }
+
+        // Try to send notifications (but don't fail if this fails)
+        try {
+          await supabase.functions.invoke('booking-notifications', {
+            body: {
+              bookingId: booking.id,
+              userId: user.id,
+              userEmail: user.email,
+              venueName: bookingData.venueName,
+              bookingDate: bookingData.date,
+              bookingTime: bookingData.time,
+            },
+          });
+        } catch (notifError) {
+          console.error("Notification error:", notifError);
+          // Don't fail the booking for notification errors
+        }
+
         toast({
           title: "Booking Confirmed!",
           description: "Your gaming session has been booked successfully.",
         });
-        navigate('/');
-      }, 2000);
+        
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+        
+      } catch (error: any) {
+        console.error("Booking error:", error);
+        toast({
+          title: "Booking Failed",
+          description: error.message || "Failed to create booking. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -126,24 +193,31 @@ const ConfirmAndPay = () => {
                       )}
                     </div>
                   </div>
-                  {currentStep === 1 && (
-                    <>
-                      {user ? (
-                        <Button 
-                          onClick={handleContinue}
-                          className="pulse-glow"
-                        >
-                          Continue
-                        </Button>
-                      ) : (
-                        <AuthDialog defaultMode="signin">
-                          <Button className="pulse-glow">
-                            Log in
-                          </Button>
-                        </AuthDialog>
-                      )}
-                    </>
-                  )}
+                   {currentStep === 1 && (
+                     <>
+                       {user ? (
+                         <Button 
+                           onClick={handleContinue}
+                           className="pulse-glow"
+                         >
+                           Continue
+                         </Button>
+                       ) : (
+                         <div className="flex gap-2">
+                           <AuthDialog defaultMode="signin">
+                             <Button className="pulse-glow">
+                               Log in
+                             </Button>
+                           </AuthDialog>
+                           <AuthDialog defaultMode="signup">
+                             <Button variant="outline">
+                               Sign up
+                             </Button>
+                           </AuthDialog>
+                         </div>
+                       )}
+                     </>
+                   )}
                 </div>
               </CardContent>
             </Card>

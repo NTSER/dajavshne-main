@@ -45,101 +45,36 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to make a booking.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Instead of requiring auth upfront, proceed to payment step
+    // where authentication will be handled
+    const bookingData = {
+      venueId,
+      venueName,
+      date: formData.date,
+      time: formData.time,
+      guests: formData.guests,
+      serviceId: formData.serviceId,
+      totalPrice,
+      specialRequests: formData.specialRequests,
+    };
 
-    setIsSubmitting(true);
-    
-    try {
-      // Create the booking
-      const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: user.id,
-          user_email: user.email,
-          venue_id: venueId,
-          service_id: formData.serviceId || null,
-          booking_date: formData.date,
-          booking_time: formData.time,
-          guest_count: formData.guests,
-          total_price: totalPrice,
-          special_requests: formData.specialRequests || null,
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (bookingError) {
-        throw bookingError;
-      }
-
-      // Call the booking notifications edge function
-      const { error: notificationError } = await supabase.functions.invoke('booking-notifications', {
-        body: {
-          bookingId: booking.id,
-          userId: user.id,
-          userEmail: user.email,
-          venueName: venueName,
-          bookingDate: formData.date,
-          bookingTime: formData.time,
-        },
-      });
-
-      if (notificationError) {
-        console.error("Error creating notifications:", notificationError);
-        // Don't fail the booking if notifications fail
-      }
-
-      // Navigate to confirmation page
-      navigate("/confirm-and-pay", {
-        state: {
-          booking: {
-            ...booking,
-            venue_name: venueName,
-            service_name: selectedService?.name,
-          }
-        }
-      });
-
-      toast({
-        title: "Booking submitted!",
-        description: "Your booking has been created successfully.",
-      });
-    } catch (error: any) {
-      console.error("Booking error:", error);
-      toast({
-        title: "Booking failed",
-        description: error.message || "There was an error creating your booking. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Navigate to payment page with booking data
+    navigate('/confirm-and-pay', { 
+      state: { 
+        bookingData,
+        requiresAuth: !user // Flag to show auth dialog on payment page
+      } 
+    });
   };
 
-  if (!user) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Sign In Required</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-4">
-            Please sign in to make a booking.
-          </p>
-          <AuthDialog>
-            <Button className="w-full">Sign In</Button>
-          </AuthDialog>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleAuthRequired = () => {
+    // This is now just for showing auth dialog if user wants to login early
+    toast({
+      title: "Login Optional",
+      description: "You can complete the booking and login at the payment step.",
+    });
+  };
+
 
   return (
     <Card>
