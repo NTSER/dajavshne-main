@@ -201,18 +201,26 @@ export const useSendFriendRequest = () => {
         
         // Clean up any old non-pending requests
         const oldRequestIds = existingRequests.map(req => req.id);
-        await supabase
+        const { error: cleanupError } = await supabase
           .from('friend_requests')
           .delete()
           .in('id', oldRequestIds);
+          
+        if (cleanupError) {
+          console.error('Error cleaning up old requests:', cleanupError);
+        }
       }
 
-      // Send the friend request
+      // Try to send the friend request with upsert to handle any remaining conflicts
       const { error } = await supabase
         .from('friend_requests')
-        .insert({
+        .upsert({
           sender_id: user.id,
           receiver_id: receiverProfile.id,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }, {
+          onConflict: 'sender_id,receiver_id'
         });
 
       if (error) {
