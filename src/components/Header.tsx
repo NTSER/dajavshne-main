@@ -76,12 +76,10 @@ const Header = () => {
                       </ProfileDialog>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <ProfileDialog>
-                        <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
-                          <History className="h-4 w-4" />
-                          Booking History
-                        </button>
-                      </ProfileDialog>
+                      <Link to="/booking-history" className="flex items-center gap-2">
+                        <History className="h-4 w-4" />
+                        Booking History
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/favorites" className="flex items-center gap-2">
@@ -153,12 +151,12 @@ const Header = () => {
                         Edit Profile
                       </Button>
                     </ProfileDialog>
-                    <ProfileDialog>
-                      <Button variant="ghost" className="justify-start">
+                    <Link to="/booking-history">
+                      <Button variant="ghost" className="justify-start w-full">
                         <History className="h-4 w-4 mr-2" />
                         Booking History
                       </Button>
-                    </ProfileDialog>
+                    </Link>
                     <Button
                       variant="ghost"
                       onClick={handleSignOut}

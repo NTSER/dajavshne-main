@@ -115,15 +115,20 @@ const BookingHistory = () => {
 
             <div className="mt-3 flex gap-2">
               <Button 
-                variant="outline" 
+                variant="default" 
                 size="sm"
                 onClick={() => navigate(`/venue/${booking.venue_id}`)}
+                className="flex-1"
               >
-                View Venue
+                Book Again
               </Button>
               {booking.status === 'confirmed' && (
-                <Button variant="outline" size="sm">
-                  Modify Booking
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(`/venue/${booking.venue_id}`)}
+                >
+                  View Venue
                 </Button>
               )}
             </div>

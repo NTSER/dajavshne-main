@@ -14,6 +14,7 @@ const VenuePage = lazy(() => import("./pages/VenuePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const ConfirmAndPay = lazy(() => import("./pages/ConfirmAndPay"));
 const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const BookingHistoryPage = lazy(() => import("./pages/BookingHistoryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
+                <Route path="/booking-history" element={<BookingHistoryPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
