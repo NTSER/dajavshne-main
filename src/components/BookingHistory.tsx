@@ -61,80 +61,103 @@ const BookingHistory = () => {
   };
 
   return (
-    <div className="space-y-4 max-h-96 overflow-y-auto">
+    <div className="space-y-4">
       <h3 className="text-lg font-semibold">Your Bookings</h3>
-      {bookings.map((booking) => (
-        <Card key={booking.id} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <h4 className="font-semibold text-foreground">
-                  {booking.venues?.name || 'Venue'}
-                </h4>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  {booking.venues?.location}
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {bookings.map((booking) => (
+          <Card key={booking.id} className="hover:shadow-lg transition-all duration-300 hover-scale overflow-hidden">
+            <div className="relative">
+              {/* Venue Image */}
+              <div className="aspect-[16/9] overflow-hidden">
+                <img
+                  src={booking.venues?.images?.[0] || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800'}
+                  alt={booking.venues?.name || 'Venue'}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className={getStatusColor(booking.status)}>
-                  {booking.status}
-                </Badge>
+              
+              {/* Status Badge */}
+              <Badge className={`absolute top-3 right-3 ${getStatusColor(booking.status)} shadow-md`}>
+                {booking.status}
+              </Badge>
+            </div>
+
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground text-lg mb-1">
+                    {booking.venues?.name || 'Venue'}
+                  </h4>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                    <MapPin className="w-3 h-3" />
+                    {booking.venues?.location}
+                  </div>
+                </div>
                 <div className="text-right">
-                  <div className="font-semibold text-primary">${booking.total_price}</div>
+                  <div className="font-bold text-primary text-xl">${booking.total_price}</div>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                <span>{formatDate(booking.booking_date)}</span>
+              <div className="grid grid-cols-3 gap-4 text-sm mb-4">
+                <div className="flex items-center gap-1">
+                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">{formatDate(booking.booking_date)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">{booking.booking_time}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span>{booking.booking_time}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span>{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</span>
-              </div>
-            </div>
 
-            {booking.venue_services && (
-              <div className="mt-2 text-sm text-muted-foreground">
-                Service: {booking.venue_services.name} ({booking.venue_services.duration})
-              </div>
-            )}
+              {booking.venue_services && (
+                <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="text-sm font-medium text-foreground">
+                    Service: {booking.venue_services.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Duration: {booking.venue_services.duration}
+                  </div>
+                </div>
+              )}
 
-            {booking.special_requests && (
-              <div className="mt-2 text-sm text-muted-foreground">
-                Special requests: {booking.special_requests}
-              </div>
-            )}
+              {booking.special_requests && (
+                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                    Special Requests:
+                  </div>
+                  <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                    {booking.special_requests}
+                  </div>
+                </div>
+              )}
 
-            <div className="mt-3 flex gap-2">
-              <Button 
-                variant="default" 
-                size="sm"
-                onClick={() => navigate(`/venue/${booking.venue_id}`)}
-                className="flex-1"
-              >
-                Book Again
-              </Button>
-              {booking.status === 'confirmed' && (
+              <div className="flex gap-2">
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="sm"
                   onClick={() => navigate(`/venue/${booking.venue_id}`)}
+                  className="flex-1 bg-primary hover:bg-primary/90"
                 >
-                  View Venue
+                  Book Again
                 </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                {booking.status === 'confirmed' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate(`/venue/${booking.venue_id}`)}
+                  >
+                    View Details
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
