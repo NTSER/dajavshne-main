@@ -185,26 +185,28 @@ export const useSendFriendRequest = () => {
         throw new Error('You are already friends with this user');
       }
 
-      // First, clean up any existing requests between these users
+      // First, clean up any existing requests sent by current user to the target
       const { error: cleanupError } = await supabase
         .from('friend_requests')
         .delete()
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverProfile.id}),and(sender_id.eq.${receiverProfile.id},receiver_id.eq.${user.id})`);
+        .eq('sender_id', user.id)
+        .eq('receiver_id', receiverProfile.id);
 
       if (cleanupError) {
         console.log('Cleanup completed (or no records to clean):', cleanupError);
       }
 
-      // Check if there's still a pending request after cleanup
-      const { data: stillPendingRequest } = await supabase
+      // Check if there's a pending request from the other user to us
+      const { data: incomingRequest } = await supabase
         .from('friend_requests')
         .select('id, status')
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverProfile.id}),and(sender_id.eq.${receiverProfile.id},receiver_id.eq.${user.id})`)
+        .eq('sender_id', receiverProfile.id)
+        .eq('receiver_id', user.id)
         .eq('status', 'pending')
         .maybeSingle();
 
-      if (stillPendingRequest) {
-        throw new Error('Friend request is already pending');
+      if (incomingRequest) {
+        throw new Error('This user has already sent you a friend request. Check your Requests tab.');
       }
 
       // Send the friend request
