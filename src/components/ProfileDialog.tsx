@@ -12,9 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Mail, Lock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Mail, Lock, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import BookingHistory from "@/components/BookingHistory";
 
 interface ProfileDialogProps {
   children: React.ReactNode;
@@ -100,73 +102,93 @@ const ProfileDialog = ({ children }: ProfileDialogProps) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Edit Profile
+            Profile
           </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input
-              id="full_name"
-              value={formData.full_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-              placeholder="Enter your full name"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="Enter your email"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password" className="flex items-center gap-2">
-              <Lock className="h-4 w-4" />
-              New Password (optional)
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              placeholder="Enter new password"
-            />
-          </div>
-          {formData.password && (
-            <div className="grid gap-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                placeholder="Confirm new password"
-              />
+        
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Edit Profile
+            </TabsTrigger>
+            <TabsTrigger value="bookings" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Booking History
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile" className="space-y-4 mt-4">
+            <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
+              <div className="grid gap-2">
+                <Label htmlFor="full_name">Full Name</Label>
+                <Input
+                  id="full_name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  New Password (optional)
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter new password"
+                />
+              </div>
+              {formData.password && (
+                <div className="grid gap-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Confirm new password"
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleUpdateProfile}
-            disabled={updateProfile.isPending}
-          >
-            {updateProfile.isPending ? "Updating..." : "Update Profile"}
-          </Button>
-        </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateProfile}
+                disabled={updateProfile.isPending}
+              >
+                {updateProfile.isPending ? "Updating..." : "Update Profile"}
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="bookings" className="mt-4">
+            <BookingHistory />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

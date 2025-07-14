@@ -7,7 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Clock, Users, MessageSquare } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarDays, Clock, Users, MessageSquare, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -31,7 +35,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    date: "",
+    date: undefined as Date | undefined,
     time: "",
     guests: 1,
     serviceId: "",
@@ -50,7 +54,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
     const bookingData = {
       venueId,
       venueName,
-      date: formData.date,
+      date: formData.date ? format(formData.date, 'yyyy-MM-dd') : "",
       time: formData.time,
       guests: formData.guests,
       serviceId: formData.serviceId,
@@ -85,18 +89,34 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="date" className="flex items-center gap-2">
+              <Label className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
                 Date
               </Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                min={new Date().toISOString().split('T')[0]}
-                required
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.date ? format(formData.date, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.date}
+                    onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label htmlFor="time" className="flex items-center gap-2">
