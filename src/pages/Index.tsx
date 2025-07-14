@@ -53,12 +53,13 @@ const Index = () => {
 
             {/* Enhanced CTA buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Button size="lg" className="group">
+              <Button 
+                size="lg" 
+                className="group"
+                onClick={() => window.location.href = '/search'}
+              >
                 Explore Venues
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="outline" size="lg">
-                Watch Demo
               </Button>
             </div>
 
