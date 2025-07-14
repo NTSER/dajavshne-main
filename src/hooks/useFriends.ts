@@ -154,11 +154,19 @@ export const useSendFriendRequest = () => {
       // First, find the user by email
       const { data: receiverProfile, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, email')
         .eq('email', receiverEmail.trim().toLowerCase())
-        .single();
+        .maybeSingle();
 
-      if (profileError || !receiverProfile) {
+      console.log('Looking for user with email:', receiverEmail.trim().toLowerCase());
+      console.log('Profile search result:', receiverProfile, profileError);
+
+      if (profileError) {
+        console.error('Database error when searching for profile:', profileError);
+        throw new Error('Database error occurred while searching for user');
+      }
+
+      if (!receiverProfile) {
         throw new Error('User not found with that email address');
       }
 
