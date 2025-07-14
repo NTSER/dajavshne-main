@@ -43,6 +43,7 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
   const [lobbyName, setLobbyName] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [selectedLobbyId, setSelectedLobbyId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("my-lobbies");
   const { user } = useAuth();
   
   const { data: lobbies = [], isLoading: lobbiesLoading } = useLobbies();
@@ -157,7 +158,7 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="my-lobbies" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="my-lobbies">
                 My Lobbies ({lobbies.filter(l => l.creator_id === user?.id).length})
@@ -255,8 +256,12 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setSelectedLobbyId(null)}
+                            onClick={() => {
+                              // Switch to create lobby tab to invite friends
+                              setActiveTab("create-lobby");
+                            }}
                           >
+                            <Send className="h-4 w-4 mr-1" />
                             Invite Friends
                           </Button>
                         </div>
@@ -285,7 +290,10 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
 
                       {/* Members */}
                       {selectedLobby.members?.map((member) => (
-                        <div key={member.id} className="flex items-center justify-between p-2 rounded-lg border">
+                        <div 
+                          key={member.id} 
+                          className="group flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors"
+                        >
                           <div className="flex items-center space-x-3">
                             <Avatar>
                               <AvatarImage src={member.profile?.avatar_url} />
@@ -313,6 +321,7 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleRemoveMember(selectedLobby.id, member.user_id)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                               >
                                 <UserMinus className="h-4 w-4" />
                               </Button>

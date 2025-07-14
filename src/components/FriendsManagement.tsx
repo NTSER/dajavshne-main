@@ -7,15 +7,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  UserPlus, 
   Users, 
-  Mail, 
+  UserPlus, 
+  UserMinus, 
   Check, 
   X, 
-  Trash2, 
-  Clock,
-  Send
+  Send,
+  GamepadIcon,
+  Mail,
+  Trash2,
+  Clock
 } from "lucide-react";
 import { 
   useFriends, 
@@ -24,18 +28,27 @@ import {
   useRespondToFriendRequest, 
   useRemoveFriend 
 } from "@/hooks/useFriends";
+import { useLobbies, useInviteToLobby } from "@/hooks/useLobbies";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 
 const FriendsManagement = () => {
   const [friendEmail, setFriendEmail] = useState("");
-  const { user } = useAuth();
+  const [selectedLobbyForInvite, setSelectedLobbyForInvite] = useState<string>("");
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [friendToInvite, setFriendToInvite] = useState<string>("");
   
+  const { user } = useAuth();
   const { data: friends = [], isLoading: friendsLoading } = useFriends();
   const { data: friendRequests = [], isLoading: requestsLoading } = useFriendRequests();
+  const { data: lobbies = [] } = useLobbies();
   const sendRequest = useSendFriendRequest();
   const respondToRequest = useRespondToFriendRequest();
   const removeFriend = useRemoveFriend();
+  const inviteToLobby = useInviteToLobby();
+
+  // Get lobbies where user is creator (can invite people)
+  const myLobbies = lobbies.filter(lobby => lobby.creator_id === user?.id);
 
   const pendingRequests = friendRequests.filter(req => 
     req.receiver_id === user?.id && req.status === 'pending'
@@ -63,6 +76,24 @@ const FriendsManagement = () => {
     if (confirm("Are you sure you want to remove this friend?")) {
       removeFriend.mutate(friendshipId);
     }
+  };
+
+  const handleInviteToLobby = () => {
+    if (!selectedLobbyForInvite || !friendToInvite) return;
+    
+    inviteToLobby.mutate({
+      lobbyId: selectedLobbyForInvite,
+      friendIds: [friendToInvite]
+    });
+    
+    setInviteDialogOpen(false);
+    setSelectedLobbyForInvite("");
+    setFriendToInvite("");
+  };
+
+  const openInviteDialog = (friendId: string) => {
+    setFriendToInvite(friendId);
+    setInviteDialogOpen(true);
   };
 
   const getInitials = (name: string) => {
@@ -150,14 +181,27 @@ const FriendsManagement = () => {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemoveFriend(friend.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {myLobbies.length > 0 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openInviteDialog(friend.friend_profile?.id || '')}
+                              className="text-primary hover:text-primary"
+                            >
+                              <GamepadIcon className="h-4 w-4 mr-1" />
+                              Invite to Lobby
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRemoveFriend(friend.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -297,6 +341,47 @@ const FriendsManagement = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Invite to Lobby Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite to Lobby</DialogTitle>
+            <DialogDescription>
+              Select which lobby you'd like to invite this friend to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Lobby</label>
+              <Select value={selectedLobbyForInvite} onValueChange={setSelectedLobbyForInvite}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a lobby" />
+                </SelectTrigger>
+                <SelectContent>
+                  {myLobbies.map((lobby) => (
+                    <SelectItem key={lobby.id} value={lobby.id}>
+                      {lobby.name} ({lobby.member_count} members)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleInviteToLobby}
+                disabled={!selectedLobbyForInvite || inviteToLobby.isPending}
+              >
+                <Send className="h-4 w-4 mr-1" />
+                Send Invite
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
