@@ -187,6 +187,7 @@ export const useCreateLobby = () => {
 // Hook to invite friends to lobby
 export const useInviteToLobby = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ lobbyId, friendIds }: { lobbyId: string; friendIds: string[] }) => {
@@ -195,6 +196,7 @@ export const useInviteToLobby = () => {
         user_id: friendId,
       }));
 
+      // Insert lobby invitations
       const { error } = await supabase
         .from('lobby_members')
         .insert(invitations);
@@ -203,13 +205,66 @@ export const useInviteToLobby = () => {
         console.error('Error inviting to lobby:', error);
         throw error;
       }
+
+      // Get lobby details for notifications
+      const { data: lobby, error: lobbyError } = await supabase
+        .from('lobbies')
+        .select('name')
+        .eq('id', lobbyId)
+        .single();
+
+      if (lobbyError) {
+        console.error('Error fetching lobby details:', lobbyError);
+        throw lobbyError;
+      }
+
+      // Get user profile for sender name
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user?.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+      }
+
+      const senderName = profile?.full_name || user?.email || 'Someone';
+
+      // Create website notifications
+      const notifications = friendIds.map(friendId => ({
+        user_id: friendId,
+        booking_id: lobbyId, // Using booking_id to store lobby_id for consistency
+        type: 'lobby_invitation',
+        title: 'Lobby Invitation',
+        message: `${senderName} invited you to join "${lobby?.name}" lobby`,
+      }));
+
+      await supabase
+        .from('notifications')
+        .insert(notifications);
+
+      // Send email notifications
+      try {
+        await supabase.functions.invoke('lobby-invite-email', {
+          body: {
+            lobbyId,
+            invitedUserIds: friendIds,
+            inviterName: senderName,
+            lobbyName: lobby?.name || 'Gaming Lobby'
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending invitation emails:', emailError);
+        // Don't throw here as the main invitation was successful
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lobby-details'] });
       queryClient.invalidateQueries({ queryKey: ['lobbies'] });
       toast({
         title: "Invitations sent!",
-        description: "Your friends have been invited to the lobby.",
+        description: "Your friends have been invited to the lobby and will receive email notifications.",
       });
     },
     onError: (error: Error) => {

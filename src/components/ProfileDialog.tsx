@@ -22,9 +22,10 @@ import LobbyManagement from "@/components/LobbyManagement";
 
 interface ProfileDialogProps {
   children: React.ReactNode;
+  defaultTab?: string;
 }
 
-const ProfileDialog = ({ children }: ProfileDialogProps) => {
+const ProfileDialog = ({ children, defaultTab = "profile" }: ProfileDialogProps) => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
@@ -112,7 +113,7 @@ const ProfileDialog = ({ children }: ProfileDialogProps) => {
           </DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="profile" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />

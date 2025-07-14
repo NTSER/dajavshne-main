@@ -76,7 +76,7 @@ const Header = () => {
                       </ProfileDialog>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <ProfileDialog>
+                      <ProfileDialog defaultTab="friends">
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <Users className="h-4 w-4" />
                           Friends
@@ -84,7 +84,7 @@ const Header = () => {
                       </ProfileDialog>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <ProfileDialog>
+                      <ProfileDialog defaultTab="lobbies">
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <GamepadIcon className="h-4 w-4" />
                           Create Lobby
