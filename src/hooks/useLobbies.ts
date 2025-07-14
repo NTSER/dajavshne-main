@@ -50,25 +50,40 @@ export const useLobbies = () => {
         throw createdError;
       }
 
-      // Get lobbies where user is a member
-      const { data: memberLobbies, error: memberError } = await supabase
+      // Get lobby IDs where user is a member
+      const { data: membershipData, error: memberError } = await supabase
         .from('lobby_members')
-        .select(`
-          lobby_id,
-          lobbies (*)
-        `)
-        .eq('user_id', user.id)
-        .order('invited_at', { ascending: false });
+        .select('lobby_id')
+        .eq('user_id', user.id);
 
       if (memberError) {
-        console.error('Error fetching member lobbies:', memberError);
+        console.error('Error fetching member data:', memberError);
         throw memberError;
+      }
+
+      let memberLobbies: any[] = [];
+      if (membershipData && membershipData.length > 0) {
+        const lobbyIds = membershipData.map(m => m.lobby_id);
+        
+        // Get lobby details for member lobbies
+        const { data: lobbyDetails, error: lobbyDetailsError } = await supabase
+          .from('lobbies')
+          .select('*')
+          .in('id', lobbyIds)
+          .order('updated_at', { ascending: false });
+
+        if (lobbyDetailsError) {
+          console.error('Error fetching lobby details:', lobbyDetailsError);
+          throw lobbyDetailsError;
+        }
+
+        memberLobbies = lobbyDetails || [];
       }
 
       // Combine and deduplicate lobbies
       const allLobbies = [
         ...(createdLobbies || []),
-        ...(memberLobbies?.map(m => m.lobbies).filter(Boolean) || [])
+        ...memberLobbies
       ];
 
       // Remove duplicates based on ID
@@ -181,6 +196,8 @@ export const useCreateLobby = () => {
     mutationFn: async ({ name, venueId }: { name: string; venueId?: string }) => {
       if (!user) throw new Error('User not authenticated');
 
+      console.log('Creating lobby with:', { name: name.trim(), venueId, creator_id: user.id });
+
       const { data, error } = await supabase
         .from('lobbies')
         .insert({
@@ -196,6 +213,7 @@ export const useCreateLobby = () => {
         throw error;
       }
 
+      console.log('Lobby created successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -433,48 +451,50 @@ export const useActiveLobby = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      // Get lobbies where user is creator or accepted member
-      const { data: lobbies, error } = await supabase
+      // Get the most recent lobby where user is creator
+      const { data: createdLobbies, error: createdError } = await supabase
         .from('lobbies')
-        .select(`
-          *,
-          lobby_members!inner (
-            user_id,
-            status
-          )
-        `)
-        .or(`creator_id.eq.${user.id}`)
+        .select('*')
+        .eq('creator_id', user.id)
         .order('updated_at', { ascending: false })
         .limit(1);
 
-      if (error) {
-        console.error('Error fetching active lobby:', error);
+      if (createdError) {
+        console.error('Error fetching created lobbies:', createdError);
         return null;
       }
 
-      // Also check if user is an accepted member in any lobby
-      const { data: memberLobbies, error: memberError } = await supabase
+      // Get the most recent lobby where user is an accepted member
+      const { data: membershipData, error: memberError } = await supabase
         .from('lobby_members')
-        .select(`
-          lobby_id,
-          lobbies (*)
-        `)
+        .select('lobby_id')
         .eq('user_id', user.id)
         .eq('status', 'accepted')
         .order('responded_at', { ascending: false })
         .limit(1);
 
       if (memberError) {
-        console.error('Error fetching member lobbies:', memberError);
+        console.error('Error fetching member data:', memberError);
         return null;
       }
 
+      let joinedLobby = null;
+      if (membershipData && membershipData.length > 0) {
+        const { data: lobbyData, error: lobbyError } = await supabase
+          .from('lobbies')
+          .select('*')
+          .eq('id', membershipData[0].lobby_id)
+          .single();
+
+        if (!lobbyError && lobbyData) {
+          joinedLobby = lobbyData;
+        }
+      }
+
       // Return the most recent lobby (either created or joined)
-      const createdLobby = lobbies?.[0];
-      const joinedLobby = memberLobbies?.[0]?.lobbies;
+      const createdLobby = createdLobbies?.[0];
 
       if (!createdLobby && !joinedLobby) return null;
-
       if (!createdLobby) return joinedLobby;
       if (!joinedLobby) return createdLobby;
 
