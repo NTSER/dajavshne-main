@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, Heart } from "lucide-react";
+import { Menu, X, User, LogOut, Heart, History } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "./AuthDialog";
 import NotificationBell from "./NotificationBell";
@@ -30,7 +30,7 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="text-2xl font-bold text-primary">
-            GameVenue
+            Dajavshne
           </Link>
 
           {/* Desktop Navigation */}
@@ -72,6 +72,14 @@ const Header = () => {
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <User className="h-4 w-4" />
                           Edit Profile
+                        </button>
+                      </ProfileDialog>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <ProfileDialog>
+                        <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
+                          <History className="h-4 w-4" />
+                          Booking History
                         </button>
                       </ProfileDialog>
                     </DropdownMenuItem>
@@ -143,6 +151,12 @@ const Header = () => {
                       <Button variant="ghost" className="justify-start">
                         <User className="h-4 w-4 mr-2" />
                         Edit Profile
+                      </Button>
+                    </ProfileDialog>
+                    <ProfileDialog>
+                      <Button variant="ghost" className="justify-start">
+                        <History className="h-4 w-4 mr-2" />
+                        Booking History
                       </Button>
                     </ProfileDialog>
                     <Button
