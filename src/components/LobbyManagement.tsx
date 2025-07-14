@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,7 @@ import {
 } from "@/hooks/useLobbies";
 import { useFriends } from "@/hooks/useFriends";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { useParams } from "react-router-dom";
 
@@ -59,9 +61,39 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
 
   // Get lobbies where user is invited but hasn't responded
   const invitations = lobbies.filter(lobby => {
-    if (!selectedLobby?.members || lobby.creator_id === user?.id) return false;
-    const userMember = selectedLobby.members.find(m => m.user_id === user?.id);
-    return userMember?.status === 'invited';
+    // Don't show lobbies where user is creator
+    if (lobby.creator_id === user?.id) return false;
+    
+    // Check if this lobby has the user as an invited member
+    return selectedLobby?.members?.some(m => 
+      m.user_id === user?.id && m.status === 'invited'
+    ) || false;
+  });
+
+  // Get all pending lobby invitations for the user
+  const { data: pendingInvitations = [] } = useQuery({
+    queryKey: ['pending-invitations', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      // Get all lobby invitations for this user
+      const { data: invitationData, error } = await supabase
+        .from('lobby_members')
+        .select(`
+          *,
+          lobbies (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'invited');
+
+      if (error) {
+        console.error('Error fetching pending invitations:', error);
+        return [];
+      }
+
+      return invitationData || [];
+    },
+    enabled: !!user,
   });
 
   const handleCreateLobby = async () => {
@@ -164,7 +196,7 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
                 My Lobbies ({lobbies.filter(l => l.creator_id === user?.id).length})
               </TabsTrigger>
               <TabsTrigger value="invitations">
-                Invitations ({invitations.length})
+                Invitations ({pendingInvitations.length})
               </TabsTrigger>
               <TabsTrigger value="create-lobby">
                 Create Lobby
@@ -337,27 +369,27 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
 
             <TabsContent value="invitations" className="space-y-4">
               <ScrollArea className="h-[400px] w-full">
-                {invitations.length === 0 ? (
+                {pendingInvitations.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No pending invitations</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {invitations.map((lobby) => (
-                      <Card key={lobby.id}>
+                    {pendingInvitations.map((invitation) => (
+                      <Card key={invitation.id}>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h3 className="font-semibold">{lobby.name}</h3>
+                              <h3 className="font-semibold">{invitation.lobbies?.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Invited {formatDistanceToNow(new Date(lobby.created_at), { addSuffix: true })}
+                                Invited {formatDistanceToNow(new Date(invitation.invited_at), { addSuffix: true })}
                               </p>
                             </div>
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={() => handleRespondToInvitation(lobby.id, 'accepted')}
+                                onClick={() => handleRespondToInvitation(invitation.lobby_id, 'accepted')}
                                 disabled={respondToInvitation.isPending}
                               >
                                 <Check className="h-4 w-4 mr-1" />
@@ -366,7 +398,7 @@ const LobbyManagement = ({ venueId }: LobbyManagementProps) => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleRespondToInvitation(lobby.id, 'declined')}
+                                onClick={() => handleRespondToInvitation(invitation.lobby_id, 'declined')}
                                 disabled={respondToInvitation.isPending}
                               >
                                 <X className="h-4 w-4 mr-1" />

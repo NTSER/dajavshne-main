@@ -23,14 +23,17 @@ import LobbyManagement from "@/components/LobbyManagement";
 interface ProfileDialogProps {
   children: React.ReactNode;
   defaultTab?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const ProfileDialog = ({ children, defaultTab = "profile" }: ProfileDialogProps) => {
+const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen, onOpenChange }: ProfileDialogProps) => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -38,8 +41,14 @@ const ProfileDialog = ({ children, defaultTab = "profile" }: ProfileDialogProps)
     confirmPassword: "",
   });
 
+  // Use controlled or internal open state
+  const isOpen = controlledOpen !== undefined ? controlledOpen : open;
   const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
+    if (onOpenChange) {
+      onOpenChange(isOpen);
+    } else {
+      setOpen(isOpen);
+    }
     if (isOpen && profile) {
       setFormData({
         full_name: profile.full_name || "",
@@ -47,6 +56,10 @@ const ProfileDialog = ({ children, defaultTab = "profile" }: ProfileDialogProps)
         password: "",
         confirmPassword: "",
       });
+      // Set tab when opening
+      if (defaultTab) {
+        setActiveTab(defaultTab);
+      }
     }
   };
 
@@ -101,7 +114,7 @@ const ProfileDialog = ({ children, defaultTab = "profile" }: ProfileDialogProps)
   if (!user) return null;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -113,7 +126,7 @@ const ProfileDialog = ({ children, defaultTab = "profile" }: ProfileDialogProps)
           </DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue={defaultTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />

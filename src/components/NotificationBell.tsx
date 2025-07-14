@@ -17,7 +17,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-const NotificationBell = () => {
+interface NotificationBellProps {
+  onLobbyInvitationClick?: () => void;
+}
+
+const NotificationBell = ({ onLobbyInvitationClick }: NotificationBellProps) => {
   const { data: notifications = [], isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
   const navigate = useNavigate();
@@ -34,9 +38,13 @@ const NotificationBell = () => {
       navigate('/');
       // You could also open a specific friends dialog here
     } else if (notification.type === 'lobby_invitation') {
-      // Redirect to lobbies section 
-      navigate('/');
-      // You could also open a specific lobby dialog here
+      // Call the callback function to open lobby invitations
+      if (onLobbyInvitationClick) {
+        onLobbyInvitationClick();
+      } else {
+        // Fallback to navigate to home and open profile dialog
+        navigate('/');
+      }
     } else if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
       try {
         // Fetch the booking to get venue_id

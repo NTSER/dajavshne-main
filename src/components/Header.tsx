@@ -17,12 +17,19 @@ import {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [profileDialogTab, setProfileDialogTab] = useState("profile");
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleLobbyInvitationClick = () => {
+    setProfileDialogTab("lobbies");
+    setProfileDialogOpen(true);
   };
 
   return (
@@ -59,7 +66,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <NotificationBell />
+                <NotificationBell onLobbyInvitationClick={handleLobbyInvitationClick} />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -68,7 +75,14 @@ const Header = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <ProfileDialog>
+                      <ProfileDialog 
+                        defaultTab={profileDialogTab}
+                        open={profileDialogOpen}
+                        onOpenChange={(open) => {
+                          setProfileDialogOpen(open);
+                          if (!open) setProfileDialogTab("profile");
+                        }}
+                      >
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <User className="h-4 w-4" />
                           Edit Profile
@@ -76,7 +90,14 @@ const Header = () => {
                       </ProfileDialog>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <ProfileDialog defaultTab="friends">
+                      <ProfileDialog 
+                        defaultTab="friends"
+                        open={profileDialogOpen}
+                        onOpenChange={(open) => {
+                          setProfileDialogOpen(open);
+                          if (!open) setProfileDialogTab("profile");
+                        }}
+                      >
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <Users className="h-4 w-4" />
                           Friends
@@ -84,7 +105,14 @@ const Header = () => {
                       </ProfileDialog>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <ProfileDialog defaultTab="lobbies">
+                      <ProfileDialog 
+                        defaultTab="lobbies"
+                        open={profileDialogOpen}
+                        onOpenChange={(open) => {
+                          setProfileDialogOpen(open);
+                          if (!open) setProfileDialogTab("profile");
+                        }}
+                      >
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <GamepadIcon className="h-4 w-4" />
                           Create Lobby
@@ -159,9 +187,16 @@ const Header = () => {
                       <span className="text-sm text-muted-foreground">
                         Signed in as {user.email}
                       </span>
-                      <NotificationBell />
+                      <NotificationBell onLobbyInvitationClick={handleLobbyInvitationClick} />
                     </div>
-                    <ProfileDialog>
+                    <ProfileDialog 
+                      defaultTab={profileDialogTab}
+                      open={profileDialogOpen}
+                      onOpenChange={(open) => {
+                        setProfileDialogOpen(open);
+                        if (!open) setProfileDialogTab("profile");
+                      }}
+                    >
                       <Button variant="ghost" className="justify-start">
                         <User className="h-4 w-4 mr-2" />
                         Edit Profile
