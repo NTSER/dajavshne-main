@@ -13,15 +13,54 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications, useMarkNotificationAsRead } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const NotificationBell = () => {
   const { data: notifications = [], isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
+  const navigate = useNavigate();
   
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleMarkAsRead = (notificationId: string) => {
-    markAsRead.mutate(notificationId);
+  const handleNotificationClick = async (notification: any) => {
+    // Mark as read first
+    markAsRead.mutate(notification.id);
+    
+    // If it's a reminder notification, redirect to venue page
+    if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
+      try {
+        // Fetch the booking to get venue_id
+        const { data: booking, error } = await supabase
+          .from('bookings')
+          .select('venue_id')
+          .eq('id', notification.booking_id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching booking:', error);
+          toast({
+            title: "Error",
+            description: "Could not load venue information",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (booking?.venue_id) {
+          // Navigate to the venue page
+          navigate(`/venue/${booking.venue_id}`);
+        }
+      } catch (error) {
+        console.error('Error navigating to venue:', error);
+        toast({
+          title: "Error", 
+          description: "Could not navigate to venue",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   if (isLoading) {
@@ -60,7 +99,7 @@ const NotificationBell = () => {
               <DropdownMenuItem
                 key={notification.id}
                 className={`p-3 cursor-pointer ${!notification.read ? 'bg-muted/50' : ''}`}
-                onClick={() => handleMarkAsRead(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex flex-col space-y-1 w-full">
                   <div className="flex items-center justify-between">
@@ -75,6 +114,11 @@ const NotificationBell = () => {
                   <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                   </p>
+                  {(notification.type.includes('before') || notification.type === 'booking_confirmation') && (
+                    <p className="text-xs text-primary font-medium">
+                      Click to view venue →
+                    </p>
+                  )}
                 </div>
               </DropdownMenuItem>
             ))
