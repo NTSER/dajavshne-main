@@ -33,6 +33,8 @@ export const useUserBookings = () => {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
+      console.log('Fetching bookings for user:', user.id);
+      
       const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -50,7 +52,10 @@ export const useUserBookings = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('Bookings query result:', { data, error });
+
       if (error) {
+        console.error('Booking fetch error:', error);
         throw error;
       }
 

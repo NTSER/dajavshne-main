@@ -10,6 +10,8 @@ const BookingHistory = () => {
   const { data: bookings, isLoading, error } = useUserBookings();
   const navigate = useNavigate();
 
+  console.log('BookingHistory render:', { bookings, isLoading, error });
+
   if (isLoading) {
     return (
       <div className="space-y-4">
