@@ -185,16 +185,26 @@ export const useSendFriendRequest = () => {
         throw new Error('You are already friends with this user');
       }
 
-      // Check if there's already a pending request
-      const { data: existingRequest } = await supabase
+      // Check for any existing requests between these users
+      const { data: existingRequests } = await supabase
         .from('friend_requests')
         .select('id, status')
-        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverProfile.id}),and(sender_id.eq.${receiverProfile.id},receiver_id.eq.${user.id})`)
-        .eq('status', 'pending')
-        .maybeSingle();
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${receiverProfile.id}),and(sender_id.eq.${receiverProfile.id},receiver_id.eq.${user.id})`);
 
-      if (existingRequest) {
-        throw new Error('Friend request is already pending');
+      // If there are any existing requests, handle them
+      if (existingRequests && existingRequests.length > 0) {
+        const pendingRequest = existingRequests.find(req => req.status === 'pending');
+        
+        if (pendingRequest) {
+          throw new Error('Friend request is already pending');
+        }
+        
+        // Clean up any old non-pending requests
+        const oldRequestIds = existingRequests.map(req => req.id);
+        await supabase
+          .from('friend_requests')
+          .delete()
+          .in('id', oldRequestIds);
       }
 
       // Send the friend request
