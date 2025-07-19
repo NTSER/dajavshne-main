@@ -51,20 +51,20 @@ export const categories = [
 export const popularVenues = [
   {
     id: "1",
-    name: "Pro Gamer Hub",
-    category: "Gaming Arena", 
-    location: "Esports Complex, Tbilisi",
-    rating: 4.9,
-    reviewCount: 89,
-    price: "45",
+    name: "GameZone Central",
+    category: "PC Gaming",
+    location: "Downtown District",
+    rating: 4.8,
+    reviewCount: 124,
+    price: "$15",
     image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=300&fit=crop",
-    amenities: ["High-end PCs", "Mechanical Keyboards", "WiFi", "Parking"],
-    description: "Professional gaming setup for serious competitors",
-    coordinates: { lat: 41.7151, lng: 44.7937 },
+    amenities: ["WiFi", "Parking", "Food", "AC"],
+    description: "Premium PC gaming lounge with high-end specs and comfortable seating.",
+    coordinates: { lat: 40.7589, lng: -73.9851 },
     services: [
-      { name: "Gaming PC (RTX 4080)", price: 45, duration: "per hour" },
-      { name: "Private Room", price: 120, duration: "per hour" },
-      { name: "Tournament Setup", price: 80, duration: "per hour" }
+      { name: "Gaming PC (RTX 4080)", price: 15, duration: "per hour" },
+      { name: "Private Room", price: 45, duration: "per hour" },
+      { name: "Tournament Setup", price: 25, duration: "per hour" }
     ],
     images: [
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&h=600&fit=crop",
@@ -74,36 +74,36 @@ export const popularVenues = [
     reviews: [
       {
         id: "1",
-        author: "Giorgi Nakhutsrishvili",
+        author: "Alex Chen",
         rating: 5,
-        comment: "Best gaming setup in Tbilisi! Professional equipment and great atmosphere.",
+        comment: "Amazing setup and super friendly staff. The PCs are top-notch!",
         date: "2024-01-15"
       },
       {
         id: "2", 
-        author: "Ana Kvaratskhelia",
-        rating: 5,
-        comment: "Perfect for competitive gaming. High-end specs and comfortable environment.",
+        author: "Sarah Johnson",
+        rating: 4,
+        comment: "Great atmosphere for gaming sessions with friends.",
         date: "2024-01-10"
       }
     ]
   },
   {
     id: "2",
-    name: "VR Galaxy Tbilisi",
-    category: "VR Zone",
-    location: "Saburtalo District, Tbilisi",
-    rating: 4.8,
-    reviewCount: 76,
-    price: "35",
+    name: "VR World",
+    category: "VR Zones",
+    location: "Tech Park",
+    rating: 4.9,
+    reviewCount: 89,
+    price: "$25",
     image: "https://images.unsplash.com/photo-1592478411213-6153e4ebc696?w=400&h=300&fit=crop",
-    amenities: ["VR Headsets", "Guide", "WiFi", "Parking"],
+    amenities: ["WiFi", "Parking", "Guide"],
     description: "Immersive VR experiences with the latest headsets and games.",
-    coordinates: { lat: 41.7370, lng: 44.7632 },
+    coordinates: { lat: 40.7505, lng: -73.9934 },
     services: [
-      { name: "VR Session (1 Player)", price: 35, duration: "per hour" },
-      { name: "VR Party (4 Players)", price: 120, duration: "per hour" },
-      { name: "VR Experience Package", price: 180, duration: "2 hours" }
+      { name: "VR Session (1 Player)", price: 25, duration: "per hour" },
+      { name: "VR Party (4 Players)", price: 80, duration: "per hour" },
+      { name: "VR Experience Package", price: 120, duration: "2 hours" }
     ],
     images: [
       "https://images.unsplash.com/photo-1592478411213-6153e4ebc696?w=800&h=600&fit=crop",
@@ -112,29 +112,29 @@ export const popularVenues = [
     reviews: [
       {
         id: "1",
-        author: "Levan Beridze",
+        author: "Mike Rodriguez",
         rating: 5,
-        comment: "ფანტასტიკური VR გამოცდილება! პერსონალი ძალიან თავაზიანია.",
+        comment: "Mind-blowing VR experiences! Staff was very helpful.",
         date: "2024-01-12"
       }
     ]
   },
   {
     id: "3",
-    name: "Retro Arcade Batumi",
-    category: "Arcade",
-    location: "Old Boulevard, Batumi",
+    name: "Retro Palace",
+    category: "Retro Arcade",
+    location: "Old Town",
     rating: 4.7,
-    reviewCount: 134,
-    price: "20",
+    reviewCount: 156,
+    price: "$10",
     image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-    amenities: ["Classic Games", "Snacks", "Tokens", "WiFi"],
-    description: "Classic arcade games from the 80s and 90s in a nostalgic seaside setting.",
-    coordinates: { lat: 41.6168, lng: 41.6367 },
+    amenities: ["WiFi", "Snacks", "Tokens"],
+    description: "Classic arcade games from the 80s and 90s in a nostalgic setting.",
+    coordinates: { lat: 40.7614, lng: -73.9776 },
     services: [
-      { name: "Arcade Access", price: 20, duration: "per hour" },
-      { name: "Token Package (50)", price: 30, duration: "one-time" },
-      { name: "Birthday Party Package", price: 200, duration: "3 hours" }
+      { name: "Arcade Access", price: 10, duration: "per hour" },
+      { name: "Token Package (50)", price: 20, duration: "one-time" },
+      { name: "Birthday Party Package", price: 150, duration: "3 hours" }
     ],
     images: [
       "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop",
@@ -143,29 +143,29 @@ export const popularVenues = [
     reviews: [
       {
         id: "1",
-        author: "Nino Janelidze",
+        author: "Emma Davis",
         rating: 5,
-        comment: "ძალიან კარგი ადგილია ბავშვობის მოგონებების გასახსენებლად!",
+        comment: "Brought back so many childhood memories! Great collection of games.",
         date: "2024-01-08"
       }
     ]
   },
   {
     id: "4",
-    name: "Console Kingdom",
-    category: "Gaming Lounge",
-    location: "Vake District, Tbilisi", 
+    name: "Console Kings",
+    category: "Console Rooms",
+    location: "Gaming District",
     rating: 4.6,
-    reviewCount: 167,
-    price: "25",
+    reviewCount: 203,
+    price: "$12",
     image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=300&fit=crop",
-    amenities: ["PS5", "Xbox Series X", "Nintendo Switch", "Snacks"],
+    amenities: ["WiFi", "Parking", "Food", "Drinks"],
     description: "Latest console gaming with PS5, Xbox Series X, and Nintendo Switch.",
-    coordinates: { lat: 41.7225, lng: 44.7925 },
+    coordinates: { lat: 40.7648, lng: -73.9808 },
     services: [
-      { name: "Console Gaming", price: 25, duration: "per hour" },
-      { name: "Private Gaming Room", price: 60, duration: "per hour" },
-      { name: "Tournament Entry", price: 80, duration: "one-time" }
+      { name: "Console Gaming", price: 12, duration: "per hour" },
+      { name: "Private Gaming Room", price: 35, duration: "per hour" },
+      { name: "Tournament Entry", price: 50, duration: "one-time" }
     ],
     images: [
       "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&h=600&fit=crop",
@@ -174,9 +174,9 @@ export const popularVenues = [
     reviews: [
       {
         id: "1",
-        author: "David Khutsishvili",
+        author: "Jake Wilson",
         rating: 4,
-        comment: "კარგი კონსოლების არჩევანი. შეიძლება უკეთესი სავარძლები ყოფილიყო.",
+        comment: "Good selection of games and consoles. Could use better seating.",
         date: "2024-01-05"
       }
     ]

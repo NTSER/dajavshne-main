@@ -1,9 +1,15 @@
-
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 import { 
   Star, 
   MapPin, 
@@ -11,19 +17,21 @@ import {
   Car, 
   ArrowLeft,
   Share,
-  Heart,
-  Filter
+  Heart
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useVenue, useVenueServices, useVenues } from "@/hooks/useVenues";
-import MapboxMap from "@/components/MapboxMap";
+import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
+import BookingForm from "@/components/BookingForm";
+import VenueServices from "@/components/VenueServices";
+import VenueMap from "@/components/VenueMap";
 import { useState } from "react";
 
 const VenuePage = () => {
   const { id } = useParams<{ id: string }>();
+  const [selectedService, setSelectedService] = useState<VenueService | undefined>();
+  
   const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
-  const { data: allVenues } = useVenues();
-  const [showFilters, setShowFilters] = useState(false);
+  const { data: services, isLoading: servicesLoading } = useVenueServices(id!);
 
   if (venueLoading) {
     return (
@@ -32,6 +40,14 @@ const VenuePage = () => {
           <div className="animate-pulse space-y-8">
             <div className="h-8 bg-muted rounded w-1/4" />
             <div className="h-96 bg-muted rounded-lg" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-4">
+                <div className="h-8 bg-muted rounded w-3/4" />
+                <div className="h-4 bg-muted rounded w-1/2" />
+                <div className="h-20 bg-muted rounded" />
+              </div>
+              <div className="h-96 bg-muted rounded-lg" />
+            </div>
           </div>
         </div>
       </div>
@@ -56,205 +72,217 @@ const VenuePage = () => {
     'Parking': Car,
   };
 
-  // Get related venues (excluding current venue)
-  const relatedVenues = allVenues?.filter(v => v.id !== venue.id).slice(0, 10) || [];
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header Navigation */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/search" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-              Back to results
-            </Link>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant={showFilters ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-            </div>
-          </div>
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            Back to venues
+          </Link>
         </div>
       </div>
 
-      {/* Split Layout Container */}
-      <div className="flex h-[calc(100vh-80px)]">
-        
-        {/* Left Side - Venue Details and Related Venues */}
-        <div className="w-1/2 overflow-y-auto">
-          <div className="p-6 space-y-6">
-            
-            {/* Current Venue Highlight */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="bg-primary/20 text-primary">
-                  Current Selection
-                </Badge>
-              </div>
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* Main Layout - Airbnb Style */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-140px)]">
+          
+          {/* Left Side - Stationary Content */}
+          <div className="lg:col-span-7 h-full overflow-hidden">
+            <div className="h-full overflow-y-auto pr-4 space-y-8">
               
-              <div className="aspect-[4/3] relative overflow-hidden rounded-lg mb-4">
-                <img
-                  src={venue.images?.[0] || "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800"}
-                  alt={venue.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-3 right-3 flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-black/60 text-white border-white/20">
-                    {venue.category}
-                  </Badge>
-                </div>
-                <div className="absolute top-3 left-3">
-                  <Button variant="ghost" size="sm" className="bg-white/20 hover:bg-white/30 text-white">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <h2 className="text-xl font-semibold text-foreground">{venue.name}</h2>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{venue.rating}</span>
-                    <span className="text-muted-foreground">({venue.review_count})</span>
+              {/* Title and Actions */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-semibold text-foreground mb-2">{venue.name}</h1>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-primary text-primary" />
+                      <span className="font-medium text-foreground">{venue.rating}</span>
+                      <span>·</span>
+                      <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.review_count} reviews</span>
+                    </div>
+                    <span>·</span>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.location}</span>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center text-muted-foreground">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span className="text-sm">{venue.location}</span>
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary">
+                    <Share className="h-4 w-4" />
+                    Share
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary">
+                    <Heart className="h-4 w-4" />
+                    Save
+                  </Button>
                 </div>
-                
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {venue.description || "Premium gaming venue with state-of-the-art facilities"}
+              </div>
+
+              {/* Image Gallery */}
+              <div className="rounded-xl overflow-hidden bg-card">
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {venue.images?.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <div className="aspect-[16/10] relative overflow-hidden">
+                          <img
+                            src={image}
+                            alt={`${venue.name} - Image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </CarouselItem>
+                    )) || (
+                      <CarouselItem>
+                        <div className="aspect-[16/10] bg-muted rounded-xl flex items-center justify-center">
+                          <span className="text-muted-foreground">No images available</span>
+                        </div>
+                      </CarouselItem>
+                    )}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-4" />
+                  <CarouselNext className="right-4" />
+                </Carousel>
+              </div>
+
+              {/* Host Info */}
+              <div className="flex items-center gap-4 py-6 border-b border-border">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <span className="text-muted-foreground font-medium">H</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Hosted by Venue Manager</h3>
+                  <p className="text-sm text-muted-foreground">Superhost · 2 years hosting</p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="py-6 border-b border-border">
+                <p className="text-muted-foreground leading-relaxed text-base">
+                  {venue.description || "Experience premium gaming in a state-of-the-art facility designed for both casual and competitive gaming. Our venue offers cutting-edge equipment and an atmosphere perfect for tournaments and casual gaming sessions."}
                 </p>
-                
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex gap-2">
-                    {venue.amenities?.slice(0, 2).map((amenity) => {
+              </div>
+
+              {/* Amenities */}
+              {venue.amenities && venue.amenities.length > 0 && (
+                <div className="py-6 border-b border-border">
+                  <h2 className="text-xl font-semibold mb-6 text-foreground">What this place offers</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {venue.amenities.map((amenity) => {
                       const IconComponent = amenityIcons[amenity];
                       return (
-                        <div key={amenity} className="flex items-center text-xs text-muted-foreground">
-                          {IconComponent && <IconComponent className="h-3 w-3 mr-1" />}
-                          <span>{amenity}</span>
+                        <div key={amenity} className="flex items-center gap-4 py-3">
+                          {IconComponent && <IconComponent className="h-6 w-6 text-muted-foreground" />}
+                          <span className="text-foreground">{amenity}</span>
                         </div>
                       );
                     })}
                   </div>
-                  <div className="text-right">
-                    <span className="text-lg font-semibold text-primary">${venue.price}</span>
-                    <span className="text-sm text-muted-foreground">/hour</span>
-                  </div>
+                </div>
+              )}
+
+              {/* Reviews Section */}
+              <div className="py-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <Star className="h-5 w-5 fill-primary text-primary" />
+                  <span className="text-xl font-semibold text-foreground">{venue.rating} · {venue.review_count} reviews</span>
                 </div>
                 
-                <div className="flex gap-2 pt-2">
-                  <Button className="flex-1">
-                    Reserve Now
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Share className="h-4 w-4" />
-                  </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[1, 2, 3, 4].map((review) => (
+                    <div key={review} className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                          <span className="text-sm font-medium text-muted-foreground">U</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">User {review}</p>
+                          <p className="text-sm text-muted-foreground">January 2024</p>
+                        </div>
+                      </div>
+                      <p className="text-muted-foreground text-sm">
+                        Great venue with excellent facilities. The gaming setup is top-notch and the atmosphere is perfect for competitive gaming.
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-
-            {/* Header for Related Venues */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Similar venues nearby</h3>
-                <p className="text-sm text-muted-foreground">{relatedVenues.length} venues found</p>
-              </div>
-            </div>
-
-            {/* Related Venues Grid */}
-            <div className="space-y-4">
-              {relatedVenues.map((relatedVenue, index) => (
-                <motion.div
-                  key={relatedVenue.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Link to={`/venue/${relatedVenue.id}`}>
-                    <Card className="hover-lift cursor-pointer group border-border bg-card hover:border-primary/30 transition-all duration-300">
-                      <div className="flex gap-4 p-4">
-                        <div className="w-32 h-24 flex-shrink-0">
-                          <img
-                            src={relatedVenue.images?.[0] || "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400"}
-                            alt={relatedVenue.name}
-                            className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-start justify-between">
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                              {relatedVenue.name}
-                            </h4>
-                            <div className="flex items-center gap-1 text-sm">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span className="font-medium">{relatedVenue.rating}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center text-muted-foreground">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            <span className="text-xs">{relatedVenue.location}</span>
-                          </div>
-                          
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {relatedVenue.description}
-                          </p>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex gap-2">
-                              {relatedVenue.amenities?.slice(0, 2).map((amenity) => {
-                                const IconComponent = amenityIcons[amenity];
-                                return (
-                                  <div key={amenity} className="flex items-center text-xs text-muted-foreground">
-                                    {IconComponent && <IconComponent className="h-3 w-3 mr-1" />}
-                                    <span>{amenity}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div className="text-right">
-                              <span className="font-semibold text-primary">${relatedVenue.price}</span>
-                              <span className="text-xs text-muted-foreground">/hour</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
           </div>
-        </div>
 
-        {/* Right Side - Interactive Map */}
-        <div className="w-1/2 relative">
-          <div className="h-full sticky top-0">
-            <MapboxMap
-              venues={[venue, ...relatedVenues]}
-              selectedVenue={venue}
-              height="h-full"
-              showPrices={true}
-            />
-            
-            {/* Map Controls Overlay */}
-            <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-border">
-              <p className="text-sm text-muted-foreground">
-                {relatedVenues.length + 1} venues shown • Click markers for details
-              </p>
+          {/* Right Side - Scrollable Services/Booking with Sticky Reserve Button */}
+          <div className="lg:col-span-5 h-full flex flex-col">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto space-y-6 pb-20">
+              
+              {/* Price and Basic Info */}
+              <div className="bg-card border border-border rounded-xl p-6 shadow-lg glass-effect">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-2xl font-semibold text-foreground">${venue.price}</span>
+                  <span className="text-muted-foreground">per hour</span>
+                </div>
+                
+                <BookingForm 
+                  venueId={venue.id}
+                  venueName={venue.name}
+                  venuePrice={venue.price}
+                  services={services}
+                  selectedServiceId={selectedService?.id}
+                />
+              </div>
+
+              {/* Services List */}
+              {!servicesLoading && services && services.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-foreground">Available Services</h3>
+                  <div className="space-y-4">
+                    {services.map((service) => (
+                      <Card 
+                        key={service.id}
+                        className={`cursor-pointer transition-all border hover:border-primary/50 hover-lift ${
+                          selectedService?.id === service.id 
+                            ? 'border-primary shadow-lg shadow-primary/20' 
+                            : 'border-border'
+                        }`}
+                        onClick={() => setSelectedService(service)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-foreground">{service.name}</h4>
+                              <p className="text-sm text-muted-foreground">{service.duration} · ${service.price}/hour</p>
+                            </div>
+                            <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
+                              ${service.price}
+                            </Badge>
+                          </div>
+                          {service.description && (
+                            <p className="text-sm text-muted-foreground mb-3">
+                              {service.description}
+                            </p>
+                          )}
+                          <div className="w-16 h-16 bg-muted rounded-lg"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Venue Location Map */}
+              <VenueMap location={venue.location} venueName={venue.name} />
+
+              {/* Additional Info */}
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  You can message the host to customize or make changes.
+                </p>
+              </div>
             </div>
           </div>
         </div>
