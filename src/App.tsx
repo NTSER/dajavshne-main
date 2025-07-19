@@ -17,6 +17,12 @@ const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
 const BookingHistoryPage = lazy(() => import("./pages/BookingHistoryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+// Partner pages
+const PartnerAuth = lazy(() => import("./pages/partner/PartnerAuth"));
+const PartnerDashboard = lazy(() => import("./pages/partner/PartnerDashboard"));
+const AddVenue = lazy(() => import("./pages/partner/AddVenue"));
+const PartnerProtectedRoute = lazy(() => import("./components/PartnerProtectedRoute"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -37,6 +43,20 @@ const App = () => (
                 <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/booking-history" element={<BookingHistoryPage />} />
+                
+                {/* Partner routes */}
+                <Route path="/partner/auth" element={<PartnerAuth />} />
+                <Route path="/partner/dashboard" element={
+                  <PartnerProtectedRoute>
+                    <PartnerDashboard />
+                  </PartnerProtectedRoute>
+                } />
+                <Route path="/partner/venues/add" element={
+                  <PartnerProtectedRoute>
+                    <AddVenue />
+                  </PartnerProtectedRoute>
+                } />
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

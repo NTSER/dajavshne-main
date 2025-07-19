@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, Heart, History } from "lucide-react";
+import { Menu, X, User, LogOut, Heart, History, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "./AuthDialog";
 import NotificationBell from "./NotificationBell";
@@ -60,6 +60,12 @@ const Header = () => {
 
           {/* Desktop Auth & User Menu */}
           <div className="hidden md:flex items-center space-x-4">
+            <Link to="/partner/auth">
+              <Button variant="outline" size="sm">
+                <Building2 className="h-4 w-4 mr-2" />
+                Partner Portal
+              </Button>
+            </Link>
             {user ? (
               <>
                 <NotificationBell />
@@ -145,6 +151,13 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Favorites
+              </Link>
+              <Link
+                to="/partner/auth"
+                className="text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Partner Portal
               </Link>
               <div className="pt-4 border-t border-border">
                 {user ? (
