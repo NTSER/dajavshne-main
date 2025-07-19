@@ -88,6 +88,7 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
         console.log('Map loaded successfully');
         setMapInitialized(true);
         setMapError(null);
+        setIsDestroyed(false); // Ensure we're not in destroyed state
       });
 
       // Add navigation controls
@@ -254,6 +255,9 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
   // Initialize map on component mount
   useEffect(() => {
     console.log('MapboxMap component mounted, initializing map...');
+    setIsDestroyed(false); // Reset destroyed state on mount
+    setMapError(null); // Clear any previous errors
+    
     // Small delay to ensure container is fully rendered
     const timeoutId = setTimeout(() => {
       initializeMap();
