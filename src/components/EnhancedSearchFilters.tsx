@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, MapPin, Search, Building } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Search, Building, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import InteractiveMap from "./InteractiveMap";
 
 interface SearchSuggestion {
   id: string;
@@ -39,6 +40,7 @@ const EnhancedSearchFilters = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestionField, setActiveSuggestionField] = useState<'businessName' | 'location' | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -175,129 +177,185 @@ const EnhancedSearchFilters = () => {
     navigate(`/search?${searchParams.toString()}`);
   };
 
+  const handleMapLocationSelect = (location: string) => {
+    setFilters(prev => ({ ...prev, location }));
+    setShowMap(false);
+  };
+
+  const handleWhereClick = () => {
+    setShowMap(true);
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row items-center gap-0 bg-white rounded-full shadow-lg border border-gray-200 p-2 max-w-5xl mx-auto">
-      {/* Business Name */}
-      <div className="flex-1 relative" ref={searchRef}>
-        <div className="px-6 py-4">
-          <div className="text-xs font-semibold text-gray-800 mb-1">What</div>
-          <Input
-            placeholder="Search business name"
-            value={filters.businessName}
-            onChange={(e) => handleInputChange('businessName', e.target.value)}
-            onFocus={() => filters.businessName && activeSuggestionField === 'businessName' && setShowSuggestions(true)}
-            className="border-0 p-0 text-sm font-medium text-gray-600 placeholder:text-gray-400 focus-visible:ring-0 bg-transparent"
-          />
-        </div>
-        
-        {showSuggestions && suggestions.length > 0 && activeSuggestionField === 'businessName' && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.id}
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 transition-colors"
-              >
-                <div className="flex-shrink-0">
-                  <Building className="h-4 w-4 text-gray-400" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-gray-800">{suggestion.name}</div>
-                  <div className="text-xs text-gray-400">{suggestion.location}</div>
-                </div>
-              </button>
-            ))}
+    <>
+      <div className="flex flex-col lg:flex-row items-center gap-0 bg-card/80 backdrop-blur-sm rounded-full border border-border p-1.5 max-w-3xl mx-auto glass-effect">
+        {/* Business Name */}
+        <div className="flex-1 relative" ref={searchRef}>
+          <div className="px-4 py-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-1">Name</div>
+            <Input
+              placeholder="Search business name"
+              value={filters.businessName}
+              onChange={(e) => handleInputChange('businessName', e.target.value)}
+              onFocus={() => filters.businessName && activeSuggestionField === 'businessName' && setShowSuggestions(true)}
+              className="border-0 p-0 text-sm font-medium text-foreground placeholder:text-muted-foreground focus-visible:ring-0 bg-transparent"
+            />
           </div>
-        )}
-      </div>
-
-      {/* Divider */}
-      <div className="hidden lg:block w-px h-8 bg-gray-200" />
-
-      {/* Where */}
-      <div className="flex-1 relative">
-        <div className="px-6 py-4">
-          <div className="text-xs font-semibold text-gray-800 mb-1">Where</div>
-          <Input
-            placeholder="Search destinations"
-            value={filters.location}
-            onChange={(e) => handleInputChange('location', e.target.value)}
-            onFocus={() => filters.location && activeSuggestionField === 'location' && setShowSuggestions(true)}
-            className="border-0 p-0 text-sm font-medium text-gray-600 placeholder:text-gray-400 focus-visible:ring-0 bg-transparent"
-          />
+          
+          {showSuggestions && suggestions.length > 0 && activeSuggestionField === 'businessName' && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="w-full px-4 py-3 text-left hover:bg-muted/50 flex items-center gap-3 transition-colors"
+                >
+                  <div className="flex-shrink-0">
+                    <Building className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm text-foreground">{suggestion.name}</div>
+                    <div className="text-xs text-muted-foreground">{suggestion.location}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        
-        {showSuggestions && suggestions.length > 0 && activeSuggestionField === 'location' && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.id}
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 transition-colors"
-              >
-                <div className="flex-shrink-0">
-                  {suggestion.type === 'venue' ? (
-                    <Search className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                  )}
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-gray-800">{suggestion.name}</div>
-                  {suggestion.type === 'venue' && (
-                    <div className="text-xs text-gray-400">{suggestion.location}</div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Divider */}
-      <div className="hidden lg:block w-px h-8 bg-gray-200" />
+        {/* Divider */}
+        <div className="hidden lg:block w-px h-6 bg-border" />
 
-      {/* Date */}
-      <div className="flex-1">
-        <div className="px-6 py-4">
-          <div className="text-xs font-semibold text-gray-800 mb-1">When</div>
-          <Popover>
-            <PopoverTrigger asChild>
+        {/* Where */}
+        <div className="flex-1 relative">
+          <div className="px-4 py-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-1">Where</div>
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Search destinations"
+                value={filters.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                onFocus={() => filters.location && activeSuggestionField === 'location' && setShowSuggestions(true)}
+                className="border-0 p-0 text-sm font-medium text-foreground placeholder:text-muted-foreground focus-visible:ring-0 bg-transparent"
+              />
               <Button
                 variant="ghost"
-                className={cn(
-                  "w-full justify-start text-left font-medium p-0 h-auto hover:bg-transparent",
-                  !filters.date && "text-gray-400"
-                )}
+                size="icon"
+                onClick={handleWhereClick}
+                className="h-6 w-6 text-primary hover:text-primary/80"
               >
-                {filters.date ? format(filters.date, "MMM d") : "Add dates"}
+                <Map className="h-4 w-4" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={filters.date}
-                onSelect={handleDateChange}
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
+            </div>
+          </div>
+          
+          {showSuggestions && suggestions.length > 0 && activeSuggestionField === 'location' && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="w-full px-4 py-3 text-left hover:bg-muted/50 flex items-center gap-3 transition-colors"
+                >
+                  <div className="flex-shrink-0">
+                    {suggestion.type === 'venue' ? (
+                      <Search className="h-4 w-4 text-primary" />
+                    ) : (
+                      <MapPin className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm text-foreground">{suggestion.name}</div>
+                    {suggestion.type === 'venue' && (
+                      <div className="text-xs text-muted-foreground">{suggestion.location}</div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="hidden lg:block w-px h-6 bg-border" />
+
+        {/* Date */}
+        <div className="flex-1">
+          <div className="px-4 py-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-1">When</div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start text-left font-medium p-0 h-auto hover:bg-transparent",
+                    !filters.date && "text-muted-foreground"
+                  )}
+                >
+                  {filters.date ? format(filters.date, "MMM d") : "Add dates"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={filters.date}
+                  onSelect={handleDateChange}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        {/* Search Button */}
+        <div className="px-2">
+          <Button 
+            onClick={handleSearch}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-10 h-10 p-0 shadow-lg"
+            disabled={loading}
+          >
+            <Search className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Search Button */}
-      <div className="px-2">
-        <Button 
-          onClick={handleSearch}
-          className="bg-red-500 hover:bg-red-600 text-white rounded-full w-12 h-12 p-0 shadow-md"
-          disabled={loading}
-        >
-          <Search className="h-5 w-5" />
-        </Button>
-      </div>
-    </div>
+      {/* Map Modal */}
+      {showMap && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl w-full max-w-4xl h-[80vh] border border-border overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">Select Location</h3>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setShowMap(false)}>
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                To use the map feature, you'll need to add your Mapbox token. For now, you can select from these popular venues:
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                {['Downtown District', 'Tech Park', 'Old Town', 'Gaming District'].map((location) => (
+                  <Button
+                    key={location}
+                    variant="outline"
+                    onClick={() => handleMapLocationSelect(location)}
+                    className="justify-start"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {location}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
