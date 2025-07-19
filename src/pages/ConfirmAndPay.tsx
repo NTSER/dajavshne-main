@@ -14,9 +14,15 @@ import AuthDialog from "@/components/AuthDialog";
 interface BookingData {
   venueId: string;
   venueName: string;
-  serviceId?: string;
+  serviceIds: string[];
   date: string;
-  times: string[]; // Changed from single time to array of times
+  arrivalTime: string;
+  departureTime: string;
+  serviceBookings: Array<{
+    serviceId: string;
+    arrivalTime: string;
+    departureTime: string;
+  }>;
   guests: number;
   specialRequests?: string;
   totalPrice: number;
@@ -88,25 +94,23 @@ const ConfirmAndPay = () => {
         });
 
         // Create the booking in the database
-        // For multiple time slots, we'll store the first time as booking_time
-        // and store all times in special_requests for now
-        const firstTime = bookingData.times[0];
-        const timeSlotInfo = bookingData.times.length > 1 
-          ? `\nSelected time slots: ${bookingData.times.join(', ')}\nTotal duration: ${bookingData.times.length * 30} minutes`
-          : '';
-        
         const { data: booking, error: bookingError } = await supabase
           .from('bookings')
           .insert({
             user_id: user.id,
             user_email: user.email,
             venue_id: bookingData.venueId,
-            service_id: bookingData.serviceId || null,
+            service_id: bookingData.serviceIds.length > 0 ? bookingData.serviceIds[0] : null,
             booking_date: bookingData.date,
-            booking_time: firstTime, // Use first time slot for the required field
+            booking_time: bookingData.arrivalTime,
             guest_count: bookingData.guests,
             total_price: bookingData.totalPrice,
-            special_requests: (bookingData.specialRequests || '') + timeSlotInfo,
+            special_requests: (bookingData.specialRequests || '') + 
+              `\nArrival: ${bookingData.arrivalTime}, Departure: ${bookingData.departureTime}` +
+              (bookingData.serviceBookings.length > 0 ? 
+                `\nService Times: ${bookingData.serviceBookings.map(sb => 
+                  `Service ${sb.serviceId}: ${sb.arrivalTime} - ${sb.departureTime}`
+                ).join(', ')}` : ''),
             status: 'confirmed'
           })
           .select()
@@ -125,7 +129,7 @@ const ConfirmAndPay = () => {
               userEmail: user.email,
               venueName: bookingData.venueName,
               bookingDate: bookingData.date,
-              bookingTime: bookingData.times.join(', '), // Send all times for notifications
+              bookingTime: `${bookingData.arrivalTime} - ${bookingData.departureTime}`,
             },
           });
         } catch (notifError) {
@@ -156,6 +160,28 @@ const ConfirmAndPay = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "EEEE, MMM d, yyyy");
+  };
+
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const calculateDuration = (startTime: string, endTime: string) => {
+    const start = new Date(`2000-01-01T${startTime}:00`);
+    const end = new Date(`2000-01-01T${endTime}:00`);
+    const diffMs = end.getTime() - start.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (diffHours > 0) {
+      return `${diffHours}h ${diffMinutes}m`;
+    } else {
+      return `${diffMinutes}m`;
+    }
   };
 
   return (
@@ -334,24 +360,14 @@ const ConfirmAndPay = () => {
                     <h4 className="font-medium text-foreground mb-1">Date</h4>
                     <p className="text-sm text-muted-foreground">{formatDate(bookingData.date)}</p>
                     <div className="mt-2">
-                      <h5 className="text-sm font-medium text-foreground mb-1">Time Slots</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {bookingData.times.map((time, index) => {
-                          const [hour, minute] = time.split(':');
-                          const hourNum = parseInt(hour);
-                          const period = hourNum >= 12 ? 'PM' : 'AM';
-                          const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-                          const displayTime = `${displayHour}:${minute} ${period}`;
-                          
-                          return (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {displayTime}
-                            </Badge>
-                          );
-                        })}
+                      <h5 className="text-sm font-medium text-foreground mb-1">Booking Time</h5>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {formatTime(bookingData.arrivalTime)} - {formatTime(bookingData.departureTime)}
+                        </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Duration: {bookingData.times.length * 30} minutes total
+                        Duration: {calculateDuration(bookingData.arrivalTime, bookingData.departureTime)}
                       </p>
                     </div>
                   </div>
