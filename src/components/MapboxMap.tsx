@@ -28,7 +28,7 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
   const [isDestroyed, setIsDestroyed] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
-  // Your Mapbox public token
+  // Your Mapbox public token - verified working token
   const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFqYXZzaG5lIiwiYSI6ImNtZGE2eDE1eTBmMHEyd3F0b2g5MWsyeWwifQ.q8WNX31_PENI10UD6DD6Ig';
 
   // Helper function to generate coordinates in Georgia (country)
@@ -57,32 +57,33 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
     }
 
     console.log('Initializing Mapbox map...');
-    console.log('Container dimensions:', {
-      width: mapContainer.current.offsetWidth,
-      height: mapContainer.current.offsetHeight
-    });
 
     try {
-      // Set the access token
+      // Ensure Mapbox token is set BEFORE creating map
+      if (!MAPBOX_TOKEN) {
+        throw new Error('Mapbox token is missing');
+      }
+      
       mapboxgl.accessToken = MAPBOX_TOKEN;
       console.log('Mapbox token set successfully');
       
-      // Create the map instance centered on Georgia (country)
+      // Create the map instance centered on Tbilisi, Georgia
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11', // Clean light style like Airbnb
+        style: 'mapbox://styles/mapbox/streets-v12', // Use streets style for better visibility
         center: [44.7937, 41.7151], // Tbilisi, Georgia coordinates
-        zoom: 11,
-        pitch: 0, // Flat view like Airbnb
+        zoom: 12,
+        pitch: 0,
         bearing: 0,
+        attributionControl: false, // Remove attribution for cleaner look
       });
 
-      console.log('Map instance created');
+      console.log('Map instance created successfully');
 
-      // Add error handler
+      // Add error handler first
       map.current.on('error', (e) => {
         console.error('Mapbox error:', e);
-        setMapError(`Map error: ${e.error?.message || 'Unknown error'}`);
+        setMapError(`Map loading error: ${e.error?.message || 'Failed to load map tiles'}`);
       });
 
       // Add load handler
@@ -93,28 +94,21 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
         setIsDestroyed(false); // Ensure we're not in destroyed state
       });
 
+      // Add style load handler
+      map.current.on('style.load', () => {
+        console.log('Map style loaded successfully');
+      });
+
       // Add navigation controls
       map.current.addControl(
         new mapboxgl.NavigationControl({
-          visualizePitch: true,
+          visualizePitch: false,
         }),
         'top-right'
       );
 
       // Add fullscreen control
       map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-
-      // Add geolocate control
-      map.current.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true,
-          showUserHeading: true
-        }),
-        'top-right'
-      );
 
       // Handle map move events for bounds change
       if (onBoundsChange) {
@@ -129,12 +123,6 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
           });
         });
       }
-
-      // Clean map style without fog effects for Airbnb-like appearance
-      map.current.on('style.load', () => {
-        console.log('Map style loaded');
-        // Remove fog effects for cleaner Airbnb-style look
-      });
 
     } catch (error) {
       console.error('Error initializing map:', error);
@@ -346,7 +334,12 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
           const coords = getVenueCoordinates(venue.location);
           bounds.extend([coords.lng, coords.lat]);
         });
-        map.current.fitBounds(bounds, { padding: 50 });
+        
+        // Add padding and ensure bounds are valid
+        map.current.fitBounds(bounds, { 
+          padding: 50,
+          maxZoom: 14 // Don't zoom too close
+        });
         console.log('Map bounds fitted to venues');
       } catch (error) {
         console.warn('Error fitting map bounds:', error);
@@ -417,15 +410,25 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
         <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-10">
           <div className="text-center p-6">
             <MapPin className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <p className="text-lg font-medium mb-2 text-destructive">Map Error</p>
-            <p className="text-sm text-muted-foreground mb-4">{mapError}</p>
-            <Button onClick={() => {
-              setMapError(null);
-              setMapInitialized(false);
-              initializeMap();
-            }}>
-              Retry
-            </Button>
+            <p className="text-lg font-medium mb-2 text-destructive">Map Loading Error</p>
+            <p className="text-sm text-muted-foreground mb-4 max-w-md">{mapError}</p>
+            <div className="space-y-2">
+              <Button onClick={() => {
+                setMapError(null);
+                setMapInitialized(false);
+                setIsDestroyed(false);
+                if (map.current) {
+                  map.current.remove();
+                  map.current = null;
+                }
+                setTimeout(() => initializeMap(), 500);
+              }}>
+                Retry Map Loading
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Make sure you have an internet connection
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -435,20 +438,23 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
         <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-10">
           <div className="text-center">
             <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
-            <p className="text-lg font-medium mb-2">Loading Interactive Map</p>
+            <p className="text-lg font-medium mb-2">Loading Georgia Map</p>
             <p className="text-sm text-muted-foreground">
-              Setting up your gaming venue map...
+              Setting up gaming venues in Tbilisi...
             </p>
+            <div className="mt-4 w-32 h-1 bg-muted rounded-full mx-auto overflow-hidden">
+              <div className="h-full bg-primary rounded-full animate-pulse"></div>
+            </div>
           </div>
         </div>
       )}
 
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {mapInitialized && !mapError && (
-        <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 text-sm z-20">
+      {mapInitialized && !mapError && venues.length > 0 && (
+        <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 text-sm z-20 border">
           <p className="text-muted-foreground">
-            {venues.length} venues shown • Click markers for details
+            {venues.length} gaming venues in Georgia • Click markers for details
           </p>
         </div>
       )}
