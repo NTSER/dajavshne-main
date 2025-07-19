@@ -3,11 +3,12 @@ import { motion } from "framer-motion";
 import EnhancedSearchFilters from "@/components/EnhancedSearchFilters";
 import VenueCard from "@/components/VenueCard";
 import CategoryCard from "@/components/CategoryCard";
+import MapboxMap from "@/components/MapboxMap";
 import Header from "@/components/Header";
 import { useVenues } from "@/hooks/useVenues";
 import { categories } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, Zap, Trophy } from "lucide-react";
+import { ArrowRight, Star, Zap, Trophy, MapPin, Navigation } from "lucide-react";
 
 const Index = () => {
   const { data: venues, isLoading } = useVenues();
@@ -67,6 +68,61 @@ const Index = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Interactive Map Section */}
+      <section className="section-padding bg-background">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-6 py-2 mb-6">
+              <MapPin className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-accent">Explore Nearby</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
+              Find Venues Around You
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              Discover gaming venues in your area with our interactive map. Click on markers to see details and book your session.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="glass-effect rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+          >
+            <div className="h-[500px] w-full">
+              <MapboxMap 
+                venues={venues || []} 
+                height="h-full"
+              />
+            </div>
+            <div className="p-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <h3 className="font-semibold text-lg mb-1">Ready to explore more?</h3>
+                  <p className="text-muted-foreground">
+                    View all venues on our detailed search page with advanced filters
+                  </p>
+                </div>
+                <Button asChild className="shadow-lg">
+                  <a href="/search">
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Browse All Venues
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 

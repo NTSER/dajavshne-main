@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useVenues } from "@/hooks/useVenues";
 import VenueCard from "@/components/VenueCard";
-import InteractiveMap from "@/components/InteractiveMap";
+import MapboxMap from "@/components/MapboxMap";
 import SearchFilters from "@/components/SearchFilters";
 import { Button } from "@/components/ui/button";
 import { Map, List, Filter } from "lucide-react";
@@ -179,9 +179,10 @@ const SearchResults = () => {
           {/* Interactive Map */}
           {(viewMode === 'split' || viewMode === 'map') && (
             <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} rounded-lg overflow-hidden border`}>
-              <InteractiveMap
+              <MapboxMap
                 venues={filteredVenues}
                 onBoundsChange={handleMapBoundsChange}
+                height="h-full"
               />
             </div>
           )}
