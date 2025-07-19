@@ -211,27 +211,31 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         }
 
         // Create notification manually
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: (await supabase.from('bookings').select('user_id').eq('id', bookingId).single()).data?.user_id,
-            booking_id: bookingId,
-            type: action === 'confirmed' ? 'booking_confirmed' : 'booking_rejected',
-            title: action === 'confirmed' ? 'Booking Confirmed!' : 'Booking Rejected',
-            message: action === 'confirmed' 
-              ? `Your booking has been confirmed.`
-              : `Your booking has been rejected.`,
-            read: false
-          });
+        const bookingData = await supabase.from('bookings').select('user_id').eq('id', bookingId).single();
+        if (bookingData.data?.user_id) {
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert({
+              user_id: bookingData.data.user_id,
+              booking_id: bookingId,
+              type: action === 'confirmed' ? 'booking_confirmed' : 'booking_rejected',
+              title: action === 'confirmed' ? 'Booking Confirmed!' : 'Booking Rejected',
+              message: action === 'confirmed' 
+                ? `Your booking has been confirmed.`
+                : `Your booking has been rejected.`,
+              read: false
+            });
 
-        if (notificationError) {
-          console.error('Error creating notification:', notificationError);
+          if (notificationError) {
+            console.error('Error creating notification:', notificationError);
+          }
         }
 
         console.log('Fallback update completed successfully');
       }
 
-      // Don't manually remove from pending list here - let the real-time subscription handle it
+      // Always remove from pending list immediately - don't wait for real-time subscription
+      setPendingBookings(prev => prev.filter(b => b.id !== bookingId));
       setSelectedBooking(null);
 
       toast({
