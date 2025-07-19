@@ -159,9 +159,35 @@ const EnhancedSearchFilters = () => {
     setActiveSuggestionField(null);
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     console.log('Search filters:', filters);
     
+    // Check if business name exactly matches a venue name
+    if (filters.businessName.trim()) {
+      try {
+        const { data: venues, error } = await supabase
+          .from('venues')
+          .select('id, name')
+          .ilike('name', filters.businessName.trim())
+          .limit(1);
+
+        if (!error && venues && venues.length > 0) {
+          const exactMatch = venues.find(venue => 
+            venue.name.toLowerCase() === filters.businessName.toLowerCase().trim()
+          );
+          
+          if (exactMatch) {
+            // Open venue page in new tab for exact match
+            window.open(`/venue/${exactMatch.id}`, '_blank');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for exact venue match:', error);
+      }
+    }
+    
+    // If no exact match, proceed with regular search
     const searchParams = new URLSearchParams();
     
     if (filters.businessName) {
