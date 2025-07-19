@@ -146,13 +146,13 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't throw here - we still want to create notifications even if email fails
     }
 
-    // Create booking confirmation notification
+    // Create booking confirmation notification (when partner confirms booking)
     const { error: confirmationError } = await supabase
       .from('notifications')
       .insert({
         user_id: userId,
         booking_id: bookingId,
-        type: 'booking_confirmation',
+        type: 'booking_confirmed',
         title: 'Booking Confirmed!',
         message: `Your booking at ${venueName} on ${bookingDate} at ${bookingTime} has been confirmed.`,
       });
