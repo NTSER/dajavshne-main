@@ -10,6 +10,7 @@ import { useCreateVenue } from '@/hooks/usePartnerVenues';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 const categories = [
   'Restaurant',
@@ -34,6 +35,7 @@ const AddVenue = () => {
     images: [''],
     amenities: [],
     newAmenity: '',
+    services: [{ name: '', description: '', price: '', duration: '' }],
   });
 
   const navigate = useNavigate();
@@ -52,8 +54,13 @@ const AddVenue = () => {
       return;
     }
 
+    // Validate services
+    const validServices = formData.services.filter(service => 
+      service.name.trim() && service.price.trim() && service.duration.trim()
+    );
+
     try {
-      await createVenue.mutateAsync({
+      const venueData = await createVenue.mutateAsync({
         name: formData.name,
         description: formData.description,
         location: formData.location,
@@ -62,6 +69,19 @@ const AddVenue = () => {
         images: formData.images.filter(img => img.trim() !== ''),
         amenities: formData.amenities,
       });
+
+      // Create services if any are provided
+      if (validServices.length > 0) {
+        for (const service of validServices) {
+          await supabase.from('venue_services').insert({
+            venue_id: venueData.id,
+            name: service.name,
+            description: service.description,
+            price: parseFloat(service.price),
+            duration: service.duration,
+          });
+        }
+      }
 
       toast({
         title: "Venue created!",
@@ -114,6 +134,31 @@ const AddVenue = () => {
       ...prev,
       amenities: prev.amenities.filter((_, i) => i !== index)
     }));
+  };
+
+  const addService = () => {
+    setFormData(prev => ({
+      ...prev,
+      services: [...prev.services, { name: '', description: '', price: '', duration: '' }]
+    }));
+  };
+
+  const updateService = (index: number, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === index ? { ...service, [field]: value } : service
+      )
+    }));
+  };
+
+  const removeService = (index: number) => {
+    if (formData.services.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        services: prev.services.filter((_, i) => i !== index)
+      }));
+    }
   };
 
   return (
@@ -259,6 +304,81 @@ const AddVenue = () => {
                     </Badge>
                   ))}
                 </div>
+              </div>
+
+              {/* Services Section */}
+              <div className="space-y-4">
+                <Label className="text-lg font-medium">Services (Optional)</Label>
+                <p className="text-sm text-muted-foreground">Add services that customers can select when booking your venue.</p>
+                
+                {formData.services.map((service, index) => (
+                  <div key={index} className="p-4 border border-border rounded-lg space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">Service {index + 1}</h4>
+                      {formData.services.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeService(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Service Name</Label>
+                        <Input
+                          value={service.name}
+                          onChange={(e) => updateService(index, 'name', e.target.value)}
+                          placeholder="e.g., Basic Gaming Session"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Duration</Label>
+                        <Input
+                          value={service.duration}
+                          onChange={(e) => updateService(index, 'duration', e.target.value)}
+                          placeholder="e.g., 2 hours"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Price per Guest</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={service.price}
+                        onChange={(e) => updateService(index, 'price', e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Description (Optional)</Label>
+                      <Textarea
+                        value={service.description}
+                        onChange={(e) => updateService(index, 'description', e.target.value)}
+                        placeholder="Describe what's included in this service..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addService}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another Service
+                </Button>
               </div>
 
               <div className="flex gap-4 pt-4">

@@ -38,7 +38,11 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
   
   const [formData, setFormData] = useState({
     date: undefined as Date | undefined,
-    times: [] as string[], // Changed to array for multiple times
+    serviceBookings: [] as Array<{
+      serviceId: string;
+      arrivalTime: string;
+      departureTime: string;
+    }>,
     guests: 1,
     serviceIds: selectedServiceId ? [selectedServiceId] : [] as string[], // Changed to array for multiple services
     specialRequests: "",
@@ -55,7 +59,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
   const selectedServices = services.filter(s => formData.serviceIds.includes(s.id));
   const totalServicePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
   const basePrice = totalServicePrice > 0 ? totalServicePrice : venuePrice;
-  const totalPrice = basePrice * formData.guests * Math.max(1, formData.times.length);
+  const totalPrice = basePrice * formData.guests;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +70,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
       venueId,
       venueName,
       date: formData.date ? format(formData.date, 'yyyy-MM-dd') : "",
-      times: formData.times, // Send array of times
+      serviceBookings: formData.serviceBookings,
       guests: formData.guests,
       serviceIds: formData.serviceIds, // Send array of service IDs
       totalPrice,
@@ -82,14 +86,31 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
     });
   };
 
-  // Handle multiple time selection
-  const handleTimeToggle = (time24: string) => {
-    setFormData(prev => ({
-      ...prev,
-      times: prev.times.includes(time24)
-        ? prev.times.filter(t => t !== time24) // Remove if already selected
-        : [...prev.times, time24].sort() // Add and sort if not selected
-    }));
+  // Handle service time updates
+  const updateServiceTime = (serviceId: string, field: 'arrivalTime' | 'departureTime', value: string) => {
+    setFormData(prev => {
+      const existingBooking = prev.serviceBookings.find(sb => sb.serviceId === serviceId);
+      if (existingBooking) {
+        return {
+          ...prev,
+          serviceBookings: prev.serviceBookings.map(sb =>
+            sb.serviceId === serviceId ? { ...sb, [field]: value } : sb
+          )
+        };
+      } else {
+        return {
+          ...prev,
+          serviceBookings: [
+            ...prev.serviceBookings,
+            {
+              serviceId,
+              arrivalTime: field === 'arrivalTime' ? value : '',
+              departureTime: field === 'departureTime' ? value : '',
+            }
+          ]
+        };
+      }
+    });
   };
 
 
@@ -172,14 +193,18 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
                       ? "border-primary bg-primary/5" 
                       : "border-border hover:border-primary/50"
                   )}
-                  onClick={() => {
-                    setFormData(prev => ({
-                      ...prev,
-                      serviceIds: isSelected
-                        ? prev.serviceIds.filter(id => id !== service.id) // Remove if selected
-                        : [...prev.serviceIds, service.id] // Add if not selected
-                    }));
-                  }}
+                   onClick={() => {
+                     setFormData(prev => ({
+                       ...prev,
+                       serviceIds: isSelected
+                         ? prev.serviceIds.filter(id => id !== service.id) // Remove if selected
+                         : [...prev.serviceIds, service.id], // Add if not selected
+                       // Remove service booking if service is deselected
+                       serviceBookings: isSelected
+                         ? prev.serviceBookings.filter(sb => sb.serviceId !== service.id)
+                         : prev.serviceBookings
+                     }));
+                   }}
                 >
                   <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
                   <div className="flex-1 min-w-0">
@@ -207,70 +232,44 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
               </div>
             )}
 
-            {/* Time Slots */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Available Times</h3>
-                {formData.times.length > 0 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFormData(prev => ({ ...prev, times: [] }))}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Clear all
-                  </Button>
-                )}
-              </div>
-              
-              {formData.times.length > 0 && (
-                <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                  <p className="text-sm text-muted-foreground mb-2">Selected time slots:</p>
-                  <p className="font-medium">
-                    {formData.times.map(time => {
-                      const [hour, minute] = time.split(':');
-                      const hourNum = parseInt(hour);
-                      const period = hourNum >= 12 ? 'PM' : 'AM';
-                      const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-                      return `${displayHour}:${minute} ${period}`;
-                    }).join(', ')}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Duration: {formData.times.length * 30} minutes
-                  </p>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  "1:15PM", "1:45PM", "2:15PM", "2:45PM", "3:15PM", "3:45PM",
-                  "4:15PM", "4:45PM", "5:15PM", "5:45PM", "6:15PM", "6:45PM",
-                  "7:15PM", "7:45PM", "8:15PM"
-                ].map((timeSlot) => {
-                  const [time, period] = timeSlot.split(/(?=[AP]M)/);
-                  const hour24 = period === 'PM' && time !== '12:' 
-                    ? String(parseInt(time.split(':')[0]) + 12).padStart(2, '0')
-                    : time === '12:' && period === 'AM' 
-                    ? '00'
-                    : time.split(':')[0].padStart(2, '0');
-                  const minute = time.split(':')[1];
-                  const time24 = `${hour24}:${minute || '00'}`;
-                  
+            {/* Service Time Selection */}
+            {formData.serviceIds.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Service Times</h3>
+                <p className="text-sm text-muted-foreground">Set arrival and departure times for each selected service.</p>
+                
+                {selectedServices.map((service) => {
+                  const serviceBooking = formData.serviceBookings.find(sb => sb.serviceId === service.id);
                   return (
-                    <Button
-                      key={timeSlot}
-                      type="button"
-                      variant={formData.times.includes(time24) ? "default" : "outline"}
-                      className="h-12 rounded-full font-medium"
-                      onClick={() => handleTimeToggle(time24)}
-                    >
-                      {timeSlot}
-                    </Button>
+                    <div key={service.id} className="p-4 border border-border rounded-lg space-y-4">
+                      <h4 className="font-medium">{service.name}</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor={`arrival-${service.id}`}>Arrival Time</Label>
+                          <Input
+                            id={`arrival-${service.id}`}
+                            type="time"
+                            value={serviceBooking?.arrivalTime || ''}
+                            onChange={(e) => updateServiceTime(service.id, 'arrivalTime', e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`departure-${service.id}`}>Departure Time</Label>
+                          <Input
+                            id={`departure-${service.id}`}
+                            type="time"
+                            value={serviceBooking?.departureTime || ''}
+                            onChange={(e) => updateServiceTime(service.id, 'departureTime', e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            </div>
+            )}
 
             {/* Special Requests */}
             <div className="space-y-4">
@@ -300,19 +299,10 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
               <span className="text-primary">${totalPrice}</span>
             </div>
             
-            {formData.times.length > 1 && (
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>Base price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''} × {formData.times.length} slots</p>
-                {selectedServices.length > 0 && (
-                  <p>Services: {selectedServices.map(s => s.name).join(', ')}</p>
-                )}
-                <p>Duration: {formData.times.length * 30} minutes total</p>
-              </div>
-            )}
-
-            {selectedServices.length > 0 && formData.times.length <= 1 && (
+            {selectedServices.length > 0 && (
               <div className="text-sm text-muted-foreground">
                 <p>Selected services: {selectedServices.map(s => s.name).join(', ')}</p>
+                <p>Price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
               </div>
             )}
           </div>
@@ -320,7 +310,12 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
           <Button 
             onClick={handleSubmit}
             className="w-full h-14 text-lg font-medium" 
-            disabled={isSubmitting || !formData.date || formData.times.length === 0 || (services.length > 0 && formData.serviceIds.length === 0)}
+            disabled={
+              isSubmitting || 
+              !formData.date || 
+              (services.length > 0 && formData.serviceIds.length === 0) ||
+              (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
+            }
           >
             {isSubmitting ? "Creating Booking..." : "Reserve"}
           </Button>
