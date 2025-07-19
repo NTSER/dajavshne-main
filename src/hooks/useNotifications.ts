@@ -7,7 +7,7 @@ export interface Notification {
   id: string;
   user_id: string;
   booking_id: string;
-  type: 'booking_confirmation' | '2_hours_before' | '1_hour_before' | '10_minutes_before' | 'friend_request' | 'lobby_invitation';
+  type: 'booking_confirmation' | 'booking_confirmed' | 'booking_rejected' | '2_hours_before' | '1_hour_before' | '10_minutes_before' | 'friend_request' | 'lobby_invitation';
   title: string;
   message: string;
   read: boolean;
@@ -48,6 +48,30 @@ export const useMarkNotificationAsRead = () => {
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId);
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+};
+
+export const useMarkAllNotificationsAsRead = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
 
       if (error) {
         throw error;

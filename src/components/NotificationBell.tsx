@@ -1,5 +1,5 @@
 
-import { Bell } from "lucide-react";
+import { Bell, CheckCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNotifications, useMarkNotificationAsRead } from "@/hooks/useNotifications";
+import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,16 +23,35 @@ interface NotificationBellProps {
 const NotificationBell = ({}: NotificationBellProps) => {
   const { data: notifications = [], isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
+  const markAllAsRead = useMarkAllNotificationsAsRead();
   const navigate = useNavigate();
   
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleMarkAllAsRead = () => {
+    markAllAsRead.mutate(undefined, {
+      onSuccess: () => {
+        toast({
+          title: "All notifications marked as read",
+          description: "Your notifications have been cleared.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: "Failed to mark notifications as read",
+          variant: "destructive"
+        });
+      }
+    });
+  };
 
   const handleNotificationClick = async (notification: any) => {
     // Mark as read first
     markAsRead.mutate(notification.id);
     
     // Handle different notification types
-    if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
+    if (notification.type.includes('before') || notification.type.includes('booking_')) {
       try {
         // Fetch the booking to get venue_id
         const { data: booking, error } = await supabase
@@ -90,7 +109,21 @@ const NotificationBell = ({}: NotificationBellProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <div className="flex items-center justify-between p-2">
+          <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              className="h-8 px-2 text-xs"
+              disabled={markAllAsRead.isPending}
+            >
+              <CheckCheck className="h-3 w-3 mr-1" />
+              Mark all read
+            </Button>
+          )}
+        </div>
         <DropdownMenuSeparator />
         <ScrollArea className="h-64">
           {notifications.length === 0 ? (
@@ -117,7 +150,7 @@ const NotificationBell = ({}: NotificationBellProps) => {
                   <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                   </p>
-                  {(notification.type.includes('before') || notification.type === 'booking_confirmation') && (
+                  {(notification.type.includes('before') || notification.type.includes('booking_')) && (
                     <p className="text-xs text-primary font-medium">
                       Click to view venue →
                     </p>
