@@ -33,12 +33,15 @@ const AddVenue = () => {
     category: '',
     price: '',
     images: [''],
+    uploadedImages: [] as File[],
     amenities: [],
     newAmenity: '',
     services: [{ name: '', description: '', price: '', duration: '' }],
     openingTime: '',
     closingTime: '',
   });
+
+  const [uploading, setUploading] = useState(false);
 
   const navigate = useNavigate();
   const createVenue = useCreateVenue();
@@ -62,13 +65,44 @@ const AddVenue = () => {
     );
 
     try {
+      setUploading(true);
+      
+      // Upload images to Supabase Storage
+      const uploadedImageUrls = [];
+      
+      for (const file of formData.uploadedImages) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('venue-images')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+        }
+
+        // Get the public URL for the uploaded image
+        const { data: urlData } = supabase.storage
+          .from('venue-images')
+          .getPublicUrl(uploadData.path);
+        
+        uploadedImageUrls.push(urlData.publicUrl);
+      }
+
+      // Combine uploaded images with URL images
+      const allImages = [
+        ...formData.images.filter(img => img.trim() !== ''),
+        ...uploadedImageUrls
+      ];
+
       const venueData = await createVenue.mutateAsync({
         name: formData.name,
         description: formData.description,
         location: formData.location,
         category: formData.category,
         price: parseFloat(formData.price),
-        images: formData.images.filter(img => img.trim() !== ''),
+        images: allImages,
         amenities: formData.amenities,
         openingTime: formData.openingTime,
         closingTime: formData.closingTime,
@@ -99,6 +133,8 @@ const AddVenue = () => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -163,6 +199,33 @@ const AddVenue = () => {
         services: prev.services.filter((_, i) => i !== index)
       }));
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isValid = file.type.startsWith('image/');
+      if (!isValid) {
+        toast({
+          title: "Invalid file type",
+          description: `${file.name} is not an image file`,
+          variant: "destructive",
+        });
+      }
+      return isValid;
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      uploadedImages: [...prev.uploadedImages, ...validFiles]
+    }));
+  };
+
+  const removeUploadedImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      uploadedImages: prev.uploadedImages.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -274,36 +337,88 @@ const AddVenue = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Images (URLs)</Label>
-                {formData.images.map((image, index) => (
-                  <div key={index} className="flex gap-2">
+              <div className="space-y-4">
+                <Label>Images</Label>
+                
+                {/* File Upload Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Label htmlFor="image-upload" className="text-sm font-medium">
+                      Upload from Device
+                    </Label>
                     <Input
-                      value={image}
-                      onChange={(e) => updateImage(index, e.target.value)}
-                      placeholder="Enter image URL"
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="flex-1"
                     />
-                    {formData.images.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeImage(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addImageField}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Image
-                </Button>
+                  
+                  {/* Display uploaded images preview */}
+                  {formData.uploadedImages.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Uploaded Images:</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {formData.uploadedImages.map((file, index) => (
+                          <div key={index} className="relative group">
+                            <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeUploadedImage(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                            <p className="text-xs text-muted-foreground mt-1 truncate">{file.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* URL Input Section */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">Or Enter Image URLs</Label>
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={image}
+                        onChange={(e) => updateImage(index, e.target.value)}
+                        placeholder="Enter image URL"
+                      />
+                      {formData.images.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addImageField}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Image URL
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -421,10 +536,10 @@ const AddVenue = () => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createVenue.isPending}
+                  disabled={createVenue.isPending || uploading}
                   className="flex-1"
                 >
-                  {createVenue.isPending ? "Creating..." : "Create Venue"}
+                  {createVenue.isPending || uploading ? "Creating..." : "Create Venue"}
                 </Button>
               </div>
             </form>
