@@ -37,7 +37,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
   
   const [formData, setFormData] = useState({
     date: undefined as Date | undefined,
-    time: "",
+    times: [] as string[], // Changed to array for multiple times
     guests: 1,
     serviceId: "",
     specialRequests: "",
@@ -45,7 +45,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedService = services.find(s => s.id === formData.serviceId);
-  const totalPrice = selectedService ? selectedService.price : venuePrice;
+  const basePrice = selectedService ? selectedService.price : venuePrice;
+  const totalPrice = basePrice * formData.guests * Math.max(1, formData.times.length);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +57,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
       venueId,
       venueName,
       date: formData.date ? format(formData.date, 'yyyy-MM-dd') : "",
-      time: formData.time,
+      times: formData.times, // Send array of times
       guests: formData.guests,
       serviceId: formData.serviceId,
       totalPrice,
@@ -72,12 +73,14 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
     });
   };
 
-  const handleAuthRequired = () => {
-    // This is now just for showing auth dialog if user wants to login early
-    toast({
-      title: "Login Optional",
-      description: "You can complete the booking and login at the payment step.",
-    });
+  // Handle multiple time selection
+  const handleTimeToggle = (time24: string) => {
+    setFormData(prev => ({
+      ...prev,
+      times: prev.times.includes(time24)
+        ? prev.times.filter(t => t !== time24) // Remove if already selected
+        : [...prev.times, time24].sort() // Add and sort if not selected
+    }));
   };
 
 
@@ -186,7 +189,39 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
 
           {/* Time Slots */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Available Times</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Available Times</h3>
+              {formData.times.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFormData(prev => ({ ...prev, times: [] }))}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Clear all
+                </Button>
+              )}
+            </div>
+            
+            {formData.times.length > 0 && (
+              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <p className="text-sm text-muted-foreground mb-2">Selected time slots:</p>
+                <p className="font-medium">
+                  {formData.times.map(time => {
+                    const [hour, minute] = time.split(':');
+                    const hourNum = parseInt(hour);
+                    const period = hourNum >= 12 ? 'PM' : 'AM';
+                    const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+                    return `${displayHour}:${minute} ${period}`;
+                  }).join(', ')}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Duration: {formData.times.length * 30} minutes
+                </p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-3 gap-3">
               {[
                 "1:15PM", "1:45PM", "2:15PM", "2:45PM", "3:15PM", "3:45PM",
@@ -206,9 +241,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
                   <Button
                     key={timeSlot}
                     type="button"
-                    variant={formData.time === time24 ? "default" : "outline"}
+                    variant={formData.times.includes(time24) ? "default" : "outline"}
                     className="h-12 rounded-full font-medium"
-                    onClick={() => setFormData(prev => ({ ...prev, time: time24 }))}
+                    onClick={() => handleTimeToggle(time24)}
                   >
                     {timeSlot}
                   </Button>
@@ -234,15 +269,22 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
 
           {/* Total Price */}
           <div className="border-t pt-6">
-            <div className="flex justify-between items-center text-xl font-semibold mb-6">
+            <div className="flex justify-between items-center text-xl font-semibold mb-2">
               <span>Total Price:</span>
-              <span className="text-primary">${totalPrice * formData.guests}</span>
+              <span className="text-primary">${totalPrice}</span>
             </div>
+            
+            {formData.times.length > 1 && (
+              <div className="text-sm text-muted-foreground mb-4 space-y-1">
+                <p>Base price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''} × {formData.times.length} slots</p>
+                <p>Duration: {formData.times.length * 30} minutes total</p>
+              </div>
+            )}
             
             <Button 
               type="submit" 
               className="w-full h-14 text-lg font-medium" 
-              disabled={isSubmitting || !formData.date || !formData.time}
+              disabled={isSubmitting || !formData.date || formData.times.length === 0}
             >
               {isSubmitting ? "Creating Booking..." : "Reserve"}
             </Button>
