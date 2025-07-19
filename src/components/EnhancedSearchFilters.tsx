@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TimeInput } from "@/components/ui/time-picker";
-import { Calendar as CalendarIcon, MapPin, Users, Clock, Search, Building } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Users, Search, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,7 +22,6 @@ interface SearchFilters {
   businessName: string;
   location: string;
   date: Date | undefined;
-  time: string;
   guests: string;
 }
 
@@ -39,7 +37,6 @@ const EnhancedSearchFilters = () => {
     businessName: "",
     location: "",
     date: undefined,
-    time: "",
     guests: ""
   });
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -181,9 +178,6 @@ const EnhancedSearchFilters = () => {
     if (filters.date) {
       searchParams.append('date', format(filters.date, 'yyyy-MM-dd'));
     }
-    if (filters.time) {
-      searchParams.append('time', filters.time);
-    }
     if (filters.guests) {
       searchParams.append('guests', filters.guests);
     }
@@ -193,7 +187,7 @@ const EnhancedSearchFilters = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-6 bg-background/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-background/80 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg">
       {/* Business Name Search */}
       <div className="space-y-2 relative" ref={searchRef}>
         <Label className="text-sm font-medium flex items-center gap-2 text-foreground">
@@ -302,18 +296,6 @@ const EnhancedSearchFilters = () => {
         </Popover>
       </div>
       
-      {/* Time */}
-      <div className="space-y-2">
-        <TimeInput
-          label="Preferred Time"
-          icon={<Clock className="h-4 w-4" />}
-          value={filters.time}
-          onChange={(time) => handleInputChange('time', time)}
-          placeholder="Select time"
-          className="bg-background/50 border-white/20"
-        />
-      </div>
-      
       {/* Guests */}
       <div className="space-y-2">
         <Label className="text-sm font-medium flex items-center gap-2 text-foreground">
@@ -332,7 +314,7 @@ const EnhancedSearchFilters = () => {
       </div>
       
       {/* Search Button */}
-      <div className="sm:col-span-2 lg:col-span-5 pt-2">
+      <div className="sm:col-span-2 lg:col-span-4 pt-2">
         <Button 
           onClick={handleSearch}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
