@@ -22,9 +22,10 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(false);
   const [mapInitialized, setMapInitialized] = useState(false);
+
+  // Your Mapbox public token
+  const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFqYXZzaG5lIiwiYSI6ImNtZGE2eDE1eTBmMHEyd3F0b2g5MWsyeWwifQ.q8WNX31_PENI10UD6DD6Ig';
 
   // Helper function to generate mock coordinates based on location
   const getVenueCoordinates = (location: string) => {
@@ -40,11 +41,11 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
   };
 
   // Initialize map
-  const initializeMap = (token: string) => {
+  const initializeMap = () => {
     if (!mapContainer.current || map.current) return;
 
     try {
-      mapboxgl.accessToken = token;
+      mapboxgl.accessToken = MAPBOX_TOKEN;
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -103,7 +104,6 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
       setMapInitialized(true);
     } catch (error) {
       console.error('Error initializing map:', error);
-      setShowTokenInput(true);
     }
   };
 
@@ -183,12 +183,10 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
     }
   }, [venues, mapInitialized]);
 
-  // Initialize map when token is provided
+  // Initialize map on component mount
   useEffect(() => {
-    if (mapboxToken) {
-      initializeMap(mapboxToken);
-    }
-  }, [mapboxToken]);
+    initializeMap();
+  }, []);
 
   // Cleanup
   useEffect(() => {
@@ -199,64 +197,19 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
   }, []);
 
   const handleTokenSubmit = () => {
-    if (mapboxToken.trim()) {
-      setShowTokenInput(false);
-      initializeMap(mapboxToken.trim());
-    }
+    // This function is no longer needed since we have the token
   };
 
   return (
     <div className={`relative w-full ${height} bg-muted/20 rounded-lg overflow-hidden`}>
-      {!mapInitialized && !showTokenInput && (
+      {!mapInitialized && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-10">
           <div className="text-center">
-            <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
             <p className="text-lg font-medium mb-2">Loading Interactive Map</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Please add your Mapbox token to Supabase Edge Function Secrets
+            <p className="text-sm text-muted-foreground">
+              Setting up your gaming venue map...
             </p>
-            <Button onClick={() => setShowTokenInput(true)}>
-              <Settings className="w-4 h-4 mr-2" />
-              Enter Token Manually
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {showTokenInput && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm z-10">
-          <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Enter Mapbox Token</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Get your public token from{' '}
-              <a 
-                href="https://mapbox.com/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                mapbox.com
-              </a>
-            </p>
-            <div className="space-y-4">
-              <Input
-                type="text"
-                placeholder="pk.eyJ1IjoieW91cnVzZXJuYW1lIiwi..."
-                value={mapboxToken}
-                onChange={(e) => setMapboxToken(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <Button onClick={handleTokenSubmit} className="flex-1">
-                  Initialize Map
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowTokenInput(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       )}
