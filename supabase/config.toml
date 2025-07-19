@@ -15,6 +15,9 @@ enable_email_confirmations = true
 enable_email_autoconfirm = false
 email_double_confirm_changes = true
 
+[functions.booking-confirmation]
+verify_jwt = true
+
 [functions.booking-reminders]
 verify_jwt = false
 

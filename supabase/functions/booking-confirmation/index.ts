@@ -13,12 +13,17 @@ interface BookingConfirmationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('Booking confirmation function called');
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Get the authorization header
+    const authHeader = req.headers.get('authorization');
+    console.log('Auth header present:', !!authHeader);
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
