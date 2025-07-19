@@ -231,7 +231,8 @@ const VenuePage = () => {
                   venueId={venue.id}
                   venueName={venue.name}
                   venuePrice={venue.price}
-                  services={selectedService ? [selectedService] : services}
+                  services={services}
+                  selectedServiceId={selectedService?.id}
                 />
               </div>
 

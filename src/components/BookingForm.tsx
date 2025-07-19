@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,9 +28,10 @@ interface BookingFormProps {
     price: number;
     duration: string;
   }>;
+  selectedServiceId?: string;
 }
 
-const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingFormProps) => {
+const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedServiceId }: BookingFormProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -39,10 +40,17 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
     date: undefined as Date | undefined,
     times: [] as string[], // Changed to array for multiple times
     guests: 1,
-    serviceId: "",
+    serviceId: selectedServiceId || "",
     specialRequests: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update serviceId when selectedServiceId prop changes
+  useEffect(() => {
+    if (selectedServiceId && selectedServiceId !== formData.serviceId) {
+      setFormData(prev => ({ ...prev, serviceId: selectedServiceId }));
+    }
+  }, [selectedServiceId, formData.serviceId]);
 
   const selectedService = services.find(s => s.id === formData.serviceId);
   const basePrice = selectedService ? selectedService.price : venuePrice;
