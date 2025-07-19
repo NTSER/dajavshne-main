@@ -42,17 +42,17 @@ const SearchResults = () => {
     }
   }, [allVenues, mapBounds]);
 
-  // Helper function to generate mock coordinates based on location
+  // Helper function to generate coordinates in Georgia (country)
   const getVenueCoordinates = (location: string) => {
-    // This is a mock function - in a real app, venues would have actual coordinates
     const hash = location.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
     
+    // Georgia coordinates: Latitude 42.3154, Longitude 43.3569 (Tbilisi center)
     return {
-      lat: 40.7128 + (hash % 1000) / 10000, // Around NYC area
-      lng: -74.0060 + (hash % 2000) / 10000
+      lat: 41.7151 + (hash % 1000) / 5000, // Around Georgia area (41.7 - 42.0)
+      lng: 44.7371 + (hash % 2000) / 10000 // Around Georgia area (44.7 - 45.0)
     };
   };
 
@@ -178,11 +178,12 @@ const SearchResults = () => {
 
           {/* Interactive Map */}
           {(viewMode === 'split' || viewMode === 'map') && (
-            <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} rounded-lg overflow-hidden border`}>
+            <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} rounded-lg overflow-hidden border bg-muted/10`}>
               <MapboxMap
                 venues={filteredVenues}
                 onBoundsChange={handleMapBoundsChange}
                 height="h-full"
+                showPrices={true}
               />
             </div>
           )}
