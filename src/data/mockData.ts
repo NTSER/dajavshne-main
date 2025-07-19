@@ -12,39 +12,39 @@ import {
 
 export const categories = [
   {
-    id: "console-gaming",
-    name: "Console Rooms",
+    id: "Gaming Arena",
+    name: "Gaming Arena",
+    icon: Trophy,
+    color: "#EC4899",
+    description: "Professional esports venues"
+  },
+  {
+    id: "Gaming Lounge",
+    name: "Gaming Lounge",
+    icon: Monitor,
+    color: "#3B82F6", 
+    description: "High-end PC gaming setups"
+  },
+  {
+    id: "Console Room",
+    name: "Console Room",
     icon: Gamepad2,
     color: "#8B5CF6",
     description: "PS5, Xbox Series X/S"
   },
   {
-    id: "pc-gaming",
-    name: "PC Gaming",
-    icon: Monitor,
-    color: "#3B82F6", 
-    description: "High-end gaming rigs"
-  },
-  {
-    id: "vr-zones",
-    name: "VR Zones",
+    id: "VR Zone",
+    name: "VR Zone",
     icon: Headphones,
     color: "#06B6D4",
     description: "Virtual reality experiences"
   },
   {
-    id: "retro-arcade",
-    name: "Retro Arcade",
+    id: "Arcade",
+    name: "Arcade",
     icon: Zap,
     color: "#F97316",
     description: "Classic arcade games"
-  },
-  {
-    id: "esports-arena",
-    name: "Esports Arena",
-    icon: Trophy,
-    color: "#EC4899",
-    description: "Tournament-ready setups"
   }
 ];
 
