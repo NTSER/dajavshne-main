@@ -40,20 +40,21 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
     date: undefined as Date | undefined,
     times: [] as string[], // Changed to array for multiple times
     guests: 1,
-    serviceId: selectedServiceId || "",
+    serviceIds: selectedServiceId ? [selectedServiceId] : [] as string[], // Changed to array for multiple services
     specialRequests: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update serviceId when selectedServiceId prop changes
+  // Update serviceIds when selectedServiceId prop changes
   useEffect(() => {
-    if (selectedServiceId && selectedServiceId !== formData.serviceId) {
-      setFormData(prev => ({ ...prev, serviceId: selectedServiceId }));
+    if (selectedServiceId && !formData.serviceIds.includes(selectedServiceId)) {
+      setFormData(prev => ({ ...prev, serviceIds: [selectedServiceId] }));
     }
-  }, [selectedServiceId, formData.serviceId]);
+  }, [selectedServiceId, formData.serviceIds]);
 
-  const selectedService = services.find(s => s.id === formData.serviceId);
-  const basePrice = selectedService ? selectedService.price : venuePrice;
+  const selectedServices = services.filter(s => formData.serviceIds.includes(s.id));
+  const totalServicePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+  const basePrice = totalServicePrice > 0 ? totalServicePrice : venuePrice;
   const totalPrice = basePrice * formData.guests * Math.max(1, formData.times.length);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +68,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
       date: formData.date ? format(formData.date, 'yyyy-MM-dd') : "",
       times: formData.times, // Send array of times
       guests: formData.guests,
-      serviceId: formData.serviceId,
+      serviceIds: formData.serviceIds, // Send array of service IDs
       totalPrice,
       specialRequests: formData.specialRequests,
     };
@@ -160,26 +161,36 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
             {/* Services Selection */}
             {services.length > 0 && (
               <div className="space-y-4">
-                {services.map((service) => (
-                  <div 
-                    key={service.id}
-                    className={cn(
-                      "flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
-                      formData.serviceId === service.id 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                    onClick={() => setFormData(prev => ({ ...prev, serviceId: service.id }))}
-                  >
-                    <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
-                      <p className="text-muted-foreground">
-                        ${service.price} / guest · {service.duration}
-                      </p>
-                    </div>
+            {services.map((service) => {
+              const isSelected = formData.serviceIds.includes(service.id);
+              return (
+                <div 
+                  key={service.id}
+                  className={cn(
+                    "flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                    isSelected 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-primary/50"
+                  )}
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      serviceIds: isSelected
+                        ? prev.serviceIds.filter(id => id !== service.id) // Remove if selected
+                        : [...prev.serviceIds, service.id] // Add if not selected
+                    }));
+                  }}
+                >
+                  <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
+                    <p className="text-muted-foreground">
+                      ${service.price} / guest · {service.duration}
+                    </p>
                   </div>
-                ))}
+                </div>
+              );
+            })}
               </div>
             )}
 
@@ -292,7 +303,16 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
             {formData.times.length > 1 && (
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>Base price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''} × {formData.times.length} slots</p>
+                {selectedServices.length > 0 && (
+                  <p>Services: {selectedServices.map(s => s.name).join(', ')}</p>
+                )}
                 <p>Duration: {formData.times.length * 30} minutes total</p>
+              </div>
+            )}
+
+            {selectedServices.length > 0 && formData.times.length <= 1 && (
+              <div className="text-sm text-muted-foreground">
+                <p>Selected services: {selectedServices.map(s => s.name).join(', ')}</p>
               </div>
             )}
           </div>
@@ -300,7 +320,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
           <Button 
             onClick={handleSubmit}
             className="w-full h-14 text-lg font-medium" 
-            disabled={isSubmitting || !formData.date || formData.times.length === 0}
+            disabled={isSubmitting || !formData.date || formData.times.length === 0 || formData.serviceIds.length === 0}
           >
             {isSubmitting ? "Creating Booking..." : "Reserve"}
           </Button>
