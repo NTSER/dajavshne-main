@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -24,6 +25,7 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
   const markers = useRef<mapboxgl.Marker[]>([]);
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isDestroyed, setIsDestroyed] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Your Mapbox public token
   const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFqYXZzaG5lIiwiYSI6ImNtZGE2eDE1eTBmMHEyd3F0b2g5MWsyeWwifQ.q8WNX31_PENI10UD6DD6Ig';
@@ -43,17 +45,48 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
 
   // Initialize map
   const initializeMap = () => {
-    if (!mapContainer.current || map.current || isDestroyed) return;
+    if (!mapContainer.current || map.current || isDestroyed) {
+      console.log('Map initialization skipped:', {
+        hasContainer: !!mapContainer.current,
+        hasMap: !!map.current,
+        isDestroyed
+      });
+      return;
+    }
+
+    console.log('Initializing Mapbox map...');
+    console.log('Container dimensions:', {
+      width: mapContainer.current.offsetWidth,
+      height: mapContainer.current.offsetHeight
+    });
 
     try {
+      // Set the access token
       mapboxgl.accessToken = MAPBOX_TOKEN;
+      console.log('Mapbox token set successfully');
       
+      // Create the map instance
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [-74.0060, 40.7128], // NYC center
         zoom: 12,
         pitch: 45,
+      });
+
+      console.log('Map instance created');
+
+      // Add error handler
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setMapError(`Map error: ${e.error?.message || 'Unknown error'}`);
+      });
+
+      // Add load handler
+      map.current.on('load', () => {
+        console.log('Map loaded successfully');
+        setMapInitialized(true);
+        setMapError(null);
       });
 
       // Add navigation controls
@@ -95,6 +128,7 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
 
       // Add atmosphere and fog effects
       map.current.on('style.load', () => {
+        console.log('Map style loaded');
         map.current?.setFog({
           color: 'rgb(255, 255, 255)',
           'high-color': 'rgb(200, 200, 225)',
@@ -102,17 +136,25 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
         });
       });
 
-      setMapInitialized(true);
     } catch (error) {
       console.error('Error initializing map:', error);
+      setMapError(`Failed to initialize map: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   // Add venue markers
   useEffect(() => {
-    if (!map.current || !mapInitialized || venues.length === 0 || isDestroyed) return;
+    if (!map.current || !mapInitialized || venues.length === 0 || isDestroyed) {
+      console.log('Skipping marker creation:', {
+        hasMap: !!map.current,
+        mapInitialized,
+        venueCount: venues.length,
+        isDestroyed
+      });
+      return;
+    }
 
-    console.log('Adding venue markers...');
+    console.log('Adding venue markers...', venues.length, 'venues');
 
     // Clear existing markers safely
     try {
@@ -209,7 +251,13 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
 
   // Initialize map on component mount
   useEffect(() => {
-    initializeMap();
+    console.log('MapboxMap component mounted, initializing map...');
+    // Small delay to ensure container is fully rendered
+    const timeoutId = setTimeout(() => {
+      initializeMap();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Cleanup
@@ -252,13 +300,28 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
     };
   }, []);
 
-  const handleTokenSubmit = () => {
-    // This function is no longer needed since we have the token
-  };
-
   return (
     <div className={`relative w-full ${height} bg-muted/20 rounded-lg overflow-hidden`}>
-      {!mapInitialized && (
+      {/* Error State */}
+      {mapError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-10">
+          <div className="text-center p-6">
+            <MapPin className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <p className="text-lg font-medium mb-2 text-destructive">Map Error</p>
+            <p className="text-sm text-muted-foreground mb-4">{mapError}</p>
+            <Button onClick={() => {
+              setMapError(null);
+              setMapInitialized(false);
+              initializeMap();
+            }}>
+              Retry
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {!mapInitialized && !mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm z-10">
           <div className="text-center">
             <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
@@ -272,7 +335,7 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
 
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {mapInitialized && (
+      {mapInitialized && !mapError && (
         <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 text-sm z-20">
           <p className="text-muted-foreground">
             {venues.length} venues shown • Click markers for details
