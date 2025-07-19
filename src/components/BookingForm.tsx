@@ -85,6 +85,54 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.date) {
+      toast({
+        title: "Missing date",
+        description: "Please select a booking date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate times based on booking type
+    if (services.length === 0) {
+      // For basic venue booking
+      if (!formData.arrivalTime || !formData.departureTime) {
+        toast({
+          title: "Missing times",
+          description: "Please select arrival and departure times",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // For service bookings
+      if (formData.serviceIds.length === 0) {
+        toast({
+          title: "No services selected",
+          description: "Please select at least one service",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check that all selected services have complete time bookings
+      const incompleteServices = formData.serviceIds.filter(serviceId => {
+        const booking = formData.serviceBookings.find(sb => sb.serviceId === serviceId);
+        return !booking || !booking.arrivalTime || !booking.departureTime;
+      });
+
+      if (incompleteServices.length > 0) {
+        toast({
+          title: "Incomplete service times",
+          description: "Please set arrival and departure times for all selected services",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     const bookingData = {
       venueId,
       venueName,

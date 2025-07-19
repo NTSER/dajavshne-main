@@ -88,6 +88,16 @@ const ConfirmAndPay = () => {
       }
 
       try {
+        // Validate booking data before proceeding
+        if (!bookingData.date || !bookingData.arrivalTime || !bookingData.departureTime) {
+          toast({
+            title: "Invalid booking data",
+            description: "Please go back and ensure all booking times are selected.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         toast({
           title: "Processing booking...",
           description: "Creating your booking and processing payment...",
@@ -166,7 +176,13 @@ const ConfirmAndPay = () => {
   };
 
   const formatTime = (timeString: string) => {
+    if (!timeString || timeString === '') {
+      return 'Not selected';
+    }
     const [hours, minutes] = timeString.split(':');
+    if (!hours || !minutes) {
+      return 'Invalid time';
+    }
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
