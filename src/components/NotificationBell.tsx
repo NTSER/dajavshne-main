@@ -18,10 +18,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface NotificationBellProps {
-  onLobbyInvitationClick?: () => void;
 }
 
-const NotificationBell = ({ onLobbyInvitationClick }: NotificationBellProps) => {
+const NotificationBell = ({}: NotificationBellProps) => {
   const { data: notifications = [], isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
   const navigate = useNavigate();
@@ -33,19 +32,7 @@ const NotificationBell = ({ onLobbyInvitationClick }: NotificationBellProps) => 
     markAsRead.mutate(notification.id);
     
     // Handle different notification types
-    if (notification.type === 'friend_request') {
-      // Redirect to profile page to see friend requests
-      navigate('/');
-      // You could also open a specific friends dialog here
-    } else if (notification.type === 'lobby_invitation') {
-      // Call the callback function to open lobby invitations
-      if (onLobbyInvitationClick) {
-        onLobbyInvitationClick();
-      } else {
-        // Fallback to navigate to home and open profile dialog
-        navigate('/');
-      }
-    } else if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
+    if (notification.type.includes('before') || notification.type === 'booking_confirmation') {
       try {
         // Fetch the booking to get venue_id
         const { data: booking, error } = await supabase
@@ -133,16 +120,6 @@ const NotificationBell = ({ onLobbyInvitationClick }: NotificationBellProps) => 
                   {(notification.type.includes('before') || notification.type === 'booking_confirmation') && (
                     <p className="text-xs text-primary font-medium">
                       Click to view venue →
-                    </p>
-                  )}
-                  {notification.type === 'friend_request' && (
-                    <p className="text-xs text-primary font-medium">
-                      Click to view friend requests →
-                    </p>
-                  )}
-                  {notification.type === 'lobby_invitation' && (
-                    <p className="text-xs text-primary font-medium">
-                      Click to view lobby invitation →
                     </p>
                   )}
                 </div>

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, Heart, History, Users, GamepadIcon } from "lucide-react";
+import { Menu, X, User, LogOut, Heart, History } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "./AuthDialog";
 import NotificationBell from "./NotificationBell";
@@ -27,10 +27,6 @@ const Header = () => {
     navigate("/");
   };
 
-  const handleLobbyInvitationClick = () => {
-    setProfileDialogTab("lobbies");
-    setProfileDialogOpen(true);
-  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -66,7 +62,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <NotificationBell onLobbyInvitationClick={handleLobbyInvitationClick} />
+                <NotificationBell />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -86,36 +82,6 @@ const Header = () => {
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
                           <User className="h-4 w-4" />
                           Edit Profile
-                        </button>
-                      </ProfileDialog>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <ProfileDialog 
-                        defaultTab="friends"
-                        open={profileDialogOpen}
-                        onOpenChange={(open) => {
-                          setProfileDialogOpen(open);
-                          if (!open) setProfileDialogTab("profile");
-                        }}
-                      >
-                        <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
-                          <Users className="h-4 w-4" />
-                          Friends
-                        </button>
-                      </ProfileDialog>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <ProfileDialog 
-                        defaultTab="lobbies"
-                        open={profileDialogOpen}
-                        onOpenChange={(open) => {
-                          setProfileDialogOpen(open);
-                          if (!open) setProfileDialogTab("profile");
-                        }}
-                      >
-                        <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
-                          <GamepadIcon className="h-4 w-4" />
-                          Create Lobby
                         </button>
                       </ProfileDialog>
                     </DropdownMenuItem>
@@ -187,7 +153,7 @@ const Header = () => {
                       <span className="text-sm text-muted-foreground">
                         Signed in as {user.email}
                       </span>
-                      <NotificationBell onLobbyInvitationClick={handleLobbyInvitationClick} />
+                      <NotificationBell />
                     </div>
                     <ProfileDialog 
                       defaultTab={profileDialogTab}

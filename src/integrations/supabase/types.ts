@@ -77,116 +77,6 @@ export type Database = {
           },
         ]
       }
-      friend_requests: {
-        Row: {
-          created_at: string
-          id: string
-          receiver_id: string
-          responded_at: string | null
-          sender_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          receiver_id: string
-          responded_at?: string | null
-          sender_id: string
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          receiver_id?: string
-          responded_at?: string | null
-          sender_id?: string
-          status?: string
-        }
-        Relationships: []
-      }
-      friends: {
-        Row: {
-          created_at: string
-          id: string
-          user1_id: string
-          user2_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          user1_id: string
-          user2_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          user1_id?: string
-          user2_id?: string
-        }
-        Relationships: []
-      }
-      lobbies: {
-        Row: {
-          created_at: string
-          creator_id: string
-          id: string
-          name: string
-          updated_at: string
-          venue_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          creator_id: string
-          id?: string
-          name: string
-          updated_at?: string
-          venue_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          creator_id?: string
-          id?: string
-          name?: string
-          updated_at?: string
-          venue_id?: string | null
-        }
-        Relationships: []
-      }
-      lobby_members: {
-        Row: {
-          id: string
-          invited_at: string
-          lobby_id: string
-          responded_at: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          invited_at?: string
-          lobby_id: string
-          responded_at?: string | null
-          status?: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          invited_at?: string
-          lobby_id?: string
-          responded_at?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lobby_members_lobby_id_fkey"
-            columns: ["lobby_id"]
-            isOneToOne: false
-            referencedRelation: "lobbies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       notifications: {
         Row: {
           booking_id: string
@@ -375,14 +265,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_lobby_creator: {
-        Args: { lobby_id: string }
-        Returns: boolean
-      }
-      is_lobby_member: {
-        Args: { lobby_id: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

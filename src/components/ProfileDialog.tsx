@@ -13,12 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Lock, Calendar, Users, GamepadIcon } from "lucide-react";
+import { User, Mail, Lock, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import BookingHistory from "@/components/BookingHistory";
-import FriendsManagement from "@/components/FriendsManagement";
-import LobbyManagement from "@/components/LobbyManagement";
 
 interface ProfileDialogProps {
   children: React.ReactNode;
@@ -122,23 +120,15 @@ const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Profile & Friends
+            Profile
           </DialogTitle>
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
-            </TabsTrigger>
-            <TabsTrigger value="friends" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Friends
-            </TabsTrigger>
-            <TabsTrigger value="lobbies" className="flex items-center gap-2">
-              <GamepadIcon className="h-4 w-4" />
-              Lobbies
             </TabsTrigger>
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -206,18 +196,6 @@ const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen,
               >
                 {updateProfile.isPending ? "Updating..." : "Update Profile"}
               </Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="friends" className="mt-4">
-            <div className="max-h-[60vh] overflow-y-auto">
-              <FriendsManagement />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="lobbies" className="mt-4">
-            <div className="max-h-[60vh] overflow-y-auto">
-              <LobbyManagement />
             </div>
           </TabsContent>
           
