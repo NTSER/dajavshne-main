@@ -16,7 +16,7 @@ interface BookingData {
   venueName: string;
   serviceId?: string;
   date: string;
-  time: string;
+  times: string[]; // Changed from single time to array of times
   guests: number;
   specialRequests?: string;
   totalPrice: number;
@@ -88,6 +88,13 @@ const ConfirmAndPay = () => {
         });
 
         // Create the booking in the database
+        // For multiple time slots, we'll store the first time as booking_time
+        // and store all times in special_requests for now
+        const firstTime = bookingData.times[0];
+        const timeSlotInfo = bookingData.times.length > 1 
+          ? `\nSelected time slots: ${bookingData.times.join(', ')}\nTotal duration: ${bookingData.times.length * 30} minutes`
+          : '';
+        
         const { data: booking, error: bookingError } = await supabase
           .from('bookings')
           .insert({
@@ -96,10 +103,10 @@ const ConfirmAndPay = () => {
             venue_id: bookingData.venueId,
             service_id: bookingData.serviceId || null,
             booking_date: bookingData.date,
-            booking_time: bookingData.time,
+            booking_time: firstTime, // Use first time slot for the required field
             guest_count: bookingData.guests,
             total_price: bookingData.totalPrice,
-            special_requests: bookingData.specialRequests || null,
+            special_requests: (bookingData.specialRequests || '') + timeSlotInfo,
             status: 'confirmed'
           })
           .select()
@@ -118,7 +125,7 @@ const ConfirmAndPay = () => {
               userEmail: user.email,
               venueName: bookingData.venueName,
               bookingDate: bookingData.date,
-              bookingTime: bookingData.time,
+              bookingTime: bookingData.times.join(', '), // Send all times for notifications
             },
           });
         } catch (notifError) {
@@ -322,11 +329,31 @@ const ConfirmAndPay = () => {
                 <div className="border-t border-border/50 pt-4 space-y-4">
                   <p className="text-sm text-muted-foreground">This reservation is non-refundable.</p>
                   
-                  {/* Date */}
+                  {/* Date and Time */}
                   <div>
                     <h4 className="font-medium text-foreground mb-1">Date</h4>
                     <p className="text-sm text-muted-foreground">{formatDate(bookingData.date)}</p>
-                    <p className="text-sm text-muted-foreground">{bookingData.time}</p>
+                    <div className="mt-2">
+                      <h5 className="text-sm font-medium text-foreground mb-1">Time Slots</h5>
+                      <div className="flex flex-wrap gap-1">
+                        {bookingData.times.map((time, index) => {
+                          const [hour, minute] = time.split(':');
+                          const hourNum = parseInt(hour);
+                          const period = hourNum >= 12 ? 'PM' : 'AM';
+                          const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+                          const displayTime = `${displayHour}:${minute} ${period}`;
+                          
+                          return (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {displayTime}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Duration: {bookingData.times.length * 30} minutes total
+                      </p>
+                    </div>
                   </div>
 
                   {/* Guests */}
