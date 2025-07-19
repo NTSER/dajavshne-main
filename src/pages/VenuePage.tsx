@@ -20,7 +20,7 @@ import {
   Heart
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useVenue } from "@/hooks/useVenues";
+import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import VenueMap from "@/components/VenueMap";
 import ReviewsList from "@/components/ReviewsList";
@@ -28,8 +28,10 @@ import { useState } from "react";
 
 const VenuePage = () => {
   const { id } = useParams<{ id: string }>();
+  const [selectedService, setSelectedService] = useState<VenueService | undefined>();
   
   const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
+  const { data: services, isLoading: servicesLoading } = useVenueServices(id!);
 
   if (venueLoading) {
     return (
@@ -209,8 +211,48 @@ const VenuePage = () => {
                   venuePrice={venue.price}
                   openingTime={venue.opening_time}
                   closingTime={venue.closing_time}
+                  services={services}
+                  selectedServiceId={selectedService?.id}
                 />
               </div>
+
+              {/* Services List */}
+              {!servicesLoading && services && services.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold text-foreground">Available Services</h3>
+                  <div className="space-y-4">
+                    {services.map((service) => (
+                      <Card 
+                        key={service.id}
+                        className={`cursor-pointer transition-all border hover:border-primary/50 hover-lift ${
+                          selectedService?.id === service.id 
+                            ? 'border-primary shadow-lg shadow-primary/20' 
+                            : 'border-border'
+                        }`}
+                        onClick={() => setSelectedService(service)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-foreground">{service.name}</h4>
+                              <p className="text-sm text-muted-foreground">{service.duration} · ${service.price}/hour</p>
+                            </div>
+                            <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
+                              ${service.price}
+                            </Badge>
+                          </div>
+                          {service.description && (
+                            <p className="text-sm text-muted-foreground mb-3">
+                              {service.description}
+                            </p>
+                          )}
+                          <div className="w-16 h-16 bg-muted rounded-lg"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Venue Location Map */}
               <VenueMap location={venue.location} venueName={venue.name} />
