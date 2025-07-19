@@ -7,7 +7,7 @@ export interface Notification {
   id: string;
   user_id: string;
   booking_id: string;
-  type: 'booking_confirmation' | 'booking_confirmed' | 'booking_rejected' | '2_hours_before' | '1_hour_before' | '10_minutes_before' | 'friend_request' | 'lobby_invitation';
+  type: 'booking_confirmed' | 'booking_rejected' | '1_hour_before';
   title: string;
   message: string;
   read: boolean;

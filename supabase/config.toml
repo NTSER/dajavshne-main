@@ -18,6 +18,9 @@ email_double_confirm_changes = true
 [functions.booking-confirmation]
 verify_jwt = true
 
+[functions.booking-reminder-notifications]
+verify_jwt = false
+
 [functions.booking-reminders]
 verify_jwt = false
 
