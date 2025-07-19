@@ -162,48 +162,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw confirmationError;
     }
 
-    // Calculate reminder times
-    const bookingDateTime = new Date(`${bookingDate}T${bookingTime}`);
-    const twoHoursBefore = new Date(bookingDateTime.getTime() - 2 * 60 * 60 * 1000);
-    const oneHourBefore = new Date(bookingDateTime.getTime() - 60 * 60 * 1000);
-    const tenMinutesBefore = new Date(bookingDateTime.getTime() - 10 * 60 * 1000);
-
-    // Create scheduled reminder notifications
-    const reminders = [
-      {
-        user_id: userId,
-        booking_id: bookingId,
-        type: '2_hours_before',
-        title: 'Booking Reminder - 2 Hours',
-        message: `Your booking at ${venueName} starts in 2 hours!`,
-        scheduled_for: twoHoursBefore.toISOString(),
-      },
-      {
-        user_id: userId,
-        booking_id: bookingId,
-        type: '1_hour_before',
-        title: 'Booking Reminder - 1 Hour',
-        message: `Your booking at ${venueName} starts in 1 hour!`,
-        scheduled_for: oneHourBefore.toISOString(),
-      },
-      {
-        user_id: userId,
-        booking_id: bookingId,
-        type: '10_minutes_before',
-        title: 'Booking Reminder - 10 Minutes',
-        message: `Your booking at ${venueName} starts in 10 minutes! Time to head over!`,
-        scheduled_for: tenMinutesBefore.toISOString(),
-      },
-    ];
-
-    const { error: remindersError } = await supabase
-      .from('notifications')
-      .insert(reminders);
-
-    if (remindersError) {
-      console.error("Error creating reminder notifications:", remindersError);
-      throw remindersError;
-    }
+    // Note: Only booking confirmation notification is created here.
+    // 1-hour reminder notifications are handled by the automated cron job system
+    // which checks user's local time and sends reminders exactly 1 hour before booking.
 
     console.log("Successfully created booking confirmation and reminder notifications");
 
