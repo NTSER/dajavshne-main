@@ -128,8 +128,11 @@ const ConfirmAndPay = () => {
               userId: user.id,
               userEmail: user.email,
               venueName: bookingData.venueName,
+              venueLocation: venue.location,
               bookingDate: bookingData.date,
-              bookingTime: `${bookingData.arrivalTime} - ${bookingData.departureTime}`,
+              bookingTime: bookingData.arrivalTime,
+              totalPrice: bookingData.totalPrice,
+              guestCount: bookingData.guests,
             },
           });
         } catch (notifError) {
