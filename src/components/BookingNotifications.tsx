@@ -162,8 +162,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
   const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'rejected') => {
     setProcessing(bookingId);
     
+    console.log(`Starting booking action: ${action} for booking ID: ${bookingId}`);
+    
     try {
       // Call the edge function to handle booking confirmation/rejection
+      console.log('Calling booking-confirmation edge function...');
+      
       const { data, error } = await supabase.functions.invoke('booking-confirmation', {
         body: {
           bookingId,
@@ -171,7 +175,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       // Remove from pending list
       setPendingBookings(prev => prev.filter(b => b.id !== bookingId));
