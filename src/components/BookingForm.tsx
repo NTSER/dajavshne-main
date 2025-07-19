@@ -22,6 +22,8 @@ interface BookingFormProps {
   venueId: string;
   venueName: string;
   venuePrice: number;
+  openingTime?: string;
+  closingTime?: string;
   services?: Array<{
     id: string;
     name: string;
@@ -31,7 +33,7 @@ interface BookingFormProps {
   selectedServiceId?: string;
 }
 
-const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedServiceId }: BookingFormProps) => {
+const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime, services = [], selectedServiceId }: BookingFormProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -86,15 +88,48 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
     });
   };
 
-  // Handle service time updates
+  // Handle service time updates with validation
   const updateServiceTime = (serviceId: string, field: 'arrivalTime' | 'departureTime', value: string) => {
+    // Validate against venue working hours
+    if (openingTime && closingTime && value) {
+      if (value < openingTime || value > closingTime) {
+        toast({
+          title: "Invalid time",
+          description: `Please select a time between ${formatTime(openingTime)} and ${formatTime(closingTime)}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setFormData(prev => {
       const existingBooking = prev.serviceBookings.find(sb => sb.serviceId === serviceId);
       if (existingBooking) {
+        const updatedBooking = { ...existingBooking, [field]: value };
+        
+        // Validate that departure time is after arrival time
+        if (field === 'departureTime' && updatedBooking.arrivalTime && value <= updatedBooking.arrivalTime) {
+          toast({
+            title: "Invalid time",
+            description: "Departure time must be after arrival time",
+            variant: "destructive",
+          });
+          return prev;
+        }
+        
+        if (field === 'arrivalTime' && updatedBooking.departureTime && value >= updatedBooking.departureTime) {
+          toast({
+            title: "Invalid time",
+            description: "Arrival time must be before departure time",
+            variant: "destructive",
+          });
+          return prev;
+        }
+
         return {
           ...prev,
           serviceBookings: prev.serviceBookings.map(sb =>
-            sb.serviceId === serviceId ? { ...sb, [field]: value } : sb
+            sb.serviceId === serviceId ? updatedBooking : sb
           )
         };
       } else {
@@ -111,6 +146,15 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
         };
       }
     });
+  };
+
+  // Helper function to format time for display
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
 
 
@@ -235,7 +279,14 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
             {/* Service Time Selection */}
             {formData.serviceIds.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Service Times</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Service Times</h3>
+                  {openingTime && closingTime && (
+                    <p className="text-sm text-muted-foreground">
+                      Open: {formatTime(openingTime)} - {formatTime(closingTime)}
+                    </p>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">Set arrival and departure times for each selected service.</p>
                 
                 {selectedServices.map((service) => {
@@ -249,6 +300,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
                           <Input
                             id={`arrival-${service.id}`}
                             type="time"
+                            step="60"
+                            min={openingTime}
+                            max={closingTime}
                             value={serviceBooking?.arrivalTime || ''}
                             onChange={(e) => updateServiceTime(service.id, 'arrivalTime', e.target.value)}
                             className="w-full"
@@ -259,6 +313,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
                           <Input
                             id={`departure-${service.id}`}
                             type="time"
+                            step="60"
+                            min={openingTime}
+                            max={closingTime}
                             value={serviceBooking?.departureTime || ''}
                             onChange={(e) => updateServiceTime(service.id, 'departureTime', e.target.value)}
                             className="w-full"

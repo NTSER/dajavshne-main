@@ -222,12 +222,14 @@ export type Database = {
         Row: {
           amenities: string[] | null
           category: string
+          closing_time: string | null
           created_at: string | null
           description: string | null
           id: string
           images: string[] | null
           location: string
           name: string
+          opening_time: string | null
           partner_id: string | null
           price: number
           rating: number | null
@@ -237,12 +239,14 @@ export type Database = {
         Insert: {
           amenities?: string[] | null
           category: string
+          closing_time?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           images?: string[] | null
           location: string
           name: string
+          opening_time?: string | null
           partner_id?: string | null
           price: number
           rating?: number | null
@@ -252,12 +256,14 @@ export type Database = {
         Update: {
           amenities?: string[] | null
           category?: string
+          closing_time?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           images?: string[] | null
           location?: string
           name?: string
+          opening_time?: string | null
           partner_id?: string | null
           price?: number
           rating?: number | null

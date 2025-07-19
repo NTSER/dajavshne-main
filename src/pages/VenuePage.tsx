@@ -231,6 +231,8 @@ const VenuePage = () => {
                   venueId={venue.id}
                   venueName={venue.name}
                   venuePrice={venue.price}
+                  openingTime={venue.opening_time}
+                  closingTime={venue.closing_time}
                   services={services}
                   selectedServiceId={selectedService?.id}
                 />

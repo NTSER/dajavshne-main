@@ -13,6 +13,8 @@ export interface Venue {
   images: string[];
   amenities: string[];
   description: string;
+  opening_time?: string;
+  closing_time?: string;
 }
 
 export interface VenueService {

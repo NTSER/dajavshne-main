@@ -36,6 +36,8 @@ const AddVenue = () => {
     amenities: [],
     newAmenity: '',
     services: [{ name: '', description: '', price: '', duration: '' }],
+    openingTime: '',
+    closingTime: '',
   });
 
   const navigate = useNavigate();
@@ -45,10 +47,10 @@ const AddVenue = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.location || !formData.category || !formData.price) {
+    if (!formData.name || !formData.location || !formData.category || !formData.price || !formData.openingTime || !formData.closingTime) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including working hours.",
         variant: "destructive",
       });
       return;
@@ -68,6 +70,8 @@ const AddVenue = () => {
         price: parseFloat(formData.price),
         images: formData.images.filter(img => img.trim() !== ''),
         amenities: formData.amenities,
+        openingTime: formData.openingTime,
+        closingTime: formData.closingTime,
       });
 
       // Create services if any are provided
@@ -202,6 +206,31 @@ const AddVenue = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
                 />
+              </div>
+
+              {/* Working Hours Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="openingTime">Opening Time *</Label>
+                  <Input
+                    id="openingTime"
+                    type="time"
+                    value={formData.openingTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, openingTime: e.target.value }))}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="closingTime">Closing Time *</Label>
+                  <Input
+                    id="closingTime"
+                    type="time"
+                    value={formData.closingTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, closingTime: e.target.value }))}
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

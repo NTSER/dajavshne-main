@@ -11,6 +11,8 @@ export interface CreateVenueData {
   price: number;
   images: string[];
   amenities: string[];
+  openingTime: string;
+  closingTime: string;
 }
 
 export const usePartnerVenues = () => {
@@ -49,6 +51,8 @@ export const useCreateVenue = () => {
           partner_id: user.id,
           rating: 0,
           review_count: 0,
+          opening_time: venueData.openingTime,
+          closing_time: venueData.closingTime,
         }])
         .select()
         .single();
