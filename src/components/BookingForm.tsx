@@ -183,9 +183,24 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       currentMinute = 30;
     }
     
+    // Get current time for filtering
+    const now = new Date();
+    const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
     while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
       const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-      slots.push(timeString);
+      
+      // Only add times that are not in the past (for today's bookings)
+      const todayString = new Date().toISOString().split('T')[0];
+      const selectedDateString = formData.date ? format(formData.date, 'yyyy-MM-dd') : '';
+      
+      if (selectedDateString === todayString) {
+        if (timeString >= currentTimeString) {
+          slots.push(timeString);
+        }
+      } else {
+        slots.push(timeString);
+      }
       
       // Move to next 30-minute slot
       currentMinute += 30;
@@ -200,6 +215,24 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   // Handle main arrival/departure time updates
   const updateMainTime = (field: 'arrivalTime' | 'departureTime', value: string) => {
+    // Validate against current time for today's bookings
+    const todayString = new Date().toISOString().split('T')[0];
+    const selectedDateString = formData.date ? format(formData.date, 'yyyy-MM-dd') : '';
+    
+    if (selectedDateString === todayString && field === 'arrivalTime') {
+      const now = new Date();
+      const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      if (value < currentTimeString) {
+        toast({
+          title: "Invalid time",
+          description: "Cannot select arrival time in the past",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     // Validate against venue working hours
     if (openingTime && closingTime && value) {
       if (value < openingTime || value > closingTime) {
@@ -236,6 +269,24 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   // Handle service time updates with validation
   const updateServiceTime = (serviceId: string, field: 'arrivalTime' | 'departureTime', value: string) => {
+    // Validate against current time for today's bookings
+    const todayString = new Date().toISOString().split('T')[0];
+    const selectedDateString = formData.date ? format(formData.date, 'yyyy-MM-dd') : '';
+    
+    if (selectedDateString === todayString && field === 'arrivalTime') {
+      const now = new Date();
+      const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      if (value < currentTimeString) {
+        toast({
+          title: "Invalid time",
+          description: "Cannot select arrival time in the past",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     // Validate against venue working hours
     if (openingTime && closingTime && value) {
       if (value < openingTime || value > closingTime) {

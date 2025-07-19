@@ -1,5 +1,5 @@
 
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
+import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,7 @@ const NotificationBell = ({}: NotificationBellProps) => {
   const { data: notifications = [], isLoading } = useNotifications();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+  const deleteNotification = useDeleteNotification();
   const navigate = useNavigate();
   
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -85,6 +86,25 @@ const NotificationBell = ({}: NotificationBellProps) => {
     }
   };
 
+  const handleDeleteNotification = (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation();
+    deleteNotification.mutate(notificationId, {
+      onSuccess: () => {
+        toast({
+          title: "Notification deleted",
+          description: "The notification has been removed.",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "Failed to delete notification",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
   if (isLoading) {
     return (
       <Button variant="ghost" size="icon" disabled>
@@ -134,7 +154,7 @@ const NotificationBell = ({}: NotificationBellProps) => {
             notifications.map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
-                className={`p-3 cursor-pointer relative ${
+                className={`p-3 cursor-pointer relative group ${
                   !notification.read ? 'bg-muted/50' : ''
                 } ${
                   notification.type === 'booking_confirmed' ? 'border-l-4 border-green-500' :
@@ -163,9 +183,20 @@ const NotificationBell = ({}: NotificationBellProps) => {
                          <div className="h-3 w-3 bg-blue-500 rounded-full animate-pulse" />
                        )}
                     </div>
-                    {!notification.read && notification.type !== 'booking_confirmed' && notification.type !== 'booking_rejected' && (
-                      <div className="h-2 w-2 bg-primary rounded-full" />
-                    )}
+                    <div className="flex items-center gap-2">
+                      {!notification.read && notification.type !== 'booking_confirmed' && notification.type !== 'booking_rejected' && (
+                        <div className="h-2 w-2 bg-primary rounded-full" />
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => handleDeleteNotification(e, notification.id)}
+                        disabled={deleteNotification.isPending}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                    <p className={`text-xs ${
                      notification.type === 'booking_confirmed' ? 'text-green-600 font-medium' :
