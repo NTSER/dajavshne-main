@@ -78,6 +78,10 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
   };
 
   const subscribeToBookings = () => {
+    if (!profile?.id) return;
+
+    console.log('Setting up booking subscription for partner:', profile.id);
+    
     const channel = supabase
       .channel('booking-changes')
       .on(
@@ -89,8 +93,10 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           filter: `status=eq.pending`
         },
         async (payload) => {
+          console.log('New booking received:', payload);
+          
           // Fetch the complete booking data with venue info
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('bookings')
             .select(`
               *,
@@ -98,10 +104,13 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               venue_services(name)
             `)
             .eq('id', payload.new.id)
-            .eq('venues.partner_id', profile?.id)
             .single();
 
-          if (data) {
+          console.log('Booking data fetched:', data, error);
+
+          if (data && data.venues.partner_id === profile.id) {
+            console.log('Booking is for this partner, adding to notifications');
+            
             const newBooking = {
               id: data.id,
               booking_date: data.booking_date,
@@ -123,12 +132,15 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               title: "New Booking Request!",
               description: `${data.user_email} wants to book ${data.venues.name}`,
             });
+          } else {
+            console.log('Booking not for this partner or data missing');
           }
         }
       )
       .subscribe();
 
     return () => {
+      console.log('Unsubscribing from booking notifications');
       supabase.removeChannel(channel);
     };
   };

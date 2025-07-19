@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import PartnerLayout from '@/components/PartnerLayout';
 
 interface VenueData {
   name: string;
@@ -167,39 +168,43 @@ const EditVenue = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading venue...</p>
+      <PartnerLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-muted-foreground">Loading venue...</p>
+          </div>
         </div>
-      </div>
+      </PartnerLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+    <PartnerLayout>
+      {/* Page Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/partner/dashboard')}
+                className="hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Edit Venue</h1>
-                <p className="text-muted-foreground">Manage your venue details</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Venue</h1>
+                <p className="text-gray-600 dark:text-gray-400">Manage your venue details and settings</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Button
                 variant="destructive"
                 onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Venue
@@ -207,6 +212,7 @@ const EditVenue = () => {
               <Button
                 onClick={handleSave}
                 disabled={saving}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Save className="h-4 w-4 mr-2" />
                 {saving ? 'Saving...' : 'Save Changes'}
@@ -214,15 +220,15 @@ const EditVenue = () => {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Form */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="grid gap-6">
+      {/* Form Content */}
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto grid gap-6">
           {/* Basic Information */}
-          <Card>
+          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white">Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
@@ -360,8 +366,8 @@ const EditVenue = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </PartnerLayout>
   );
 };
 
