@@ -133,12 +133,22 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       }
     }
     
+    // For service bookings, use the first service booking times as main times
+    let mainArrivalTime = formData.arrivalTime;
+    let mainDepartureTime = formData.departureTime;
+    
+    if (services.length > 0 && formData.serviceBookings.length > 0) {
+      const firstServiceBooking = formData.serviceBookings[0];
+      mainArrivalTime = firstServiceBooking.arrivalTime;
+      mainDepartureTime = firstServiceBooking.departureTime;
+    }
+    
     const bookingData = {
       venueId,
       venueName,
       date: formData.date ? format(formData.date, 'yyyy-MM-dd') : "",
-      arrivalTime: formData.arrivalTime,
-      departureTime: formData.departureTime,
+      arrivalTime: mainArrivalTime,
+      departureTime: mainDepartureTime,
       serviceBookings: formData.serviceBookings,
       guests: formData.guests,
       serviceIds: formData.serviceIds,
@@ -533,37 +543,34 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       {/* Sticky Reserve Section */}
       <div className="fixed bottom-0 right-0 lg:absolute lg:bottom-0 lg:right-0 w-full lg:w-auto bg-background/95 backdrop-blur-sm border-t lg:border-0 p-4 lg:p-0">
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <div className="text-right mb-2">
-                <span className="text-2xl font-bold text-primary">Total Price: ${totalPrice.toFixed(2)}</span>
-              </div>
-              
-              {durationHours > 0 && (
-                <div className="text-sm text-muted-foreground text-right mb-2">
-                  <p>Duration: {durationHours}h × ${basePrice}/hour × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
-                  {selectedServices.length > 0 && (
-                    <p>Services: {selectedServices.map(s => s.name).join(', ')}</p>
-                  )}
-                </div>
+          {durationHours > 0 && (
+            <div className="text-sm text-muted-foreground mb-3">
+              <p>Duration: {durationHours}h × ${basePrice}/hour × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
+              {selectedServices.length > 0 && (
+                <p>Services: {selectedServices.map(s => s.name).join(', ')}</p>
               )}
             </div>
-          </div>
+          )}
           
-          <Button 
-            onClick={handleSubmit}
-            className="w-full h-14 text-lg font-medium" 
-            disabled={
-              isSubmitting || 
-              !formData.date || 
-              durationHours <= 0 ||
-              (services.length > 0 && formData.serviceIds.length === 0) ||
-              (services.length === 0 && (!formData.arrivalTime || !formData.departureTime)) ||
-              (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
-            }
-          >
-            {isSubmitting ? "Creating Booking..." : "Reserve"}
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
+            </div>
+            <Button 
+              onClick={handleSubmit}
+              className="h-14 px-8 text-lg font-medium" 
+              disabled={
+                isSubmitting || 
+                !formData.date || 
+                durationHours <= 0 ||
+                (services.length > 0 && formData.serviceIds.length === 0) ||
+                (services.length === 0 && (!formData.arrivalTime || !formData.departureTime)) ||
+                (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
+              }
+            >
+              {isSubmitting ? "Creating Booking..." : "Reserve"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
