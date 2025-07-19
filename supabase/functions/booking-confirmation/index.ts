@@ -7,13 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface BookingConfirmationRequest {
-  bookingId: string;
-  action: 'confirmed' | 'rejected';
-}
-
 const handler = async (req: Request): Promise<Response> => {
-  console.log('Booking confirmation function called');
+  console.log('Booking confirmation function called, method:', req.method);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -21,26 +16,39 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Get the authorization header
-    const authHeader = req.headers.get('authorization');
-    console.log('Auth header present:', !!authHeader);
+    console.log('Processing booking confirmation request...');
     
     // Create Supabase client with service role for admin operations
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-
-    const requestBody = await req.text();
-    console.log('Request body:', requestBody);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
-    const { bookingId, action }: BookingConfirmationRequest = JSON.parse(requestBody);
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasResendKey: !!resendApiKey
+    });
 
-    console.log(`Processing booking ${action} for booking ID: ${bookingId}`);
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase configuration');
+    }
 
-    // Get booking details with venue info
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const resend = resendApiKey ? new Resend(resendApiKey) : null;
+
+    // Parse request body
+    const requestBody = await req.text();
+    console.log('Request body received:', requestBody);
+    
+    const { bookingId, action } = JSON.parse(requestBody);
+    console.log('Parsed data:', { bookingId, action });
+
+    if (!bookingId || !action) {
+      throw new Error('Missing bookingId or action');
+    }
+
+    // Get booking details
+    console.log('Fetching booking details...');
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .select(`
@@ -50,14 +58,19 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('id', bookingId)
       .single();
 
-    if (bookingError || !booking) {
+    if (bookingError) {
       console.error('Error fetching booking:', bookingError);
+      throw new Error(`Failed to fetch booking: ${bookingError.message}`);
+    }
+
+    if (!booking) {
       throw new Error('Booking not found');
     }
 
-    console.log('Booking data:', booking);
+    console.log('Booking found:', booking);
 
     // Update booking status
+    console.log('Updating booking status to:', action);
     const { error: updateError } = await supabase
       .from('bookings')
       .update({ 
@@ -68,10 +81,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (updateError) {
       console.error('Error updating booking status:', updateError);
-      throw updateError;
+      throw new Error(`Failed to update booking: ${updateError.message}`);
     }
 
+    console.log('Booking status updated successfully');
+
     // Create in-app notification for the user
+    console.log('Creating notification for user:', booking.user_id);
     const { error: notificationError } = await supabase
       .from('notifications')
       .insert({
@@ -87,61 +103,68 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (notificationError) {
       console.error('Error creating notification:', notificationError);
+      // Don't throw - this is not critical
+    } else {
+      console.log('Notification created successfully');
     }
 
-    // Send email notification
-    const emailSubject = action === 'confirmed' 
-      ? `Booking Confirmed - ${booking.venues.name}`
-      : `Booking Update - ${booking.venues.name}`;
+    // Send email notification if Resend is available
+    if (resend && booking.user_email) {
+      console.log('Sending email notification to:', booking.user_email);
+      
+      const emailSubject = action === 'confirmed' 
+        ? `Booking Confirmed - ${booking.venues.name}`
+        : `Booking Update - ${booking.venues.name}`;
 
-    const emailHtml = action === 'confirmed' 
-      ? `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #22c55e;">Booking Confirmed!</h1>
-          <p>Great news! Your booking has been confirmed.</p>
-          
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>Booking Details:</h3>
-            <p><strong>Venue:</strong> ${booking.venues.name}</p>
-            <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${booking.booking_time}</p>
-            <p><strong>Guests:</strong> ${booking.guest_count}</p>
-            <p><strong>Total:</strong> $${Number(booking.total_price).toFixed(2)}</p>
+      const emailHtml = action === 'confirmed' 
+        ? `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #22c55e;">Booking Confirmed!</h1>
+            <p>Great news! Your booking has been confirmed.</p>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Booking Details:</h3>
+              <p><strong>Venue:</strong> ${booking.venues.name}</p>
+              <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+              <p><strong>Time:</strong> ${booking.booking_time}</p>
+              <p><strong>Guests:</strong> ${booking.guest_count}</p>
+              <p><strong>Total:</strong> $${Number(booking.total_price).toFixed(2)}</p>
+            </div>
+            
+            <p>We look forward to seeing you!</p>
+            <p style="color: #6b7280; font-size: 14px;">Best regards,<br>Venue Booking Team</p>
           </div>
-          
-          <p>We look forward to seeing you!</p>
-          <p style="color: #6b7280; font-size: 14px;">Best regards,<br>Venue Booking Team</p>
-        </div>
-      `
-      : `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #ef4444;">Booking Update</h1>
-          <p>We regret to inform you that your booking has been rejected.</p>
-          
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3>Booking Details:</h3>
-            <p><strong>Venue:</strong> ${booking.venues.name}</p>
-            <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${booking.booking_time}</p>
+        `
+        : `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #ef4444;">Booking Update</h1>
+            <p>We regret to inform you that your booking has been rejected.</p>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Booking Details:</h3>
+              <p><strong>Venue:</strong> ${booking.venues.name}</p>
+              <p><strong>Date:</strong> ${new Date(booking.booking_date).toLocaleDateString()}</p>
+              <p><strong>Time:</strong> ${booking.booking_time}</p>
+            </div>
+            
+            <p>You can browse other available venues and try booking again.</p>
+            <p style="color: #6b7280; font-size: 14px;">Best regards,<br>Venue Booking Team</p>
           </div>
-          
-          <p>You can browse other available venues and try booking again.</p>
-          <p style="color: #6b7280; font-size: 14px;">Best regards,<br>Venue Booking Team</p>
-        </div>
-      `;
+        `;
 
-    try {
-      const emailResponse = await resend.emails.send({
-        from: "Venue Booking <onboarding@resend.dev>",
-        to: [booking.user_email],
-        subject: emailSubject,
-        html: emailHtml,
-      });
+      try {
+        const emailResponse = await resend.emails.send({
+          from: "Venue Booking <onboarding@resend.dev>",
+          to: [booking.user_email],
+          subject: emailSubject,
+          html: emailHtml,
+        });
 
-      console.log("Email sent successfully:", emailResponse);
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-      // Don't throw error - email failure shouldn't break the booking confirmation
+        console.log("Email sent successfully:", emailResponse);
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        // Don't throw error - email failure shouldn't break the booking confirmation
+      }
     }
 
     console.log(`Booking ${action} processed successfully`);
@@ -164,18 +187,10 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in booking-confirmation function:", error);
     
-    // Return more detailed error information
-    const errorMessage = error.message || 'An error occurred processing the booking confirmation';
-    console.error("Detailed error:", {
-      message: errorMessage,
-      stack: error.stack,
-      name: error.name
-    });
-    
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
-        details: error.stack
+        error: error.message || 'An error occurred processing the booking confirmation',
+        stack: error.stack
       }),
       {
         status: 500,
