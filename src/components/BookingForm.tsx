@@ -66,6 +66,17 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   
   // Calculate duration in hours for pricing
   const calculateDuration = () => {
+    // For single service, use service booking times
+    if (services.length === 1 && formData.serviceBookings.length > 0) {
+      const serviceBooking = formData.serviceBookings[0];
+      if (!serviceBooking.arrivalTime || !serviceBooking.departureTime) return 0;
+      const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
+      const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
+      const diffMs = end.getTime() - start.getTime();
+      return diffMs / (1000 * 60 * 60); // Convert to hours
+    }
+    
+    // For multiple services or no services, use main booking times
     if (!formData.arrivalTime || !formData.departureTime) return 0;
     const start = new Date(`2000-01-01T${formData.arrivalTime}:00`);
     const end = new Date(`2000-01-01T${formData.departureTime}:00`);
@@ -316,56 +327,58 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               </Popover>
             </div>
 
-            {/* Main Arrival and Departure Times */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Booking Times</h3>
-                {openingTime && closingTime && (
-                  <p className="text-sm text-muted-foreground">
-                    Open: {formatTime(openingTime)} - {formatTime(closingTime)}
-                  </p>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="main-arrival">Arrival Time *</Label>
-                  <Select 
-                    value={formData.arrivalTime} 
-                    onValueChange={(value) => updateMainTime('arrivalTime', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select arrival time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {generateTimeSlots().map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {formatTime(time)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            {/* Main Arrival and Departure Times - Only show if multiple services or no services */}
+            {services.length !== 1 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Booking Times</h3>
+                  {openingTime && closingTime && (
+                    <p className="text-sm text-muted-foreground">
+                      Open: {formatTime(openingTime)} - {formatTime(closingTime)}
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="main-departure">Departure Time *</Label>
-                  <Select 
-                    value={formData.departureTime} 
-                    onValueChange={(value) => updateMainTime('departureTime', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select departure time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {generateTimeSlots().map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {formatTime(time)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="main-arrival">Arrival Time *</Label>
+                    <Select 
+                      value={formData.arrivalTime} 
+                      onValueChange={(value) => updateMainTime('arrivalTime', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select arrival time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {generateTimeSlots().map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {formatTime(time)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="main-departure">Departure Time *</Label>
+                    <Select 
+                      value={formData.departureTime} 
+                      onValueChange={(value) => updateMainTime('departureTime', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select departure time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {generateTimeSlots().map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {formatTime(time)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Services Selection */}
             {services.length > 0 && (
@@ -527,11 +540,14 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             disabled={
               isSubmitting || 
               !formData.date || 
-              !formData.arrivalTime ||
-              !formData.departureTime ||
               durationHours <= 0 ||
               (services.length > 0 && formData.serviceIds.length === 0) ||
-              (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
+              // For single service, only validate service booking times
+              (services.length === 1 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime)) ||
+              // For multiple services or no services, validate main booking times
+              (services.length !== 1 && (!formData.arrivalTime || !formData.departureTime)) ||
+              // For multiple services, also validate service booking times
+              (services.length > 1 && formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
             }
           >
             {isSubmitting ? "Creating Booking..." : "Reserve"}
