@@ -82,95 +82,144 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
 
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Book Your Session</CardTitle>
+    <Card className="border-0 shadow-none">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle className="text-2xl font-medium">Book Your Session</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4" />
-                Date
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.date ? format(formData.date, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.date}
-                    onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
-                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <TimeInput
-                label="Time"
-                icon={<Clock className="h-4 w-4" />}
-                value={formData.time}
-                onChange={(time) => setFormData(prev => ({ ...prev, time }))}
-                placeholder="Select time"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="guests" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Number of Guests
-            </Label>
-            <Input
-              id="guests"
-              type="number"
-              min="1"
-              max="20"
-              value={formData.guests}
-              onChange={(e) => setFormData(prev => ({ ...prev, guests: parseInt(e.target.value) }))}
-              required
-            />
-          </div>
-
-          {services.length > 0 && (
-            <div>
-              <Label>Service Package</Label>
-              <Select
-                value={formData.serviceId}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, serviceId: value }))}
+      <CardContent className="px-0 space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* Guest Counter */}
+          <div className="flex items-center justify-between py-4 border-b border-border">
+            <span className="text-lg">{formData.guests} guest{formData.guests !== 1 ? 's' : ''}</span>
+            <div className="flex items-center gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setFormData(prev => ({ ...prev, guests: Math.max(1, prev.guests - 1) }))}
+                disabled={formData.guests <= 1}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a service package" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="basic">Basic Session - ${venuePrice}</SelectItem>
-                  {services.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name} - ${service.price} ({service.duration})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                -
+              </Button>
+              <span className="w-8 text-center font-medium">{formData.guests}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setFormData(prev => ({ ...prev, guests: Math.min(20, prev.guests + 1) }))}
+                disabled={formData.guests >= 20}
+              >
+                +
+              </Button>
+            </div>
+          </div>
+
+          {/* Date Selection */}
+          <div className="space-y-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-between text-left font-normal h-14 text-lg",
+                    !formData.date && "text-muted-foreground"
+                  )}
+                >
+                  {formData.date ? format(formData.date, "MMMM yyyy") : "Select date"}
+                  <CalendarIcon className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.date}
+                  onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Services Selection */}
+          {services.length > 0 && (
+            <div className="space-y-4">
+              {services.map((service) => (
+                <div 
+                  key={service.id}
+                  className={cn(
+                    "flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                    formData.serviceId === service.id
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-primary/50"
+                  )}
+                  onClick={() => setFormData(prev => ({ ...prev, serviceId: service.id }))}
+                >
+                  <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
+                    <p className="text-muted-foreground">
+                      ${service.price} / guest · {service.duration}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          <div>
-            <Label htmlFor="requests" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
+          {/* Basic Service Option */}
+          {services.length === 0 && (
+            <div className="flex items-start gap-4 p-4 rounded-xl border-2 border-primary bg-primary/5">
+              <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-lg mb-1">Basic Session</h4>
+                <p className="text-muted-foreground">
+                  ${venuePrice} / guest · Standard gaming session
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Time Slots */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Available Times</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                "1:15PM", "1:45PM", "2:15PM", "2:45PM", "3:15PM", "3:45PM",
+                "4:15PM", "4:45PM", "5:15PM", "5:45PM", "6:15PM", "6:45PM",
+                "7:15PM", "7:45PM", "8:15PM"
+              ].map((timeSlot) => {
+                const [time, period] = timeSlot.split(/(?=[AP]M)/);
+                const hour24 = period === 'PM' && time !== '12:' 
+                  ? String(parseInt(time.split(':')[0]) + 12).padStart(2, '0')
+                  : time === '12:' && period === 'AM' 
+                  ? '00'
+                  : time.split(':')[0].padStart(2, '0');
+                const minute = time.split(':')[1];
+                const time24 = `${hour24}:${minute || '00'}`;
+                
+                return (
+                  <Button
+                    key={timeSlot}
+                    type="button"
+                    variant={formData.time === time24 ? "default" : "outline"}
+                    className="h-12 rounded-full font-medium"
+                    onClick={() => setFormData(prev => ({ ...prev, time: time24 }))}
+                  >
+                    {timeSlot}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Special Requests */}
+          <div className="space-y-4">
+            <Label htmlFor="requests" className="text-lg font-medium">
               Special Requests (Optional)
             </Label>
             <Textarea
@@ -178,25 +227,26 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
               value={formData.specialRequests}
               onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
               placeholder="Any special requirements or requests..."
-              className="resize-none"
-              rows={3}
+              className="resize-none min-h-[100px]"
+              rows={4}
             />
           </div>
 
-          <div className="border-t pt-4">
-            <div className="flex justify-between items-center text-lg font-semibold">
+          {/* Total Price */}
+          <div className="border-t pt-6">
+            <div className="flex justify-between items-center text-xl font-semibold mb-6">
               <span>Total Price:</span>
-              <span className="text-primary">${totalPrice}</span>
+              <span className="text-primary">${totalPrice * formData.guests}</span>
             </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full h-14 text-lg font-medium" 
+              disabled={isSubmitting || !formData.date || !formData.time}
+            >
+              {isSubmitting ? "Creating Booking..." : "Reserve"}
+            </Button>
           </div>
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Creating Booking..." : "Confirm Booking"}
-          </Button>
         </form>
       </CardContent>
     </Card>
