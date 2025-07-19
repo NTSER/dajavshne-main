@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import EmailConfirmationGuard from "@/components/EmailConfirmationGuard";
 import Header from "@/components/Header";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -33,9 +34,10 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen bg-background">
-            <Header />
-            <Suspense fallback={<div>Loading...</div>}>
+          <EmailConfirmationGuard>
+            <div className="min-h-screen bg-background">
+              <Header />
+              <Suspense fallback={<div>Loading...</div>}>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/search" element={<SearchResults />} />
@@ -63,6 +65,7 @@ const App = () => (
               </Routes>
             </Suspense>
           </div>
+          </EmailConfirmationGuard>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

@@ -27,6 +27,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Log auth events for debugging
+        if (event && session?.user) {
+          console.log('Auth event:', event, 'Email confirmed:', !!session.user.email_confirmed_at);
+        }
       }
     );
 

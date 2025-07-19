@@ -10,8 +10,16 @@ max_rows = 1000
 [db]
 port = 54322
 
+[auth]
+enable_email_confirmations = true
+enable_email_autoconfirm = false
+email_double_confirm_changes = true
+
 [functions.booking-reminders]
 verify_jwt = false
 
 [functions.test-email]
+verify_jwt = false
+
+[functions.auth-confirmation]
 verify_jwt = false
