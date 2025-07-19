@@ -163,13 +163,13 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     setProcessing(bookingId);
     
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ 
-          status: action,
-          status_updated_at: new Date().toISOString()
-        })
-        .eq('id', bookingId);
+      // Call the edge function to handle booking confirmation/rejection
+      const { data, error } = await supabase.functions.invoke('booking-confirmation', {
+        body: {
+          bookingId,
+          action
+        }
+      });
 
       if (error) throw error;
 
@@ -179,10 +179,11 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
       toast({
         title: action === 'confirmed' ? "Booking Confirmed" : "Booking Rejected",
-        description: `The booking has been ${action}`,
+        description: `The booking has been ${action}. Customer will be notified via email.`,
       });
 
     } catch (error: any) {
+      console.error('Error processing booking action:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update booking",
