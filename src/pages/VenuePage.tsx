@@ -216,43 +216,6 @@ const VenuePage = () => {
                 />
               </div>
 
-              {/* Services List */}
-              {!servicesLoading && services && services.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-foreground">Available Services</h3>
-                  <div className="space-y-4">
-                    {services.map((service) => (
-                      <Card 
-                        key={service.id}
-                        className={`cursor-pointer transition-all border hover:border-primary/50 hover-lift ${
-                          selectedService?.id === service.id 
-                            ? 'border-primary shadow-lg shadow-primary/20' 
-                            : 'border-border'
-                        }`}
-                        onClick={() => setSelectedService(service)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h4 className="font-semibold text-foreground">{service.name}</h4>
-                              <p className="text-sm text-muted-foreground">{service.duration} · ${service.price}/hour</p>
-                            </div>
-                            <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
-                              ${service.price}
-                            </Badge>
-                          </div>
-                          {service.description && (
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {service.description}
-                            </p>
-                          )}
-                          <div className="w-16 h-16 bg-muted rounded-lg"></div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Venue Location Map */}
               <VenueMap location={venue.location} venueName={venue.name} />
