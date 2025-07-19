@@ -20,18 +20,16 @@ import {
   Heart
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
+import { useVenue } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
-import VenueServices from "@/components/VenueServices";
 import VenueMap from "@/components/VenueMap";
+import ReviewsList from "@/components/ReviewsList";
 import { useState } from "react";
 
 const VenuePage = () => {
   const { id } = useParams<{ id: string }>();
-  const [selectedService, setSelectedService] = useState<VenueService | undefined>();
   
   const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
-  const { data: services, isLoading: servicesLoading } = useVenueServices(id!);
 
   if (venueLoading) {
     return (
@@ -188,29 +186,7 @@ const VenuePage = () => {
 
               {/* Reviews Section */}
               <div className="py-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <Star className="h-5 w-5 fill-primary text-primary" />
-                  <span className="text-xl font-semibold text-foreground">{venue.rating} · {venue.review_count} reviews</span>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[1, 2, 3, 4].map((review) => (
-                    <div key={review} className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                          <span className="text-sm font-medium text-muted-foreground">U</span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">User {review}</p>
-                          <p className="text-sm text-muted-foreground">January 2024</p>
-                        </div>
-                      </div>
-                      <p className="text-muted-foreground text-sm">
-                        Great venue with excellent facilities. The gaming setup is top-notch and the atmosphere is perfect for competitive gaming.
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                <ReviewsList venueId={venue.id} />
               </div>
             </div>
           </div>
@@ -233,48 +209,8 @@ const VenuePage = () => {
                   venuePrice={venue.price}
                   openingTime={venue.opening_time}
                   closingTime={venue.closing_time}
-                  services={services}
-                  selectedServiceId={selectedService?.id}
                 />
               </div>
-
-              {/* Services List */}
-              {!servicesLoading && services && services.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-foreground">Available Services</h3>
-                  <div className="space-y-4">
-                    {services.map((service) => (
-                      <Card 
-                        key={service.id}
-                        className={`cursor-pointer transition-all border hover:border-primary/50 hover-lift ${
-                          selectedService?.id === service.id 
-                            ? 'border-primary shadow-lg shadow-primary/20' 
-                            : 'border-border'
-                        }`}
-                        onClick={() => setSelectedService(service)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h4 className="font-semibold text-foreground">{service.name}</h4>
-                              <p className="text-sm text-muted-foreground">{service.duration} · ${service.price}/hour</p>
-                            </div>
-                            <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
-                              ${service.price}
-                            </Badge>
-                          </div>
-                          {service.description && (
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {service.description}
-                            </p>
-                          )}
-                          <div className="w-16 h-16 bg-muted rounded-lg"></div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Venue Location Map */}
               <VenueMap location={venue.location} venueName={venue.name} />
