@@ -53,18 +53,23 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         .from('bookings')
         .select(`
           *,
-          venues!inner(name, partner_id),
+          venues(name, partner_id),
           venue_services(name)
         `)
         .eq('status', 'pending')
-        .eq('venues.partner_id', profile.id)
+        .not('venues', 'is', null)
         .order('created_at', { ascending: false });
 
       console.log('Raw booking data:', data, 'Error:', error);
 
       if (error) throw error;
 
-      const formattedBookings = data?.map(booking => ({
+      // Filter bookings that belong to this partner
+      const partnerBookings = data?.filter(booking => 
+        booking.venues?.partner_id === profile.id
+      ) || [];
+
+      const formattedBookings = partnerBookings.map(booking => ({
         id: booking.id,
         booking_date: booking.booking_date,
         booking_time: booking.booking_time,
@@ -76,8 +81,9 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         venue_id: booking.venue_id,
         created_at: booking.created_at,
         service_name: booking.venue_services?.name
-      })) || [];
+      }));
 
+      console.log('Partner bookings filtered:', partnerBookings);
       console.log('Formatted bookings:', formattedBookings);
       setPendingBookings(formattedBookings);
     } catch (error) {
