@@ -23,6 +23,7 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [isDestroyed, setIsDestroyed] = useState(false);
 
   // Your Mapbox public token
   const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFqYXZzaG5lIiwiYSI6ImNtZGE2eDE1eTBmMHEyd3F0b2g5MWsyeWwifQ.q8WNX31_PENI10UD6DD6Ig';
@@ -42,7 +43,7 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
 
   // Initialize map
   const initializeMap = () => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || map.current || isDestroyed) return;
 
     try {
       mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -109,11 +110,23 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
 
   // Add venue markers
   useEffect(() => {
-    if (!map.current || !mapInitialized || venues.length === 0) return;
+    if (!map.current || !mapInitialized || venues.length === 0 || isDestroyed) return;
 
-    // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+    console.log('Adding venue markers...');
+
+    // Clear existing markers safely
+    try {
+      markers.current.forEach(marker => {
+        if (marker && typeof marker.remove === 'function') {
+          marker.remove();
+        }
+      });
+      markers.current = [];
+      console.log('Existing markers cleared');
+    } catch (error) {
+      console.warn('Error clearing existing markers:', error);
+      markers.current = [];
+    }
 
     // Add new markers
     venues.forEach(venue => {
@@ -163,25 +176,36 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
         </div>
       `);
 
-      // Create marker
-      const marker = new mapboxgl.Marker(markerEl)
-        .setLngLat([coords.lng, coords.lat])
-        .setPopup(popup)
-        .addTo(map.current!);
+      // Create marker safely
+      try {
+        const marker = new mapboxgl.Marker(markerEl)
+          .setLngLat([coords.lng, coords.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
 
-      markers.current.push(marker);
+        markers.current.push(marker);
+      } catch (error) {
+        console.warn('Error creating marker for venue:', venue.name, error);
+      }
     });
 
-    // Fit map to show all venues
-    if (venues.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds();
-      venues.forEach(venue => {
-        const coords = getVenueCoordinates(venue.location);
-        bounds.extend([coords.lng, coords.lat]);
-      });
-      map.current.fitBounds(bounds, { padding: 50 });
+    // Fit map to show all venues safely
+    if (venues.length > 0 && map.current) {
+      try {
+        const bounds = new mapboxgl.LngLatBounds();
+        venues.forEach(venue => {
+          const coords = getVenueCoordinates(venue.location);
+          bounds.extend([coords.lng, coords.lat]);
+        });
+        map.current.fitBounds(bounds, { padding: 50 });
+        console.log('Map bounds fitted to venues');
+      } catch (error) {
+        console.warn('Error fitting map bounds:', error);
+      }
     }
-  }, [venues, mapInitialized]);
+
+    console.log(`Added ${markers.current.length} venue markers`);
+  }, [venues, mapInitialized, isDestroyed]);
 
   // Initialize map on component mount
   useEffect(() => {
@@ -191,8 +215,40 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
   // Cleanup
   useEffect(() => {
     return () => {
-      markers.current.forEach(marker => marker.remove());
-      map.current?.remove();
+      console.log('MapboxMap cleanup starting...');
+      setIsDestroyed(true);
+      
+      // Clean up markers first
+      try {
+        markers.current.forEach(marker => {
+          if (marker && typeof marker.remove === 'function') {
+            marker.remove();
+          }
+        });
+        markers.current = [];
+        console.log('Markers cleaned up successfully');
+      } catch (error) {
+        console.warn('Error cleaning up markers:', error);
+      }
+      
+      // Clean up map with proper checks
+      try {
+        if (map.current && typeof map.current.remove === 'function') {
+          // Check if map is in a valid state before removing
+          if (map.current.getContainer && map.current.getContainer()) {
+            console.log('Removing map...');
+            map.current.remove();
+            console.log('Map removed successfully');
+          }
+        }
+        map.current = null;
+      } catch (error) {
+        console.warn('Error cleaning up map:', error);
+        // Force cleanup by setting to null even if remove fails
+        map.current = null;
+      }
+      
+      console.log('MapboxMap cleanup completed');
     };
   }, []);
 
