@@ -182,7 +182,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     console.log(`Starting booking action: ${action} for booking ID: ${bookingId}`);
     
     try {
-      // Call the edge function to handle booking confirmation/rejection
+      // Try edge function first, but fallback to direct DB update if it fails
       console.log('Calling booking-confirmation edge function...');
       
       const { data, error } = await supabase.functions.invoke('booking-confirmation', {
@@ -195,8 +195,40 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
       console.log('Edge function response:', { data, error });
 
       if (error) {
-        console.error('Edge function error:', error);
-        throw error;
+        console.warn('Edge function failed, falling back to direct update:', error);
+        
+        // Fallback to direct database update
+        const { error: updateError } = await supabase
+          .from('bookings')
+          .update({ 
+            status: action,
+            status_updated_at: new Date().toISOString()
+          })
+          .eq('id', bookingId);
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        // Create notification manually
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: (await supabase.from('bookings').select('user_id').eq('id', bookingId).single()).data?.user_id,
+            booking_id: bookingId,
+            type: action === 'confirmed' ? 'booking_confirmed' : 'booking_rejected',
+            title: action === 'confirmed' ? 'Booking Confirmed!' : 'Booking Rejected',
+            message: action === 'confirmed' 
+              ? `Your booking has been confirmed.`
+              : `Your booking has been rejected.`,
+            read: false
+          });
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+        }
+
+        console.log('Fallback update completed successfully');
       }
 
       // Don't manually remove from pending list here - let the real-time subscription handle it
@@ -204,7 +236,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
       toast({
         title: action === 'confirmed' ? "Booking Confirmed" : "Booking Rejected",
-        description: `The booking has been ${action}. Customer will be notified via email.`,
+        description: `The booking has been ${action}. Customer will be notified.`,
       });
 
     } catch (error: any) {

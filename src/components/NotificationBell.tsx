@@ -134,18 +134,28 @@ const NotificationBell = ({}: NotificationBellProps) => {
             notifications.map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
-                className={`p-3 cursor-pointer ${!notification.read ? 'bg-muted/50' : ''}`}
+                className={`p-3 cursor-pointer relative ${
+                  !notification.read ? 'bg-muted/50' : ''
+                } ${
+                  notification.type === 'booking_confirmed' ? 'border-l-4 border-green-500' :
+                  notification.type === 'booking_rejected' ? 'border-l-4 border-red-500' : ''
+                }`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex flex-col space-y-1 w-full">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">{notification.title}</p>
+                      <p className={`font-medium text-sm ${
+                        notification.type === 'booking_confirmed' ? 'text-green-700' :
+                        notification.type === 'booking_rejected' ? 'text-red-700' : ''
+                      }`}>
+                        {notification.title}
+                      </p>
                       {notification.type === 'booking_confirmed' && (
-                        <div className="h-2 w-2 bg-green-500 rounded-full" />
+                        <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />
                       )}
                       {notification.type === 'booking_rejected' && (
-                        <div className="h-2 w-2 bg-red-500 rounded-full" />
+                        <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse" />
                       )}
                     </div>
                     {!notification.read && notification.type !== 'booking_confirmed' && notification.type !== 'booking_rejected' && (
@@ -153,8 +163,8 @@ const NotificationBell = ({}: NotificationBellProps) => {
                     )}
                   </div>
                   <p className={`text-xs ${
-                    notification.type === 'booking_confirmed' ? 'text-green-600' :
-                    notification.type === 'booking_rejected' ? 'text-red-600' :
+                    notification.type === 'booking_confirmed' ? 'text-green-600 font-medium' :
+                    notification.type === 'booking_rejected' ? 'text-red-600 font-medium' :
                     'text-muted-foreground'
                   }`}>
                     {notification.message}
