@@ -130,25 +130,8 @@ const ConfirmAndPay = () => {
           throw bookingError;
         }
 
-        // Try to send notifications (but don't fail if this fails)
-        try {
-          await supabase.functions.invoke('booking-notifications', {
-            body: {
-              bookingId: booking.id,
-              userId: user.id,
-              userEmail: user.email,
-              venueName: bookingData.venueName,
-              venueLocation: venue.location,
-              bookingDate: bookingData.date,
-              bookingTime: bookingData.arrivalTime,
-              totalPrice: bookingData.totalPrice,
-              guestCount: bookingData.guests,
-            },
-          });
-        } catch (notifError) {
-          console.error("Notification error:", notifError);
-          // Don't fail the booking for notification errors
-        }
+        // Note: No notifications sent at booking creation
+        // Confirmation/rejection notifications will be sent only when partner takes action
 
         toast({
           title: "Booking Request Submitted!",
