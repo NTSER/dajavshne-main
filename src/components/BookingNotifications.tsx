@@ -41,7 +41,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
   }, [profile]);
 
   const fetchPendingBookings = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      console.log('No profile ID available for fetching bookings');
+      return;
+    }
+
+    console.log('Fetching pending bookings for partner:', profile.id);
 
     try {
       const { data, error } = await supabase
@@ -55,9 +60,11 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         .eq('venues.partner_id', profile.id)
         .order('created_at', { ascending: false });
 
+      console.log('Raw booking data:', data, 'Error:', error);
+
       if (error) throw error;
 
-      const formattedBookings = data.map(booking => ({
+      const formattedBookings = data?.map(booking => ({
         id: booking.id,
         booking_date: booking.booking_date,
         booking_time: booking.booking_time,
@@ -69,8 +76,9 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         venue_id: booking.venue_id,
         created_at: booking.created_at,
         service_name: booking.venue_services?.name
-      }));
+      })) || [];
 
+      console.log('Formatted bookings:', formattedBookings);
       setPendingBookings(formattedBookings);
     } catch (error) {
       console.error('Error fetching pending bookings:', error);
