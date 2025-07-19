@@ -103,6 +103,40 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     });
   };
 
+  // Generate 30-minute time slots based on venue hours
+  const generateTimeSlots = () => {
+    const slots = [];
+    const start = openingTime || '00:00';
+    const end = closingTime || '23:59';
+    
+    const [startHour, startMinute] = start.split(':').map(Number);
+    const [endHour, endMinute] = end.split(':').map(Number);
+    
+    let currentHour = startHour;
+    let currentMinute = startMinute;
+    
+    // Round start time to nearest 30-minute slot
+    if (currentMinute < 30) {
+      currentMinute = 0;
+    } else {
+      currentMinute = 30;
+    }
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+      const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+      slots.push(timeString);
+      
+      // Move to next 30-minute slot
+      currentMinute += 30;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
+      }
+    }
+    
+    return slots;
+  };
+
   // Validate time to ensure it's on half-hour intervals
   const validateHalfHourInterval = (time: string) => {
     if (!time) return true;
@@ -113,16 +147,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   // Handle main arrival/departure time updates
   const updateMainTime = (field: 'arrivalTime' | 'departureTime', value: string) => {
-    // Validate half-hour intervals
-    if (!validateHalfHourInterval(value)) {
-      toast({
-        title: "Invalid time",
-        description: "Please select times in 30-minute intervals (e.g., 17:00, 17:30, 18:00)",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Validate against venue working hours
     if (openingTime && closingTime && value) {
       if (value < openingTime || value > closingTime) {
@@ -159,16 +183,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   // Handle service time updates with validation
   const updateServiceTime = (serviceId: string, field: 'arrivalTime' | 'departureTime', value: string) => {
-    // Validate half-hour intervals
-    if (!validateHalfHourInterval(value)) {
-      toast({
-        title: "Invalid time",
-        description: "Please select times in 30-minute intervals (e.g., 17:00, 17:30, 18:00)",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Validate against venue working hours
     if (openingTime && closingTime && value) {
       if (value < openingTime || value > closingTime) {
@@ -316,31 +330,39 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="main-arrival">Arrival Time *</Label>
-                  <Input
-                    id="main-arrival"
-                    type="time"
-                    step="1800"
-                    min={openingTime}
-                    max={closingTime}
-                    value={formData.arrivalTime}
-                    onChange={(e) => updateMainTime('arrivalTime', e.target.value)}
-                    className="w-full"
-                    required
-                  />
+                  <Select 
+                    value={formData.arrivalTime} 
+                    onValueChange={(value) => updateMainTime('arrivalTime', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select arrival time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeSlots().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {formatTime(time)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="main-departure">Departure Time *</Label>
-                  <Input
-                    id="main-departure"
-                    type="time"
-                    step="1800"
-                    min={openingTime}
-                    max={closingTime}
-                    value={formData.departureTime}
-                    onChange={(e) => updateMainTime('departureTime', e.target.value)}
-                    className="w-full"
-                    required
-                  />
+                  <Select 
+                    value={formData.departureTime} 
+                    onValueChange={(value) => updateMainTime('departureTime', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select departure time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeSlots().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {formatTime(time)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -419,29 +441,39 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor={`arrival-${service.id}`}>Arrival Time</Label>
-                          <Input
-                            id={`arrival-${service.id}`}
-                            type="time"
-                            step="1800"
-                            min={openingTime}
-                            max={closingTime}
-                            value={serviceBooking?.arrivalTime || ''}
-                            onChange={(e) => updateServiceTime(service.id, 'arrivalTime', e.target.value)}
-                            className="w-full"
-                          />
+                          <Select 
+                            value={serviceBooking?.arrivalTime || ''} 
+                            onValueChange={(value) => updateServiceTime(service.id, 'arrivalTime', value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select arrival time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateTimeSlots().map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {formatTime(time)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor={`departure-${service.id}`}>Departure Time</Label>
-                          <Input
-                            id={`departure-${service.id}`}
-                            type="time"
-                            step="1800"
-                            min={openingTime}
-                            max={closingTime}
-                            value={serviceBooking?.departureTime || ''}
-                            onChange={(e) => updateServiceTime(service.id, 'departureTime', e.target.value)}
-                            className="w-full"
-                          />
+                          <Select 
+                            value={serviceBooking?.departureTime || ''} 
+                            onValueChange={(value) => updateServiceTime(service.id, 'departureTime', value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select departure time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateTimeSlots().map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {formatTime(time)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
