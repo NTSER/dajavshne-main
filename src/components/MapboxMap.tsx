@@ -66,13 +66,14 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
       mapboxgl.accessToken = MAPBOX_TOKEN;
       console.log('Mapbox token set successfully');
       
-      // Create the map instance
+      // Create the map instance with Airbnb-style settings
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: 'mapbox://styles/mapbox/light-v11', // Clean light style like Airbnb
         center: [-74.0060, 40.7128], // NYC center
         zoom: 12,
-        pitch: 45,
+        pitch: 0, // Flat view like Airbnb
+        bearing: 0,
       });
 
       console.log('Map instance created');
@@ -128,14 +129,10 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
         });
       }
 
-      // Add atmosphere and fog effects
+      // Clean map style without fog effects for Airbnb-like appearance
       map.current.on('style.load', () => {
         console.log('Map style loaded');
-        map.current?.setFog({
-          color: 'rgb(255, 255, 255)',
-          'high-color': 'rgb(200, 200, 225)',
-          'horizon-blend': 0.2,
-        });
+        // Remove fog effects for cleaner Airbnb-style look
       });
 
     } catch (error) {
@@ -172,49 +169,155 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
       markers.current = [];
     }
 
-    // Add new markers
+    // Add new markers with Airbnb-style design
     venues.forEach(venue => {
       const coords = getVenueCoordinates(venue.location);
       const isSelected = selectedVenue?.id === venue.id;
       
-      // Create custom marker element with different styling for selected venue
+      // Create custom marker element with Airbnb-style design
       const markerEl = document.createElement('div');
       markerEl.className = 'venue-marker';
+      markerEl.style.cssText = `
+        cursor: pointer;
+        transform-origin: center bottom;
+        transition: transform 0.2s ease;
+      `;
+      
       markerEl.innerHTML = `
-        <div class="relative cursor-pointer hover:scale-110 transition-transform">
-          <div class="w-8 h-8 ${isSelected ? 'bg-yellow-500' : 'bg-primary'} rounded-full flex items-center justify-center shadow-lg ${isSelected ? 'ring-2 ring-yellow-300' : ''}">
-            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-            </svg>
-          </div>
-          ${showPrices ? `<div class="absolute -top-2 -right-2 w-6 h-6 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-            $${venue.price}
-          </div>` : ''}
+        <div style="
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${isSelected ? '#222' : '#fff'};
+          color: ${isSelected ? '#fff' : '#222'};
+          border: 2px solid ${isSelected ? '#222' : '#fff'};
+          border-radius: 24px;
+          padding: 8px 12px;
+          font-size: 14px;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          min-width: 40px;
+          white-space: nowrap;
+          z-index: 1;
+        ">
+          $${venue.price}
         </div>
+        <div style="
+          position: absolute;
+          bottom: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 8px solid transparent;
+          border-right: 8px solid transparent;
+          border-top: 8px solid ${isSelected ? '#222' : '#fff'};
+          z-index: 0;
+        "></div>
       `;
 
-      // Create popup
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div class="p-3 max-w-xs">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="font-semibold text-lg">${venue.name}</h4>
-            <span class="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs">${venue.category}</span>
+      // Add hover effects
+      markerEl.addEventListener('mouseenter', () => {
+        markerEl.style.transform = 'scale(1.1)';
+        markerEl.style.zIndex = '1000';
+      });
+      
+      markerEl.addEventListener('mouseleave', () => {
+        markerEl.style.transform = 'scale(1)';
+        markerEl.style.zIndex = '1';
+      });
+
+      // Create popup with Airbnb-style design
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: false,
+        className: 'airbnb-popup'
+      }).setHTML(`
+        <div style="
+          padding: 16px;
+          max-width: 280px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        ">
+          <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+          ">
+            <h4 style="
+              font-size: 16px;
+              font-weight: 600;
+              margin: 0;
+              color: #222;
+              line-height: 1.2;
+            ">${venue.name}</h4>
+            <span style="
+              background: #f7f7f7;
+              color: #717171;
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 12px;
+              font-weight: 500;
+              margin-left: 8px;
+              white-space: nowrap;
+            ">${venue.category}</span>
           </div>
-          <p class="text-sm text-muted-foreground mb-2">${venue.location}</p>
-          <p class="text-sm mb-3 line-clamp-2">${venue.description || 'Premium gaming venue with excellent facilities.'}</p>
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-1">
-              <span class="text-sm">⭐ ${venue.rating}</span>
-              <span class="text-sm text-muted-foreground">(${venue.review_count})</span>
+          <p style="
+            font-size: 14px;
+            color: #717171;
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+          ">${venue.location}</p>
+          <p style="
+            font-size: 14px;
+            color: #222;
+            margin: 0 0 12px 0;
+            line-height: 1.4;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+          ">${venue.description || 'Premium gaming venue with excellent facilities.'}</p>
+          <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+          ">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <span style="font-size: 14px;">⭐</span>
+              <span style="font-size: 14px; font-weight: 500; color: #222;">${venue.rating}</span>
+              <span style="font-size: 14px; color: #717171;">(${venue.review_count})</span>
             </div>
-            <div class="text-right">
-              <span class="font-semibold text-primary">$${venue.price}</span>
-              <span class="text-sm text-muted-foreground">/hour</span>
+            <div>
+              <span style="
+                font-size: 16px;
+                font-weight: 600;
+                color: #222;
+              ">$${venue.price}</span>
+              <span style="
+                font-size: 14px;
+                color: #717171;
+              ">/hour</span>
             </div>
           </div>
           <button 
             onclick="window.open('/venue/${venue.id}', '_blank')" 
-            class="w-full mt-3 bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 rounded text-sm font-medium transition-colors"
+            style="
+              width: 100%;
+              background: #222;
+              color: white;
+              border: none;
+              padding: 12px 16px;
+              border-radius: 8px;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: background-color 0.2s ease;
+            "
+            onmouseover="this.style.backgroundColor='#404040'"
+            onmouseout="this.style.backgroundColor='#222'"
           >
             View Details
           </button>
