@@ -15,7 +15,7 @@ const CategoryPage = () => {
   
   // Filter venues from database instead of mock data
   const filteredVenues = venues?.filter(venue => 
-    venue.category.toLowerCase().includes(category?.replace('-', ' ') || '')
+    venue.category === category
   ) || [];
 
   if (!categoryData) {
