@@ -6,36 +6,24 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCreateVenue } from '@/hooks/usePartnerVenues';
+import { useVenueCategories, useAmenities } from '@/hooks/useVenueData';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-
-const categories = [
-  'Restaurant',
-  'Spa',
-  'Gym',
-  'Salon',
-  'Hotel',
-  'Event Space',
-  'Studio',
-  'Clinic',
-  'Outdoor Activity',
-  'Entertainment'
-];
 
 const AddVenue = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     location: '',
-    category: '',
+    categoryId: '',
     price: '',
     images: [''],
     uploadedImages: [] as File[],
-    amenities: [],
-    newAmenity: '',
+    amenityIds: [] as string[],
     services: [{ name: '', description: '', price: '', duration: '' }],
     openingTime: '',
     closingTime: '',
@@ -46,11 +34,13 @@ const AddVenue = () => {
   const navigate = useNavigate();
   const createVenue = useCreateVenue();
   const { toast } = useToast();
+  const { data: categories, isLoading: categoriesLoading } = useVenueCategories();
+  const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.location || !formData.category || !formData.price || !formData.openingTime || !formData.closingTime) {
+    if (!formData.name || !formData.location || !formData.categoryId || !formData.price || !formData.openingTime || !formData.closingTime) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields including working hours.",
@@ -96,14 +86,22 @@ const AddVenue = () => {
         ...uploadedImageUrls
       ];
 
+      // Get selected amenity names for the venue
+      const selectedAmenities = amenities?.filter(amenity => 
+        formData.amenityIds.includes(amenity.id)
+      ).map(amenity => amenity.name) || [];
+
+      // Get category name
+      const selectedCategory = categories?.find(cat => cat.id === formData.categoryId)?.name || '';
+
       const venueData = await createVenue.mutateAsync({
         name: formData.name,
         description: formData.description,
         location: formData.location,
-        category: formData.category,
+        category: selectedCategory,
         price: parseFloat(formData.price),
         images: allImages,
-        amenities: formData.amenities,
+        amenities: selectedAmenities,
         openingTime: formData.openingTime,
         closingTime: formData.closingTime,
       });
@@ -159,22 +157,6 @@ const AddVenue = () => {
     }));
   };
 
-  const addAmenity = () => {
-    if (formData.newAmenity.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        amenities: [...prev.amenities, prev.newAmenity.trim()],
-        newAmenity: ''
-      }));
-    }
-  };
-
-  const removeAmenity = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      amenities: prev.amenities.filter((_, i) => i !== index)
-    }));
-  };
 
   const addService = () => {
     setFormData(prev => ({
@@ -228,6 +210,27 @@ const AddVenue = () => {
     }));
   };
 
+  // Generate 30-minute time slots
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+
+  // Helper function to format time for display
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -275,24 +278,40 @@ const AddVenue = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="openingTime">Opening Time *</Label>
-                  <Input
-                    id="openingTime"
-                    type="time"
-                    value={formData.openingTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, openingTime: e.target.value }))}
-                    required
-                  />
+                  <Select 
+                    value={formData.openingTime} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, openingTime: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select opening time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeSlots().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {formatTime(time)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="closingTime">Closing Time *</Label>
-                  <Input
-                    id="closingTime"
-                    type="time"
-                    value={formData.closingTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, closingTime: e.target.value }))}
-                    required
-                  />
+                  <Select 
+                    value={formData.closingTime} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, closingTime: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select closing time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeSlots().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {formatTime(time)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -309,16 +328,17 @@ const AddVenue = () => {
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
                 <Select 
-                  value={formData.category} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                  value={formData.categoryId} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
+                  disabled={categoriesLoading}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                    {categories?.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -421,33 +441,62 @@ const AddVenue = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <Label>Amenities</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.newAmenity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, newAmenity: e.target.value }))}
-                    placeholder="Add amenity"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
-                  />
-                  <Button type="button" onClick={addAmenity}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.amenities.map((amenity, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {amenity}
-                      <button
-                        type="button"
-                        onClick={() => removeAmenity(index)}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
+                {amenitiesLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading amenities...</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {amenities?.map((amenity) => (
+                      <div key={amenity.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`amenity-${amenity.id}`}
+                          checked={formData.amenityIds.includes(amenity.id)}
+                          onCheckedChange={(checked) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              amenityIds: checked
+                                ? [...prev.amenityIds, amenity.id]
+                                : prev.amenityIds.filter(id => id !== amenity.id)
+                            }));
+                          }}
+                        />
+                        <Label
+                          htmlFor={`amenity-${amenity.id}`}
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {amenity.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Display selected amenities */}
+                {formData.amenityIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.amenityIds.map((amenityId) => {
+                      const amenity = amenities?.find(a => a.id === amenityId);
+                      return amenity ? (
+                        <Badge key={amenityId} variant="secondary" className="flex items-center gap-1">
+                          {amenity.name}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                amenityIds: prev.amenityIds.filter(id => id !== amenityId)
+                              }));
+                            }}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Services Section */}
