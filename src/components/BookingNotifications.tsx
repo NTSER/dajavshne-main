@@ -151,6 +151,23 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           }
         }
       )
+      // Also listen for booking status updates to remove from pending list
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'bookings',
+        },
+        async (payload) => {
+          console.log('Booking updated:', payload);
+          
+          // If booking status changed from pending, remove it from the list
+          if (payload.old.status === 'pending' && payload.new.status !== 'pending') {
+            setPendingBookings(prev => prev.filter(b => b.id !== payload.new.id));
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -182,8 +199,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         throw error;
       }
 
-      // Remove from pending list
-      setPendingBookings(prev => prev.filter(b => b.id !== bookingId));
+      // Don't manually remove from pending list here - let the real-time subscription handle it
       setSelectedBooking(null);
 
       toast({

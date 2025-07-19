@@ -163,9 +163,19 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("Error in booking-confirmation function:", error);
+    
+    // Return more detailed error information
+    const errorMessage = error.message || 'An error occurred processing the booking confirmation';
+    console.error("Detailed error:", {
+      message: errorMessage,
+      stack: error.stack,
+      name: error.name
+    });
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'An error occurred processing the booking confirmation'
+        error: errorMessage,
+        details: error.stack
       }),
       {
         status: 500,

@@ -139,12 +139,24 @@ const NotificationBell = ({}: NotificationBellProps) => {
               >
                 <div className="flex flex-col space-y-1 w-full">
                   <div className="flex items-center justify-between">
-                    <p className="font-medium text-sm">{notification.title}</p>
-                    {!notification.read && (
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">{notification.title}</p>
+                      {notification.type === 'booking_confirmed' && (
+                        <div className="h-2 w-2 bg-green-500 rounded-full" />
+                      )}
+                      {notification.type === 'booking_rejected' && (
+                        <div className="h-2 w-2 bg-red-500 rounded-full" />
+                      )}
+                    </div>
+                    {!notification.read && notification.type !== 'booking_confirmed' && notification.type !== 'booking_rejected' && (
                       <div className="h-2 w-2 bg-primary rounded-full" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className={`text-xs ${
+                    notification.type === 'booking_confirmed' ? 'text-green-600' :
+                    notification.type === 'booking_rejected' ? 'text-red-600' :
+                    'text-muted-foreground'
+                  }`}>
                     {notification.message}
                   </p>
                   <p className="text-xs text-muted-foreground">
