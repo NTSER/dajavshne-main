@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, MapPin, Search } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Search, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,6 +17,7 @@ interface SearchSuggestion {
 }
 
 interface SearchFilters {
+  businessName: string;
   location: string;
   date: Date | undefined;
 }
@@ -30,11 +31,13 @@ interface VenueData {
 const EnhancedSearchFilters = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<SearchFilters>({
+    businessName: "",
     location: "",
     date: undefined,
   });
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestionField, setActiveSuggestionField] = useState<'businessName' | 'location' | null>(null);
   const [loading, setLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +45,7 @@ const EnhancedSearchFilters = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
+        setActiveSuggestionField(null);
       }
     };
 
@@ -49,7 +53,7 @@ const EnhancedSearchFilters = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchSuggestions = async (query: string) => {
+  const fetchSuggestions = async (query: string, type: 'businessName' | 'location') => {
     if (query.length < 2) {
       setSuggestions([]);
       return;
@@ -57,11 +61,21 @@ const EnhancedSearchFilters = () => {
 
     setLoading(true);
     try {
-      const searchQuery = supabase
-        .from('venues')
-        .select('id, name, location')
-        .or(`name.ilike.%${query}%,location.ilike.%${query}%`)
-        .limit(5);
+      let searchQuery;
+      
+      if (type === 'businessName') {
+        searchQuery = supabase
+          .from('venues')
+          .select('id, name, location')
+          .ilike('name', `%${query}%`)
+          .limit(5);
+      } else {
+        searchQuery = supabase
+          .from('venues')
+          .select('id, name, location')
+          .or(`name.ilike.%${query}%,location.ilike.%${query}%`)
+          .limit(5);
+      }
 
       const { data: venues, error } = await searchQuery;
 
@@ -77,27 +91,37 @@ const EnhancedSearchFilters = () => {
                typeof venue.location === 'string';
       });
 
-      const venueSuggestions: SearchSuggestion[] = typedVenues.map(venue => ({
-        id: venue.id,
-        name: venue.name,
-        location: venue.location,
-        type: 'venue' as const
-      }));
+      if (type === 'businessName') {
+        const venueSuggestions: SearchSuggestion[] = typedVenues.map(venue => ({
+          id: venue.id,
+          name: venue.name,
+          location: venue.location,
+          type: 'venue' as const
+        }));
+        setSuggestions(venueSuggestions);
+      } else {
+        const venueSuggestions: SearchSuggestion[] = typedVenues.map(venue => ({
+          id: venue.id,
+          name: venue.name,
+          location: venue.location,
+          type: 'venue' as const
+        }));
 
-      const uniqueLocations = [...new Set(
-        typedVenues
-          .map(v => v.location)
-          .filter(loc => loc && loc.toLowerCase().includes(query.toLowerCase()))
-      )];
-      
-      const locationSuggestions: SearchSuggestion[] = uniqueLocations.map(loc => ({
-        id: `location-${loc}`,
-        name: loc,
-        location: loc,
-        type: 'location' as const
-      }));
+        const uniqueLocations = [...new Set(
+          typedVenues
+            .map(v => v.location)
+            .filter(loc => loc && loc.toLowerCase().includes(query.toLowerCase()))
+        )];
+        
+        const locationSuggestions: SearchSuggestion[] = uniqueLocations.map(loc => ({
+          id: `location-${loc}`,
+          name: loc,
+          location: loc,
+          type: 'location' as const
+        }));
 
-      setSuggestions([...venueSuggestions, ...locationSuggestions]);
+        setSuggestions([...venueSuggestions, ...locationSuggestions]);
+      }
     } catch (error) {
       console.error('Error fetching suggestions:', error);
     } finally {
@@ -105,10 +129,14 @@ const EnhancedSearchFilters = () => {
     }
   };
 
-  const handleLocationChange = (value: string) => {
-    setFilters(prev => ({ ...prev, location: value }));
-    fetchSuggestions(value);
-    setShowSuggestions(true);
+  const handleInputChange = (field: keyof SearchFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+    
+    if (field === 'businessName' || field === 'location') {
+      fetchSuggestions(value, field);
+      setShowSuggestions(true);
+      setActiveSuggestionField(field);
+    }
   };
 
   const handleDateChange = (date: Date | undefined) => {
@@ -116,12 +144,17 @@ const EnhancedSearchFilters = () => {
   };
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
-    if (suggestion.type === 'venue') {
-      setFilters(prev => ({ ...prev, location: suggestion.name }));
-    } else {
-      setFilters(prev => ({ ...prev, location: suggestion.location }));
+    if (activeSuggestionField === 'businessName') {
+      setFilters(prev => ({ ...prev, businessName: suggestion.name }));
+    } else if (activeSuggestionField === 'location') {
+      if (suggestion.type === 'venue') {
+        setFilters(prev => ({ ...prev, location: suggestion.name }));
+      } else {
+        setFilters(prev => ({ ...prev, location: suggestion.location }));
+      }
     }
     setShowSuggestions(false);
+    setActiveSuggestionField(null);
   };
 
   const handleSearch = () => {
@@ -129,6 +162,9 @@ const EnhancedSearchFilters = () => {
     
     const searchParams = new URLSearchParams();
     
+    if (filters.businessName) {
+      searchParams.append('businessName', filters.businessName);
+    }
     if (filters.location) {
       searchParams.append('location', filters.location);
     }
@@ -140,20 +176,21 @@ const EnhancedSearchFilters = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-0 bg-white rounded-full shadow-lg border border-gray-200 p-2 max-w-4xl mx-auto">
-      {/* Where */}
+    <div className="flex flex-col lg:flex-row items-center gap-0 bg-white rounded-full shadow-lg border border-gray-200 p-2 max-w-5xl mx-auto">
+      {/* Business Name */}
       <div className="flex-1 relative" ref={searchRef}>
         <div className="px-6 py-4">
-          <div className="text-xs font-semibold text-gray-800 mb-1">Where</div>
+          <div className="text-xs font-semibold text-gray-800 mb-1">What</div>
           <Input
-            placeholder="Search destinations"
-            value={filters.location}
-            onChange={(e) => handleLocationChange(e.target.value)}
+            placeholder="Search business name"
+            value={filters.businessName}
+            onChange={(e) => handleInputChange('businessName', e.target.value)}
+            onFocus={() => filters.businessName && activeSuggestionField === 'businessName' && setShowSuggestions(true)}
             className="border-0 p-0 text-sm font-medium text-gray-600 placeholder:text-gray-400 focus-visible:ring-0 bg-transparent"
           />
         </div>
         
-        {showSuggestions && suggestions.length > 0 && (
+        {showSuggestions && suggestions.length > 0 && activeSuggestionField === 'businessName' && (
           <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
             {suggestions.map((suggestion) => (
               <button
@@ -162,7 +199,48 @@ const EnhancedSearchFilters = () => {
                 className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 transition-colors"
               >
                 <div className="flex-shrink-0">
-                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <Building className="h-4 w-4 text-gray-400" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm text-gray-800">{suggestion.name}</div>
+                  <div className="text-xs text-gray-400">{suggestion.location}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="hidden lg:block w-px h-8 bg-gray-200" />
+
+      {/* Where */}
+      <div className="flex-1 relative">
+        <div className="px-6 py-4">
+          <div className="text-xs font-semibold text-gray-800 mb-1">Where</div>
+          <Input
+            placeholder="Search destinations"
+            value={filters.location}
+            onChange={(e) => handleInputChange('location', e.target.value)}
+            onFocus={() => filters.location && activeSuggestionField === 'location' && setShowSuggestions(true)}
+            className="border-0 p-0 text-sm font-medium text-gray-600 placeholder:text-gray-400 focus-visible:ring-0 bg-transparent"
+          />
+        </div>
+        
+        {showSuggestions && suggestions.length > 0 && activeSuggestionField === 'location' && (
+          <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.id}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 transition-colors"
+              >
+                <div className="flex-shrink-0">
+                  {suggestion.type === 'venue' ? (
+                    <Search className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                  )}
                 </div>
                 <div>
                   <div className="font-medium text-sm text-gray-800">{suggestion.name}</div>
@@ -177,12 +255,12 @@ const EnhancedSearchFilters = () => {
       </div>
 
       {/* Divider */}
-      <div className="hidden md:block w-px h-8 bg-gray-200" />
+      <div className="hidden lg:block w-px h-8 bg-gray-200" />
 
       {/* Date */}
       <div className="flex-1">
         <div className="px-6 py-4">
-          <div className="text-xs font-semibold text-gray-800 mb-1">Date</div>
+          <div className="text-xs font-semibold text-gray-800 mb-1">When</div>
           <Popover>
             <PopoverTrigger asChild>
               <Button
