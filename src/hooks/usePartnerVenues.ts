@@ -47,12 +47,18 @@ export const useCreateVenue = () => {
       const { data, error } = await supabase
         .from('venues')
         .insert([{
-          ...venueData,
+          name: venueData.name,
+          description: venueData.description,
+          location: venueData.location,
+          category: venueData.category,
+          price: venueData.price,
+          images: venueData.images,
+          amenities: venueData.amenities,
+          opening_time: venueData.openingTime,
+          closing_time: venueData.closingTime,
           partner_id: user.id,
           rating: 0,
           review_count: 0,
-          opening_time: venueData.openingTime,
-          closing_time: venueData.closingTime,
         }])
         .select()
         .single();
