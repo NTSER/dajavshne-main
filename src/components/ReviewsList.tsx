@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Star, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useVenueReviews, useDeleteReview, useUserReviewForVenue, type Review } from '@/hooks/useReviews';
+import { useVenueReviews, useDeleteReview, useUserReviewForVenue, useUserCompletedBookings, type Review } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import ReviewForm from './ReviewForm';
@@ -19,8 +19,12 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
   const { user } = useAuth();
   const { data: reviews, isLoading } = useVenueReviews(venueId);
   const { data: userReview } = useUserReviewForVenue(venueId);
+  const { data: completedBookings, isLoading: bookingsLoading } = useUserCompletedBookings(venueId);
   const deleteReview = useDeleteReview();
   const { toast } = useToast();
+
+  const hasCompletedBookings = completedBookings && completedBookings.length > 0;
+  const canWriteReview = user && hasCompletedBookings && !userReview;
 
   const handleDeleteReview = async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete your review?')) return;
@@ -71,10 +75,16 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold">Reviews ({reviews?.length || 0})</h3>
         
-        {user && !userReview && !showReviewForm && !editingReview && (
+        {canWriteReview && (
           <Button onClick={() => setShowReviewForm(true)}>
             Write a Review
           </Button>
+        )}
+        
+        {user && !hasCompletedBookings && !bookingsLoading && (
+          <p className="text-sm text-muted-foreground">
+            Complete a booking to write a review
+          </p>
         )}
       </div>
 
