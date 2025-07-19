@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { usePartnerAuth } from '@/hooks/usePartnerAuth';
 import { usePartnerVenues } from '@/hooks/usePartnerVenues';
-import { Plus, Building2, Settings, LogOut } from 'lucide-react';
+import { Plus, Building2, Settings, LogOut, BarChart3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import BookingNotifications from '@/components/BookingNotifications';
 
 const PartnerDashboard = () => {
   const { profile, signOut } = usePartnerAuth();
@@ -42,6 +43,14 @@ const PartnerDashboard = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/partner/analytics')}
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </Button>
             <Badge variant="secondary">Partner</Badge>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -89,6 +98,9 @@ const PartnerDashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Booking Notifications */}
+          <BookingNotifications />
 
           {/* Venues Section */}
           <Card>

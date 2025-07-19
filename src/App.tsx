@@ -23,6 +23,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const PartnerAuth = lazy(() => import("./pages/partner/PartnerAuth"));
 const PartnerDashboard = lazy(() => import("./pages/partner/PartnerDashboard"));
 const AddVenue = lazy(() => import("./pages/partner/AddVenue"));
+const EditVenue = lazy(() => import("./pages/partner/EditVenue"));
+const Analytics = lazy(() => import("./pages/partner/Analytics"));
 const PartnerProtectedRoute = lazy(() => import("./components/PartnerProtectedRoute"));
 
 const queryClient = new QueryClient();
@@ -58,6 +60,16 @@ const App = () => (
                 <Route path="/partner/venues/add" element={
                   <PartnerProtectedRoute>
                     <AddVenue />
+                  </PartnerProtectedRoute>
+                } />
+                <Route path="/partner/venues/:venueId/edit" element={
+                  <PartnerProtectedRoute>
+                    <EditVenue />
+                  </PartnerProtectedRoute>
+                } />
+                <Route path="/partner/analytics" element={
+                  <PartnerProtectedRoute>
+                    <Analytics />
                   </PartnerProtectedRoute>
                 } />
                 

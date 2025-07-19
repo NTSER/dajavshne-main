@@ -121,7 +121,7 @@ const ConfirmAndPay = () => {
                 `\nService Times: ${bookingData.serviceBookings.map(sb => 
                   `Service ${sb.serviceId}: ${sb.arrivalTime} - ${sb.departureTime}`
                 ).join(', ')}` : ''),
-            status: 'confirmed'
+            status: 'pending'
           })
           .select()
           .single();
@@ -151,8 +151,8 @@ const ConfirmAndPay = () => {
         }
 
         toast({
-          title: "Booking Confirmed!",
-          description: "Your gaming session has been booked successfully.",
+          title: "Booking Request Submitted!",
+          description: "Your booking request has been sent to the venue owner for approval.",
         });
         
         setTimeout(() => {
