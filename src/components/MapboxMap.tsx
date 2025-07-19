@@ -31,16 +31,17 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
   // Your Mapbox public token
   const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGFqYXZzaG5lIiwiYSI6ImNtZGE2eDE1eTBmMHEyd3F0b2g5MWsyeWwifQ.q8WNX31_PENI10UD6DD6Ig';
 
-  // Helper function to generate mock coordinates based on location
+  // Helper function to generate coordinates in Georgia (country)
   const getVenueCoordinates = (location: string) => {
     const hash = location.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
     
+    // Georgia coordinates: Latitude 42.3154, Longitude 43.3569 (Tbilisi center)
     return {
-      lat: 40.7128 + (hash % 1000) / 10000, // Around NYC area
-      lng: -74.0060 + (hash % 2000) / 10000
+      lat: 41.7151 + (hash % 1000) / 5000, // Around Georgia area (41.7 - 42.0)
+      lng: 44.7371 + (hash % 2000) / 10000 // Around Georgia area (44.7 - 45.0)
     };
   };
 
@@ -66,12 +67,12 @@ const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, 
       mapboxgl.accessToken = MAPBOX_TOKEN;
       console.log('Mapbox token set successfully');
       
-      // Create the map instance with Airbnb-style settings
+      // Create the map instance centered on Georgia (country)
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11', // Clean light style like Airbnb
-        center: [-74.0060, 40.7128], // NYC center
-        zoom: 12,
+        center: [44.7937, 41.7151], // Tbilisi, Georgia coordinates
+        zoom: 11,
         pitch: 0, // Flat view like Airbnb
         bearing: 0,
       });
