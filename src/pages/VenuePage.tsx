@@ -191,7 +191,7 @@ const VenuePage = () => {
             </div>
           </div>
 
-          {/* Right Side - Scrollable Services/Booking with Sticky Reserve Button */}
+          {/* Right Side - Booking Form */}
           <div className="lg:col-span-5 h-full flex flex-col">
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto space-y-6 pb-20">
