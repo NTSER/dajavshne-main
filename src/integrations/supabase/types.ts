@@ -45,6 +45,7 @@ export type Database = {
           service_id: string | null
           special_requests: string | null
           status: string | null
+          status_updated_at: string | null
           total_price: number
           updated_at: string | null
           user_email: string | null
@@ -60,6 +61,7 @@ export type Database = {
           service_id?: string | null
           special_requests?: string | null
           status?: string | null
+          status_updated_at?: string | null
           total_price: number
           updated_at?: string | null
           user_email?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           service_id?: string | null
           special_requests?: string | null
           status?: string | null
+          status_updated_at?: string | null
           total_price?: number
           updated_at?: string | null
           user_email?: string | null
