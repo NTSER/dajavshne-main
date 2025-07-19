@@ -86,10 +86,10 @@ const VenuePage = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Main Layout - Airbnb Style */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-screen overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-140px)]">
           
           {/* Left Side - Stationary Content */}
-          <div className="lg:col-span-7 overflow-hidden">
+          <div className="lg:col-span-7 h-full overflow-hidden">
             <div className="h-full overflow-y-auto pr-4 space-y-8">
               
               {/* Title and Actions */}
@@ -215,12 +215,13 @@ const VenuePage = () => {
             </div>
           </div>
 
-          {/* Right Side - Scrollable Services/Booking */}
-          <div className="lg:col-span-5">
-            <div className="h-full overflow-y-auto pl-4 space-y-6">
+          {/* Right Side - Scrollable Services/Booking with Sticky Reserve Button */}
+          <div className="lg:col-span-5 h-full flex flex-col">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto space-y-6 pb-20">
               
               {/* Price and Basic Info */}
-              <div className="bg-card border border-border rounded-xl p-6 shadow-lg sticky top-0 z-10 glass-effect">
+              <div className="bg-card border border-border rounded-xl p-6 shadow-lg glass-effect">
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-2xl font-semibold text-foreground">${venue.price}</span>
                   <span className="text-muted-foreground">per hour</span>
