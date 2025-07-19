@@ -145,14 +145,14 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
                     <CalendarIcon className="h-5 w-5" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                   <Calendar
                     mode="single"
                     selected={formData.date}
                     onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
                     disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>
               </Popover>
@@ -320,7 +320,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [], selectedSe
           <Button 
             onClick={handleSubmit}
             className="w-full h-14 text-lg font-medium" 
-            disabled={isSubmitting || !formData.date || formData.times.length === 0 || formData.serviceIds.length === 0}
+            disabled={isSubmitting || !formData.date || formData.times.length === 0 || (services.length > 0 && formData.serviceIds.length === 0)}
           >
             {isSubmitting ? "Creating Booking..." : "Reserve"}
           </Button>
