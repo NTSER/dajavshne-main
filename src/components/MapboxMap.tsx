@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -10,6 +9,8 @@ import { MapPin, Settings } from 'lucide-react';
 
 interface MapboxMapProps {
   venues: Venue[];
+  selectedVenue?: Venue;
+  showPrices?: boolean;
   onBoundsChange?: (bounds: {
     north: number;
     south: number;
@@ -19,7 +20,7 @@ interface MapboxMapProps {
   height?: string;
 }
 
-const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps) => {
+const MapboxMap = ({ venues, selectedVenue, showPrices = false, onBoundsChange, height = 'h-full' }: MapboxMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
@@ -173,20 +174,21 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
     // Add new markers
     venues.forEach(venue => {
       const coords = getVenueCoordinates(venue.location);
+      const isSelected = selectedVenue?.id === venue.id;
       
-      // Create custom marker element
+      // Create custom marker element with different styling for selected venue
       const markerEl = document.createElement('div');
       markerEl.className = 'venue-marker';
       markerEl.innerHTML = `
         <div class="relative cursor-pointer hover:scale-110 transition-transform">
-          <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg">
+          <div class="w-8 h-8 ${isSelected ? 'bg-yellow-500' : 'bg-primary'} rounded-full flex items-center justify-center shadow-lg ${isSelected ? 'ring-2 ring-yellow-300' : ''}">
             <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
           </div>
-          <div class="absolute -top-2 -right-2 w-6 h-6 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+          ${showPrices ? `<div class="absolute -top-2 -right-2 w-6 h-6 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center text-xs font-bold">
             $${venue.price}
-          </div>
+          </div>` : ''}
         </div>
       `;
 
@@ -247,7 +249,7 @@ const MapboxMap = ({ venues, onBoundsChange, height = 'h-full' }: MapboxMapProps
     }
 
     console.log(`Added ${markers.current.length} venue markers`);
-  }, [venues, mapInitialized, isDestroyed]);
+  }, [venues, selectedVenue, showPrices, mapInitialized, isDestroyed]);
 
   // Initialize map on component mount
   useEffect(() => {
