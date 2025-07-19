@@ -63,7 +63,18 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   const selectedServices = services.filter(s => formData.serviceIds.includes(s.id));
   const totalServicePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
   const basePrice = totalServicePrice > 0 ? totalServicePrice : venuePrice;
-  const totalPrice = basePrice * formData.guests;
+  
+  // Calculate duration in hours for pricing
+  const calculateDuration = () => {
+    if (!formData.arrivalTime || !formData.departureTime) return 0;
+    const start = new Date(`2000-01-01T${formData.arrivalTime}:00`);
+    const end = new Date(`2000-01-01T${formData.departureTime}:00`);
+    const diffMs = end.getTime() - start.getTime();
+    return diffMs / (1000 * 60 * 60); // Convert to hours
+  };
+  
+  const durationHours = calculateDuration();
+  const totalPrice = basePrice * formData.guests * durationHours;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,8 +103,26 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     });
   };
 
+  // Validate time to ensure it's on half-hour intervals
+  const validateHalfHourInterval = (time: string) => {
+    if (!time) return true;
+    const [hours, minutes] = time.split(':');
+    const minuteNum = parseInt(minutes);
+    return minuteNum === 0 || minuteNum === 30;
+  };
+
   // Handle main arrival/departure time updates
   const updateMainTime = (field: 'arrivalTime' | 'departureTime', value: string) => {
+    // Validate half-hour intervals
+    if (!validateHalfHourInterval(value)) {
+      toast({
+        title: "Invalid time",
+        description: "Please select times in 30-minute intervals (e.g., 17:00, 17:30, 18:00)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate against venue working hours
     if (openingTime && closingTime && value) {
       if (value < openingTime || value > closingTime) {
@@ -130,6 +159,16 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   // Handle service time updates with validation
   const updateServiceTime = (serviceId: string, field: 'arrivalTime' | 'departureTime', value: string) => {
+    // Validate half-hour intervals
+    if (!validateHalfHourInterval(value)) {
+      toast({
+        title: "Invalid time",
+        description: "Please select times in 30-minute intervals (e.g., 17:00, 17:30, 18:00)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate against venue working hours
     if (openingTime && closingTime && value) {
       if (value < openingTime || value > closingTime) {
@@ -280,7 +319,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                   <Input
                     id="main-arrival"
                     type="time"
-                    step="60"
+                    step="1800"
                     min={openingTime}
                     max={closingTime}
                     value={formData.arrivalTime}
@@ -294,7 +333,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                   <Input
                     id="main-departure"
                     type="time"
-                    step="60"
+                    step="1800"
                     min={openingTime}
                     max={closingTime}
                     value={formData.departureTime}
@@ -383,7 +422,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                           <Input
                             id={`arrival-${service.id}`}
                             type="time"
-                            step="60"
+                            step="1800"
                             min={openingTime}
                             max={closingTime}
                             value={serviceBooking?.arrivalTime || ''}
@@ -396,7 +435,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                           <Input
                             id={`departure-${service.id}`}
                             type="time"
-                            step="60"
+                            step="1800"
                             min={openingTime}
                             max={closingTime}
                             value={serviceBooking?.departureTime || ''}
@@ -436,13 +475,15 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="text-right mb-2">
-                <span className="text-2xl font-bold text-primary">Total Price: ${totalPrice}</span>
+                <span className="text-2xl font-bold text-primary">Total Price: ${totalPrice.toFixed(2)}</span>
               </div>
               
-              {selectedServices.length > 0 && (
+              {durationHours > 0 && (
                 <div className="text-sm text-muted-foreground text-right mb-2">
-                  <p>Selected services: {selectedServices.map(s => s.name).join(', ')}</p>
-                  <p>Price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
+                  <p>Duration: {durationHours}h × ${basePrice}/hour × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
+                  {selectedServices.length > 0 && (
+                    <p>Services: {selectedServices.map(s => s.name).join(', ')}</p>
+                  )}
                 </div>
               )}
             </div>
@@ -456,6 +497,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               !formData.date || 
               !formData.arrivalTime ||
               !formData.departureTime ||
+              durationHours <= 0 ||
               (services.length > 0 && formData.serviceIds.length === 0) ||
               (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
             }
