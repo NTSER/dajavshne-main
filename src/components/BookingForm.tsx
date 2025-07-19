@@ -40,13 +40,15 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   
   const [formData, setFormData] = useState({
     date: undefined as Date | undefined,
+    arrivalTime: '',
+    departureTime: '',
     serviceBookings: [] as Array<{
       serviceId: string;
       arrivalTime: string;
       departureTime: string;
     }>,
     guests: 1,
-    serviceIds: selectedServiceId ? [selectedServiceId] : [] as string[], // Changed to array for multiple services
+    serviceIds: selectedServiceId ? [selectedServiceId] : [] as string[],
     specialRequests: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,9 +74,11 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       venueId,
       venueName,
       date: formData.date ? format(formData.date, 'yyyy-MM-dd') : "",
+      arrivalTime: formData.arrivalTime,
+      departureTime: formData.departureTime,
       serviceBookings: formData.serviceBookings,
       guests: formData.guests,
-      serviceIds: formData.serviceIds, // Send array of service IDs
+      serviceIds: formData.serviceIds,
       totalPrice,
       specialRequests: formData.specialRequests,
     };
@@ -86,6 +90,42 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         requiresAuth: !user // Flag to show auth dialog on payment page
       } 
     });
+  };
+
+  // Handle main arrival/departure time updates
+  const updateMainTime = (field: 'arrivalTime' | 'departureTime', value: string) => {
+    // Validate against venue working hours
+    if (openingTime && closingTime && value) {
+      if (value < openingTime || value > closingTime) {
+        toast({
+          title: "Invalid time",
+          description: `Please select a time between ${formatTime(openingTime)} and ${formatTime(closingTime)}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validate that departure time is after arrival time
+    if (field === 'departureTime' && formData.arrivalTime && value <= formData.arrivalTime) {
+      toast({
+        title: "Invalid time",
+        description: "Departure time must be after arrival time",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (field === 'arrivalTime' && formData.departureTime && value >= formData.departureTime) {
+      toast({
+        title: "Invalid time",
+        description: "Arrival time must be before departure time",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   // Handle service time updates with validation
@@ -206,7 +246,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                       !formData.date && "text-muted-foreground"
                     )}
                   >
-                    {formData.date ? format(formData.date, "MMMM yyyy") : "Select date"}
+                    {formData.date ? format(formData.date, "EEEE, MMMM do, yyyy") : "Select date"}
                     <CalendarIcon className="h-5 w-5" />
                   </Button>
                 </PopoverTrigger>
@@ -221,6 +261,49 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            {/* Main Arrival and Departure Times */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Booking Times</h3>
+                {openingTime && closingTime && (
+                  <p className="text-sm text-muted-foreground">
+                    Open: {formatTime(openingTime)} - {formatTime(closingTime)}
+                  </p>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="main-arrival">Arrival Time *</Label>
+                  <Input
+                    id="main-arrival"
+                    type="time"
+                    step="60"
+                    min={openingTime}
+                    max={closingTime}
+                    value={formData.arrivalTime}
+                    onChange={(e) => updateMainTime('arrivalTime', e.target.value)}
+                    className="w-full"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="main-departure">Departure Time *</Label>
+                  <Input
+                    id="main-departure"
+                    type="time"
+                    step="60"
+                    min={openingTime}
+                    max={closingTime}
+                    value={formData.departureTime}
+                    onChange={(e) => updateMainTime('departureTime', e.target.value)}
+                    className="w-full"
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Services Selection */}
@@ -346,22 +429,23 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         </CardContent>
       </Card>
 
-      {/* Sticky Reserve Button */}
+      {/* Sticky Reserve Section */}
       <div className="fixed bottom-0 right-0 lg:absolute lg:bottom-0 lg:right-0 w-full lg:w-auto bg-background/95 backdrop-blur-sm border-t lg:border-0 p-4 lg:p-0">
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
-          {/* Total Price */}
-          <div className="bg-card border border-border rounded-xl p-4 mb-4 shadow-lg">
-            <div className="flex justify-between items-center text-xl font-semibold mb-2">
-              <span>Total Price:</span>
-              <span className="text-primary">${totalPrice}</span>
-            </div>
-            
-            {selectedServices.length > 0 && (
-              <div className="text-sm text-muted-foreground">
-                <p>Selected services: {selectedServices.map(s => s.name).join(', ')}</p>
-                <p>Price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
+          {/* Reserve Button with Price */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <div className="text-right mb-2">
+                <span className="text-2xl font-bold text-primary">Total Price: ${totalPrice}</span>
               </div>
-            )}
+              
+              {selectedServices.length > 0 && (
+                <div className="text-sm text-muted-foreground text-right mb-2">
+                  <p>Selected services: {selectedServices.map(s => s.name).join(', ')}</p>
+                  <p>Price: ${basePrice} × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
+                </div>
+              )}
+            </div>
           </div>
           
           <Button 
@@ -370,6 +454,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             disabled={
               isSubmitting || 
               !formData.date || 
+              !formData.arrivalTime ||
+              !formData.departureTime ||
               (services.length > 0 && formData.serviceIds.length === 0) ||
               (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))
             }
