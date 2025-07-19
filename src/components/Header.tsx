@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Menu, X, User, LogOut, Heart, History, Home, Sparkles, Bell } from "lucide-react";
+import { Menu, X, User, LogOut, Heart, History } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "./AuthDialog";
 import NotificationBell from "./NotificationBell";
@@ -37,34 +36,25 @@ const Header = () => {
             Dajavshne
           </Link>
 
-          {/* Main Navigation - Airbnb Style */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
             <Link
               to="/"
-              className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors group"
+              className="text-foreground hover:text-primary transition-colors"
             >
-              <Home className="h-5 w-5" />
-              <span>Venues</span>
+              Home
             </Link>
             <Link
-              to="/experiences"
-              className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors group relative"
+              to="/search"
+              className="text-foreground hover:text-primary transition-colors"
             >
-              <Sparkles className="h-5 w-5" />
-              <span>Experiences</span>
-              <Badge variant="secondary" className="ml-1 text-xs px-2 py-0 bg-destructive text-destructive-foreground">
-                NEW
-              </Badge>
+              Browse Venues
             </Link>
             <Link
-              to="/services"
-              className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors group relative"
+              to="/favorites"
+              className="text-foreground hover:text-primary transition-colors"
             >
-              <Bell className="h-5 w-5" />
-              <span>Services</span>
-              <Badge variant="secondary" className="ml-1 text-xs px-2 py-0 bg-destructive text-destructive-foreground">
-                NEW
-              </Badge>
+              Favorites
             </Link>
           </nav>
 
@@ -137,33 +127,24 @@ const Header = () => {
             <nav className="flex flex-col space-y-4">
               <Link
                 to="/"
-                className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
+                className="text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Home className="h-5 w-5" />
-                <span>Venues</span>
+                Home
               </Link>
               <Link
-                to="/experiences"
-                className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
+                to="/search"
+                className="text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Sparkles className="h-5 w-5" />
-                <span>Experiences</span>
-                <Badge variant="secondary" className="ml-1 text-xs px-2 py-0 bg-destructive text-destructive-foreground">
-                  NEW
-                </Badge>
+                Browse Venues
               </Link>
               <Link
-                to="/services"
-                className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
+                to="/favorites"
+                className="text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Bell className="h-5 w-5" />
-                <span>Services</span>
-                <Badge variant="secondary" className="ml-1 text-xs px-2 py-0 bg-destructive text-destructive-foreground">
-                  NEW
-                </Badge>
+                Favorites
               </Link>
               <div className="pt-4 border-t border-border">
                 {user ? (
