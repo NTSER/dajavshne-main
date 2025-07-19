@@ -24,6 +24,8 @@ const handler = async (req: Request): Promise<Response> => {
     // Get the authorization header
     const authHeader = req.headers.get('authorization');
     console.log('Auth header present:', !!authHeader);
+    
+    // Create Supabase client with service role for admin operations
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -31,7 +33,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
-    const { bookingId, action }: BookingConfirmationRequest = await req.json();
+    const requestBody = await req.text();
+    console.log('Request body:', requestBody);
+    
+    const { bookingId, action }: BookingConfirmationRequest = JSON.parse(requestBody);
 
     console.log(`Processing booking ${action} for booking ID: ${bookingId}`);
 
