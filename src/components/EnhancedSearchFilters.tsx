@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TimeInput } from "@/components/ui/time-picker";
 import { Calendar as CalendarIcon, MapPin, Users, Clock, Search, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -303,14 +304,12 @@ const EnhancedSearchFilters = () => {
       
       {/* Time */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium flex items-center gap-2 text-foreground">
-          <Clock className="h-4 w-4" />
-          Preferred Time
-        </Label>
-        <Input
-          type="time"
+        <TimeInput
+          label="Preferred Time"
+          icon={<Clock className="h-4 w-4" />}
           value={filters.time}
-          onChange={(e) => handleInputChange('time', e.target.value)}
+          onChange={(time) => handleInputChange('time', time)}
+          placeholder="Select time"
           className="bg-background/50 border-white/20"
         />
       </div>

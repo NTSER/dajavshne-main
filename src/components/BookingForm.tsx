@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TimeInput } from "@/components/ui/time-picker";
 import { CalendarDays, Clock, Users, MessageSquare, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -119,16 +120,12 @@ const BookingForm = ({ venueId, venueName, venuePrice, services = [] }: BookingF
               </Popover>
             </div>
             <div>
-              <Label htmlFor="time" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Time
-              </Label>
-              <Input
-                id="time"
-                type="time"
+              <TimeInput
+                label="Time"
+                icon={<Clock className="h-4 w-4" />}
                 value={formData.time}
-                onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                required
+                onChange={(time) => setFormData(prev => ({ ...prev, time }))}
+                placeholder="Select time"
               />
             </div>
           </div>
