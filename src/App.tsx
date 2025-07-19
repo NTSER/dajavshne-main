@@ -15,6 +15,7 @@ const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const ConfirmAndPay = lazy(() => import("./pages/ConfirmAndPay"));
 const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
 const BookingHistoryPage = lazy(() => import("./pages/BookingHistoryPage"));
+const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Partner pages
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/booking-history" element={<BookingHistoryPage />} />
+                <Route path="/auth" element={<Auth />} />
                 
                 {/* Partner routes */}
                 <Route path="/partner/auth" element={<PartnerAuth />} />

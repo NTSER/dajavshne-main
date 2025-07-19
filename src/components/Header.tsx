@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, Heart, History, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import AuthDialog from "./AuthDialog";
 import NotificationBell from "./NotificationBell";
 import ProfileDialog from "./ProfileDialog";
 import {
@@ -112,9 +111,9 @@ const Header = () => {
                 </DropdownMenu>
               </>
             ) : (
-              <AuthDialog>
+              <Link to="/auth">
                 <Button>Sign In</Button>
-              </AuthDialog>
+              </Link>
             )}
           </div>
 
@@ -197,9 +196,9 @@ const Header = () => {
                     </Button>
                   </div>
                 ) : (
-                  <AuthDialog>
+                  <Link to="/auth" className="w-full">
                     <Button className="w-full">Sign In</Button>
-                  </AuthDialog>
+                  </Link>
                 )}
               </div>
             </nav>
