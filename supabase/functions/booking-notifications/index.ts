@@ -159,7 +159,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (confirmationError) {
       console.error("Error creating confirmation notification:", confirmationError);
-      throw confirmationError;
+      // Log but don't throw - email was already sent successfully
+      console.log("Continuing despite notification error - email notification was sent");
+    } else {
+      console.log("Booking confirmation notification created successfully");
     }
 
     // Note: Only booking confirmation notification is created here.
