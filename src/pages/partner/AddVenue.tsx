@@ -264,7 +264,7 @@ const AddVenue = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Venue Name *</Label>
+                <Label htmlFor="name" className="text-gray-900 dark:text-white font-medium">Venue Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -274,7 +274,7 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-gray-900 dark:text-white font-medium">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -286,7 +286,7 @@ const AddVenue = () => {
               {/* Working Hours Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="openingTime">Opening Time *</Label>
+                  <Label htmlFor="openingTime" className="text-gray-900 dark:text-white font-medium">Opening Time *</Label>
                   <Select 
                     value={formData.openingTime} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, openingTime: value }))}
@@ -305,7 +305,7 @@ const AddVenue = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="closingTime">Closing Time *</Label>
+                  <Label htmlFor="closingTime" className="text-gray-900 dark:text-white font-medium">Closing Time *</Label>
                   <Select 
                     value={formData.closingTime} 
                     onValueChange={(value) => setFormData(prev => ({ ...prev, closingTime: value }))}
@@ -325,7 +325,7 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
+                <Label htmlFor="location" className="text-gray-900 dark:text-white font-medium">Location *</Label>
                 <Input
                   id="location"
                   value={formData.location}
@@ -335,7 +335,7 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category" className="text-gray-900 dark:text-white font-medium">Category *</Label>
                 <Select 
                   value={formData.categoryId} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
@@ -355,7 +355,7 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="price">Base Price (per hour) *</Label>
+                <Label htmlFor="price" className="text-gray-900 dark:text-white font-medium">Base Price (per hour) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -367,12 +367,12 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-4">
-                <Label>Images</Label>
+                <Label className="text-gray-900 dark:text-white font-medium">Images</Label>
                 
                 {/* File Upload Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <Label htmlFor="image-upload" className="text-sm font-medium">
+                    <Label htmlFor="image-upload" className="text-sm font-medium text-gray-900 dark:text-white">
                       Upload from Device
                     </Label>
                     <Input
@@ -388,7 +388,7 @@ const AddVenue = () => {
                   {/* Display uploaded images preview */}
                   {formData.uploadedImages.length > 0 && (
                     <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">Uploaded Images:</Label>
+                      <Label className="text-sm text-gray-600 dark:text-gray-400 font-medium">Uploaded Images:</Label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {formData.uploadedImages.map((file, index) => (
                           <div key={index} className="relative group">
@@ -418,7 +418,7 @@ const AddVenue = () => {
 
                 {/* URL Input Section */}
                 <div className="space-y-4">
-                  <Label className="text-sm font-medium">Or Enter Image URLs</Label>
+                  <Label className="text-sm font-medium text-gray-900 dark:text-white">Or Enter Image URLs</Label>
                   {formData.images.map((image, index) => (
                     <div key={index} className="flex gap-2">
                       <Input
@@ -451,9 +451,9 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-4">
-                <Label>Amenities</Label>
+                <Label className="text-gray-900 dark:text-white font-medium">Amenities</Label>
                 {amenitiesLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading amenities...</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Loading amenities...</p>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {amenities?.map((amenity) => (
@@ -472,7 +472,7 @@ const AddVenue = () => {
                         />
                         <Label
                           htmlFor={`amenity-${amenity.id}`}
-                          className="text-sm font-normal cursor-pointer"
+                          className="text-sm font-normal cursor-pointer text-gray-900 dark:text-white"
                         >
                           {amenity.name}
                         </Label>
@@ -510,13 +510,13 @@ const AddVenue = () => {
 
               {/* Services Section */}
               <div className="space-y-4">
-                <Label className="text-lg font-medium">Services (Optional)</Label>
-                <p className="text-sm text-muted-foreground">Add services that customers can select when booking your venue.</p>
+                <Label className="text-lg font-medium text-gray-900 dark:text-white">Services (Optional)</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Add services that customers can select when booking your venue.</p>
                 
                 {formData.services.map((service, index) => (
                   <div key={index} className="p-4 border border-border rounded-lg space-y-4">
                     <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Service {index + 1}</h4>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Service {index + 1}</h4>
                       {formData.services.length > 1 && (
                         <Button
                           type="button"
@@ -531,7 +531,7 @@ const AddVenue = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Service Name</Label>
+                        <Label className="text-gray-900 dark:text-white font-medium">Service Name</Label>
                         <Input
                           value={service.name}
                           onChange={(e) => updateService(index, 'name', e.target.value)}
@@ -540,7 +540,7 @@ const AddVenue = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label>Duration</Label>
+                        <Label className="text-gray-900 dark:text-white font-medium">Duration</Label>
                         <Input
                           value={service.duration}
                           onChange={(e) => updateService(index, 'duration', e.target.value)}
@@ -550,7 +550,7 @@ const AddVenue = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Price per Guest</Label>
+                      <Label className="text-gray-900 dark:text-white font-medium">Price per Guest</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -561,7 +561,7 @@ const AddVenue = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Description (Optional)</Label>
+                      <Label className="text-gray-900 dark:text-white font-medium">Description (Optional)</Label>
                       <Textarea
                         value={service.description}
                         onChange={(e) => updateService(index, 'description', e.target.value)}
