@@ -334,79 +334,126 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
       {/* Booking Details Dialog */}
       <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Booking Request Details</DialogTitle>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-2xl font-semibold">Booking Request Details</DialogTitle>
           </DialogHeader>
           
           {selectedBooking && (
-            <div className="space-y-6">
-              {/* Customer Info */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <p className="text-sm text-muted-foreground">Email: {selectedBooking.user_email}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Booking Date</h3>
-                  <p className="text-sm">{formatDate(selectedBooking.booking_date)}</p>
-                </div>
-              </div>
-
-              {/* Booking Details */}
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-8 pt-6">
+              {/* Top Section - Customer & Booking Date */}
+              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{selectedBooking.venue_name}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatTime(selectedBooking.booking_time)}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{selectedBooking.guest_count} guest{selectedBooking.guest_count !== 1 ? 's' : ''}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-semibold">${selectedBooking.total_price.toFixed(2)}</span>
+                  <h3 className="text-lg font-semibold text-foreground">Customer Information</h3>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-primary font-medium text-sm">
+                          {selectedBooking.user_email.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Guest</p>
+                        <p className="text-sm text-muted-foreground">{selectedBooking.user_email}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                <div>
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">Booking Date</h3>
+                  <div className="bg-muted/30 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-8 w-8 text-primary" />
+                      <div>
+                        <p className="font-medium text-foreground">{formatDate(selectedBooking.booking_date)}</p>
+                        <p className="text-sm text-muted-foreground">Requested booking date</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Details Grid */}
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 rounded-lg border">
+                    <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">{selectedBooking.venue_name}</p>
+                      <p className="text-sm text-muted-foreground">Venue location</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 rounded-lg border">
+                    <Clock className="h-6 w-6 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">{formatTime(selectedBooking.booking_time)}</p>
+                      <p className="text-sm text-muted-foreground">Session time</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 rounded-lg border">
+                    <Users className="h-6 w-6 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">{selectedBooking.guest_count} guest{selectedBooking.guest_count !== 1 ? 's' : ''}</p>
+                      <p className="text-sm text-muted-foreground">Number of attendees</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                    <DollarSign className="h-6 w-6 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-xl text-foreground">${selectedBooking.total_price.toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground">Total booking amount</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
                   {selectedBooking.service_name && (
-                    <div className="mb-3">
-                      <h4 className="font-medium">Selected Service</h4>
-                      <p className="text-sm text-muted-foreground">{selectedBooking.service_name}</p>
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-foreground">Selected Service</h4>
+                      <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                        <p className="font-medium text-foreground">{selectedBooking.service_name}</p>
+                        <p className="text-sm text-muted-foreground mt-1">Additional service requested</p>
+                      </div>
                     </div>
                   )}
                   
                   {selectedBooking.special_requests && (
-                    <div>
-                      <h4 className="font-medium">Special Requests</h4>
-                      <p className="text-sm text-muted-foreground">{selectedBooking.special_requests}</p>
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-foreground">Special Requests</h4>
+                      <div className="bg-muted/30 rounded-lg p-4 border">
+                        <p className="text-foreground leading-relaxed">
+                          {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim()}
+                        </p>
+                        {!selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() && (
+                          <p className="text-muted-foreground italic">No special requests</p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex justify-end gap-3 pt-6 border-t">
                 <Button
                   variant="outline"
+                  size="lg"
                   onClick={() => handleBookingAction(selectedBooking.id, 'rejected')}
                   disabled={processing === selectedBooking.id}
+                  className="min-w-[120px] border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                 >
                   <X className="h-4 w-4 mr-2" />
                   Reject
                 </Button>
                 <Button
+                  size="lg"
                   onClick={() => handleBookingAction(selectedBooking.id, 'confirmed')}
                   disabled={processing === selectedBooking.id}
+                  className="min-w-[120px] bg-primary hover:bg-primary/90"
                 >
                   <Check className="h-4 w-4 mr-2" />
                   {processing === selectedBooking.id ? 'Processing...' : 'Accept'}
