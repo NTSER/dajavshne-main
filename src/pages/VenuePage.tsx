@@ -24,6 +24,7 @@ import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import VenueMap from "@/components/VenueMap";
 import ReviewsList from "@/components/ReviewsList";
+import VenueServices from "@/components/VenueServices";
 import { useState } from "react";
 
 const VenuePage = () => {
@@ -183,6 +184,17 @@ const VenuePage = () => {
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Services Section */}
+              {services && services.length > 0 && (
+                <div className="py-6 border-b border-border">
+                  <VenueServices 
+                    services={services}
+                    onServiceSelect={setSelectedService}
+                    selectedService={selectedService}
+                  />
                 </div>
               )}
 

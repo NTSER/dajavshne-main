@@ -25,7 +25,7 @@ const AddVenue = () => {
     images: [''],
     uploadedImages: [] as File[],
     amenityIds: [] as string[],
-    services: [{ name: '', description: '', price: '', duration: '' }],
+    services: [{ name: '', description: '', price: '', duration: '', images: [] as string[], uploadedImages: [] as File[] }],
     openingTime: '',
     closingTime: '',
   });
@@ -110,12 +110,41 @@ const AddVenue = () => {
       // Create services if any are provided
       if (validServices.length > 0) {
         for (const service of validServices) {
+          // Upload service images
+          const serviceImageUrls = [];
+          
+          for (const file of service.uploadedImages) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('service-images')
+              .upload(`${service.name}/${fileName}`, file);
+
+            if (uploadError) {
+              console.warn(`Failed to upload service image ${file.name}:`, uploadError);
+            } else {
+              const { data: urlData } = supabase.storage
+                .from('service-images')
+                .getPublicUrl(uploadData.path);
+              
+              serviceImageUrls.push(urlData.publicUrl);
+            }
+          }
+
+          // Combine uploaded images with URL images
+          const allServiceImages = [
+            ...service.images.filter(img => img.trim() !== ''),
+            ...serviceImageUrls
+          ];
+
           await supabase.from('venue_services').insert({
             venue_id: venueData.id,
             name: service.name,
             description: service.description,
             price: parseFloat(service.price),
             duration: service.duration,
+            images: allServiceImages,
           });
         }
       }
@@ -162,7 +191,7 @@ const AddVenue = () => {
   const addService = () => {
     setFormData(prev => ({
       ...prev,
-      services: [...prev.services, { name: '', description: '', price: '', duration: '' }]
+      services: [...prev.services, { name: '', description: '', price: '', duration: '', images: [''], uploadedImages: [] }]
     }));
   };
 
@@ -208,6 +237,75 @@ const AddVenue = () => {
     setFormData(prev => ({
       ...prev,
       uploadedImages: prev.uploadedImages.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Service image upload handlers
+  const handleServiceImageUpload = (serviceIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isValid = file.type.startsWith('image/');
+      if (!isValid) {
+        toast({
+          title: "Invalid file type",
+          description: `${file.name} is not an image file`,
+          variant: "destructive",
+        });
+      }
+      return isValid;
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === serviceIndex 
+          ? { ...service, uploadedImages: [...service.uploadedImages, ...validFiles] }
+          : service
+      )
+    }));
+  };
+
+  const removeServiceUploadedImage = (serviceIndex: number, imageIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === serviceIndex 
+          ? { ...service, uploadedImages: service.uploadedImages.filter((_, imgI) => imgI !== imageIndex) }
+          : service
+      )
+    }));
+  };
+
+  const addServiceImageField = (serviceIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === serviceIndex 
+          ? { ...service, images: [...service.images, ''] }
+          : service
+      )
+    }));
+  };
+
+  const updateServiceImage = (serviceIndex: number, imageIndex: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === serviceIndex 
+          ? { ...service, images: service.images.map((img, imgI) => imgI === imageIndex ? value : img) }
+          : service
+      )
+    }));
+  };
+
+  const removeServiceImage = (serviceIndex: number, imageIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === serviceIndex 
+          ? { ...service, images: service.images.filter((_, imgI) => imgI !== imageIndex) }
+          : service
+      )
     }));
   };
 
@@ -568,6 +666,90 @@ const AddVenue = () => {
                         placeholder="Describe what's included in this service..."
                         rows={2}
                       />
+                    </div>
+
+                    {/* Service Images Section */}
+                    <div className="space-y-4">
+                      <Label className="text-gray-900 dark:text-white font-medium">Service Images (Optional)</Label>
+                      
+                      {/* File Upload for Service */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <Label htmlFor={`service-image-upload-${index}`} className="text-sm font-medium text-gray-900 dark:text-white">
+                            Upload Images
+                          </Label>
+                          <Input
+                            id={`service-image-upload-${index}`}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleServiceImageUpload(index, e)}
+                            className="flex-1"
+                          />
+                        </div>
+                        
+                        {/* Display uploaded service images preview */}
+                        {service.uploadedImages.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-sm text-gray-600 dark:text-gray-400 font-medium">Uploaded Images:</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {service.uploadedImages.map((file, imgIndex) => (
+                                <div key={imgIndex} className="relative group">
+                                  <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                                    <img
+                                      src={URL.createObjectURL(file)}
+                                      alt={file.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeServiceUploadedImage(index, imgIndex)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* URL Input for Service Images */}
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white">Or Enter Image URLs</Label>
+                        {service.images.map((image, imgIndex) => (
+                          <div key={imgIndex} className="flex gap-2">
+                            <Input
+                              value={image}
+                              onChange={(e) => updateServiceImage(index, imgIndex, e.target.value)}
+                              placeholder="Enter image URL"
+                            />
+                            {service.images.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeServiceImage(index, imgIndex)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => addServiceImageField(index)}
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Image URL
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}

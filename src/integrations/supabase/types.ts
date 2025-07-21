@@ -261,6 +261,7 @@ export type Database = {
           description: string | null
           duration: string
           id: string
+          images: string[] | null
           name: string
           price: number
           venue_id: string | null
@@ -270,6 +271,7 @@ export type Database = {
           description?: string | null
           duration: string
           id?: string
+          images?: string[] | null
           name: string
           price: number
           venue_id?: string | null
@@ -279,6 +281,7 @@ export type Database = {
           description?: string | null
           duration?: string
           id?: string
+          images?: string[] | null
           name?: string
           price?: number
           venue_id?: string | null

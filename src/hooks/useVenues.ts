@@ -24,6 +24,7 @@ export interface VenueService {
   price: number;
   duration: string;
   description: string;
+  images: string[];
 }
 
 export const useVenues = () => {

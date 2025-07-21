@@ -34,38 +34,56 @@ const VenueServices = ({
             }`}
             onClick={() => onServiceSelect(service)}
           >
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{service.name}</CardTitle>
-                <Badge variant="secondary" className="bg-primary/10 text-primary">
-                  ${service.price}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {service.duration}
+            <div className="flex gap-4">
+              {/* Service Image */}
+              {service.images && service.images.length > 0 && (
+                <div className="w-24 h-24 flex-shrink-0">
+                  <img
+                    src={service.images[0]}
+                    alt={service.name}
+                    className="w-full h-full object-cover rounded-l-lg"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 </div>
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4" />
-                  ${service.price}/hour
-                </div>
-              </div>
-              {service.description && (
-                <p className="text-sm text-muted-foreground mb-3">
-                  {service.description}
-                </p>
               )}
-              <Button 
-                variant={selectedService?.id === service.id ? "default" : "outline"}
-                size="sm"
-                className="w-full"
-              >
-                {selectedService?.id === service.id ? "Selected" : "Select Service"}
-              </Button>
-            </CardContent>
+              
+              <div className="flex-1">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{service.name}</CardTitle>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      ${service.price}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {service.duration}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-4 w-4" />
+                      ${service.price}/guest
+                    </div>
+                  </div>
+                  {service.description && (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {service.description}
+                    </p>
+                  )}
+                  <Button 
+                    variant={selectedService?.id === service.id ? "default" : "outline"}
+                    size="sm"
+                    className="w-full"
+                  >
+                    {selectedService?.id === service.id ? "Selected" : "Select Service"}
+                  </Button>
+                </CardContent>
+              </div>
+            </div>
           </Card>
         ))}
       </div>
