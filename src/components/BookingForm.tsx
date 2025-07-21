@@ -165,7 +165,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   };
 
   // Generate 30-minute time slots based on venue hours
-  const generateTimeSlots = (minTime?: string) => {
+  const generateTimeSlots = () => {
     const slots = [];
     const start = openingTime || '00:00';
     const end = closingTime || '23:59';
@@ -196,16 +196,10 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       
       if (selectedDateString === todayString) {
         if (timeString >= currentTimeString) {
-          // If minTime is provided, only add times that are greater than minTime
-          if (!minTime || timeString > minTime) {
-            slots.push(timeString);
-          }
-        }
-      } else {
-        // If minTime is provided, only add times that are greater than minTime
-        if (!minTime || timeString > minTime) {
           slots.push(timeString);
         }
+      } else {
+        slots.push(timeString);
       }
       
       // Move to next 30-minute slot
@@ -466,11 +460,19 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         <SelectValue placeholder="Select departure time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {generateTimeSlots(formData.arrivalTime).map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {formatTime(time)}
-                          </SelectItem>
-                        ))}
+                        {generateTimeSlots().map((time) => {
+                          const isDisabled = formData.arrivalTime && time <= formData.arrivalTime;
+                          return (
+                            <SelectItem 
+                              key={time} 
+                              value={time}
+                              disabled={isDisabled}
+                              className={isDisabled ? "text-muted-foreground/50 cursor-not-allowed" : ""}
+                            >
+                              {formatTime(time)}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -564,11 +566,19 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                               <SelectValue placeholder="Select departure time" />
                             </SelectTrigger>
                             <SelectContent>
-                              {generateTimeSlots(serviceBooking?.arrivalTime).map((time) => (
-                                <SelectItem key={time} value={time}>
-                                  {formatTime(time)}
-                                </SelectItem>
-                              ))}
+                              {generateTimeSlots().map((time) => {
+                                const isDisabled = serviceBooking?.arrivalTime && time <= serviceBooking.arrivalTime;
+                                return (
+                                  <SelectItem 
+                                    key={time} 
+                                    value={time}
+                                    disabled={isDisabled}
+                                    className={isDisabled ? "text-muted-foreground/50 cursor-not-allowed" : ""}
+                                  >
+                                    {formatTime(time)}
+                                  </SelectItem>
+                                );
+                              })}
                             </SelectContent>
                           </Select>
                         </div>
