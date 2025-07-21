@@ -165,7 +165,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   };
 
   // Generate 30-minute time slots based on venue hours
-  const generateTimeSlots = () => {
+  const generateTimeSlots = (minTime?: string) => {
     const slots = [];
     const start = openingTime || '00:00';
     const end = closingTime || '23:59';
@@ -196,10 +196,16 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       
       if (selectedDateString === todayString) {
         if (timeString >= currentTimeString) {
-          slots.push(timeString);
+          // If minTime is provided, only add times that are greater than minTime
+          if (!minTime || timeString > minTime) {
+            slots.push(timeString);
+          }
         }
       } else {
-        slots.push(timeString);
+        // If minTime is provided, only add times that are greater than minTime
+        if (!minTime || timeString > minTime) {
+          slots.push(timeString);
+        }
       }
       
       // Move to next 30-minute slot
@@ -460,7 +466,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         <SelectValue placeholder="Select departure time" />
                       </SelectTrigger>
                       <SelectContent>
-                        {generateTimeSlots().map((time) => (
+                        {generateTimeSlots(formData.arrivalTime).map((time) => (
                           <SelectItem key={time} value={time}>
                             {formatTime(time)}
                           </SelectItem>
@@ -558,7 +564,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                               <SelectValue placeholder="Select departure time" />
                             </SelectTrigger>
                             <SelectContent>
-                              {generateTimeSlots().map((time) => (
+                              {generateTimeSlots(serviceBooking?.arrivalTime).map((time) => (
                                 <SelectItem key={time} value={time}>
                                   {formatTime(time)}
                                 </SelectItem>
