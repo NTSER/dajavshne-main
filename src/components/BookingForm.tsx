@@ -610,18 +610,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       {/* Sticky Reserve Section */}
       <div className="fixed bottom-0 right-0 lg:absolute lg:bottom-0 lg:right-0 w-full lg:w-auto bg-background/95 backdrop-blur-sm border-t lg:border-0 p-4 lg:p-0">
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
-          {durationHours > 0 && (
-            <div className="text-sm text-muted-foreground mb-3">
-              <p>Duration: {durationHours}h × ${basePrice}/hour × {formData.guests} guest{formData.guests !== 1 ? 's' : ''}</p>
-              {selectedServices.length > 0 && (
-                <p>Services: {selectedServices.map(s => s.name).join(', ')}</p>
-              )}
-            </div>
-          )}
-          
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
             </div>
             <Button 
               onClick={handleSubmit}
