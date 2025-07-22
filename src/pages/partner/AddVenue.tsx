@@ -24,7 +24,15 @@ const AddVenue = () => {
     images: [''],
     uploadedImages: [] as File[],
     amenityIds: [] as string[],
-    services: [{ name: '', description: '', price: '', duration: '', images: [] as string[], uploadedImages: [] as File[] }],
+    services: [{ 
+      name: '', 
+      description: '', 
+      price: '', 
+      duration: '', 
+      images: [] as string[], 
+      uploadedImages: [] as File[],
+      discount_percentage: 0
+    }],
     openingTime: '',
     closingTime: '',
     default_discount_percentage: 0,
@@ -201,7 +209,15 @@ const AddVenue = () => {
   const addService = () => {
     setFormData(prev => ({
       ...prev,
-      services: [...prev.services, { name: '', description: '', price: '', duration: '', images: [''], uploadedImages: [] }]
+      services: [...prev.services, { 
+        name: '', 
+        description: '', 
+        price: '', 
+        duration: '', 
+        images: [''], 
+        uploadedImages: [],
+        discount_percentage: 0
+      }]
     }));
   };
 
@@ -607,7 +623,7 @@ const AddVenue = () => {
 
               {/* Services Section */}
               <div className="space-y-4">
-                <Label className="text-lg font-medium text-gray-900 dark:text-white">Services (Optional)</Label>
+                <Label className="text-lg font-medium text-gray-900 dark:text-white">Services</Label>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Add services that customers can select when booking your venue.</p>
                 
                 {formData.services.map((service, index) => (
@@ -646,15 +662,29 @@ const AddVenue = () => {
                       </div>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label className="text-gray-900 dark:text-white font-medium">Price per Guest</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={service.price}
-                        onChange={(e) => updateService(index, 'price', e.target.value)}
-                        placeholder="0.00"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-gray-900 dark:text-white font-medium">Price per Guest</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={service.price}
+                          onChange={(e) => updateService(index, 'price', e.target.value)}
+                          placeholder="0.00"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-gray-900 dark:text-white font-medium">Service Discount (%)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={service.discount_percentage}
+                          onChange={(e) => updateService(index, 'discount_percentage', e.target.value)}
+                          placeholder="0"
+                        />
+                      </div>
                     </div>
                     
                     <div className="space-y-2">
