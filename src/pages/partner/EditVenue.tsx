@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PartnerLayout from '@/components/PartnerLayout';
+import { DiscountManager } from '@/components/DiscountManager';
 
 interface VenueData {
   name: string;
@@ -22,6 +23,7 @@ interface VenueData {
   closing_time: string;
   amenities: string[];
   images: string[];
+  default_discount_percentage: number;
 }
 
 const EditVenue = () => {
@@ -39,7 +41,8 @@ const EditVenue = () => {
     opening_time: '',
     closing_time: '',
     amenities: [],
-    images: []
+    images: [],
+    default_discount_percentage: 0
   });
 
   useEffect(() => {
@@ -66,7 +69,8 @@ const EditVenue = () => {
           opening_time: data.opening_time || '',
           closing_time: data.closing_time || '',
           amenities: data.amenities || [],
-          images: data.images || []
+          images: data.images || [],
+          default_discount_percentage: data.default_discount_percentage || 0
         });
       }
     } catch (error: any) {
@@ -95,6 +99,7 @@ const EditVenue = () => {
           closing_time: venue.closing_time,
           amenities: venue.amenities,
           images: venue.images,
+          default_discount_percentage: venue.default_discount_percentage,
           updated_at: new Date().toISOString()
         })
         .eq('id', venueId);
@@ -365,6 +370,15 @@ const EditVenue = () => {
               </Alert>
             </CardContent>
           </Card>
+
+          {/* Discounts */}
+          <div>
+            <DiscountManager
+              venueId={venueId!}
+              defaultDiscount={venue.default_discount_percentage}
+              onDefaultDiscountChange={(value) => setVenue({...venue, default_discount_percentage: value})}
+            />
+          </div>
         </div>
       </div>
     </PartnerLayout>

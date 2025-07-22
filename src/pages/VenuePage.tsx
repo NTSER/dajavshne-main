@@ -25,6 +25,7 @@ import BookingForm from "@/components/BookingForm";
 import VenueMap from "@/components/VenueMap";
 import ReviewsList from "@/components/ReviewsList";
 import VenueServices from "@/components/VenueServices";
+import { VenueDiscounts } from "@/components/VenueDiscounts";
 import { useState } from "react";
 
 const VenuePage = () => {
@@ -210,6 +211,14 @@ const VenuePage = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto space-y-6 pb-20">
               
+              {/* Discounts */}
+              <VenueDiscounts 
+                venueId={venue.id}
+                defaultDiscount={venue.default_discount_percentage || 0}
+                servicePrice={selectedService?.price || venue.price}
+                showCalculation={true}
+              />
+
               {/* Price and Basic Info */}
               <div className="bg-card border border-border rounded-xl p-6 shadow-lg glass-effect">
                 <div className="flex items-baseline gap-2 mb-4">

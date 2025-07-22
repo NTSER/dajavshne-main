@@ -255,6 +255,57 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_discounts: {
+        Row: {
+          active: boolean
+          buy_quantity: number | null
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          get_quantity: number | null
+          id: string
+          title: string
+          updated_at: string
+          valid_days: string[] | null
+          valid_end_time: string | null
+          valid_start_time: string | null
+          venue_id: string
+        }
+        Insert: {
+          active?: boolean
+          buy_quantity?: number | null
+          created_at?: string
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          get_quantity?: number | null
+          id?: string
+          title: string
+          updated_at?: string
+          valid_days?: string[] | null
+          valid_end_time?: string | null
+          valid_start_time?: string | null
+          venue_id: string
+        }
+        Update: {
+          active?: boolean
+          buy_quantity?: number | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          get_quantity?: number | null
+          id?: string
+          title?: string
+          updated_at?: string
+          valid_days?: string[] | null
+          valid_end_time?: string | null
+          valid_start_time?: string | null
+          venue_id?: string
+        }
+        Relationships: []
+      }
       venue_services: {
         Row: {
           created_at: string | null
@@ -302,6 +353,7 @@ export type Database = {
           category: string
           closing_time: string | null
           created_at: string | null
+          default_discount_percentage: number | null
           description: string | null
           id: string
           images: string[] | null
@@ -319,6 +371,7 @@ export type Database = {
           category: string
           closing_time?: string | null
           created_at?: string | null
+          default_discount_percentage?: number | null
           description?: string | null
           id?: string
           images?: string[] | null
@@ -336,6 +389,7 @@ export type Database = {
           category?: string
           closing_time?: string | null
           created_at?: string | null
+          default_discount_percentage?: number | null
           description?: string | null
           id?: string
           images?: string[] | null

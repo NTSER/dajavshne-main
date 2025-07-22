@@ -15,6 +15,7 @@ export interface Venue {
   description: string;
   opening_time?: string;
   closing_time?: string;
+  default_discount_percentage?: number;
 }
 
 export interface VenueService {
