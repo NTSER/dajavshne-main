@@ -21,13 +21,13 @@ const AddVenue = () => {
     description: '',
     location: '',
     categoryId: '',
-    price: '',
     images: [''],
     uploadedImages: [] as File[],
     amenityIds: [] as string[],
     services: [{ name: '', description: '', price: '', duration: '', images: [] as string[], uploadedImages: [] as File[] }],
     openingTime: '',
     closingTime: '',
+    default_discount_percentage: 0,
   });
 
   const [uploading, setUploading] = useState(false);
@@ -41,10 +41,24 @@ const AddVenue = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.location || !formData.categoryId || !formData.price || !formData.openingTime || !formData.closingTime) {
+    if (!formData.name || !formData.location || !formData.categoryId || !formData.openingTime || !formData.closingTime) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields including working hours.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate services - at least one required
+    const validServices = formData.services.filter(service => 
+      service.name.trim() && service.price.trim() && service.duration.trim()
+    );
+
+    if (validServices.length === 0) {
+      toast({
+        title: "Service required",
+        description: "Please add at least one service with name, price, and duration.",
         variant: "destructive",
       });
       return;
