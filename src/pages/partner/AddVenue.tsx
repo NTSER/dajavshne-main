@@ -64,10 +64,6 @@ const AddVenue = () => {
       return;
     }
 
-    // Validate services
-    const validServices = formData.services.filter(service => 
-      service.name.trim() && service.price.trim() && service.duration.trim()
-    );
 
     try {
       setUploading(true);
@@ -114,7 +110,7 @@ const AddVenue = () => {
         description: formData.description,
         location: formData.location,
         category: selectedCategory,
-        price: parseFloat(formData.price),
+        price: parseFloat(validServices[0].price), // Use first service price as base venue price
         images: allImages,
         amenities: selectedAmenities,
         openingTime: formData.openingTime,
@@ -466,17 +462,6 @@ const AddVenue = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="price" className="text-gray-900 dark:text-white font-medium">Base Price (per hour) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                  required
-                />
-              </div>
 
               <div className="space-y-4">
                 <Label className="text-gray-900 dark:text-white font-medium">Images</Label>
