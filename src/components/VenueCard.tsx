@@ -2,8 +2,8 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Wifi, Car } from "lucide-react";
-import { Venue } from "@/hooks/useVenues";
+import { Star, MapPin, Wifi, Car, Tag } from "lucide-react";
+import { Venue, useVenueServices } from "@/hooks/useVenues";
 import FavoriteButton from "./FavoriteButton";
 
 interface VenueCardProps {
@@ -11,9 +11,30 @@ interface VenueCardProps {
 }
 
 const VenueCard = ({ venue }: VenueCardProps) => {
+  const { data: services } = useVenueServices(venue.id);
+  
+  // Check if venue has services with potential offers
+  const hasServiceOffers = services && services.length > 0;
+  const serviceCount = services?.length || 0;
+
   return (
     <Link to={`/venue/${venue.id}`}>
       <Card className="hover-lift cursor-pointer group border-white/10 bg-card/50 hover:bg-card/70 transition-all duration-300 overflow-hidden">
+        {/* Service Offer Banner - At top of venue card */}
+        {hasServiceOffers && (
+          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-primary/20">
+            <div className="px-4 py-2 flex items-center gap-2">
+              <Tag className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">
+                {serviceCount} Service{serviceCount > 1 ? 's' : ''} Available
+              </span>
+              <Badge variant="secondary" className="ml-auto bg-primary/10 text-primary text-xs">
+                View Details
+              </Badge>
+            </div>
+          </div>
+        )}
+        
         <div className="aspect-[4/3] relative overflow-hidden">
           <img
             src={venue.images?.[0] || "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800"}

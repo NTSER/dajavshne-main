@@ -8,10 +8,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PartnerLayout from '@/components/PartnerLayout';
 import { DiscountManager } from '@/components/DiscountManager';
+
+interface VenueService {
+  id?: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: string;
+  images: string[];
+  discount_percentage: number;
+}
 
 interface VenueData {
   name: string;
@@ -32,6 +42,7 @@ const EditVenue = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [services, setServices] = useState<VenueService[]>([]);
   const [venue, setVenue] = useState<VenueData>({
     name: '',
     description: '',
@@ -51,28 +62,48 @@ const EditVenue = () => {
 
   const fetchVenue = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch venue data
+      const { data: venueData, error: venueError } = await supabase
         .from('venues')
         .select('*')
         .eq('id', venueId)
         .single();
 
-      if (error) throw error;
+      if (venueError) throw venueError;
 
-      if (data) {
+      if (venueData) {
         setVenue({
-          name: data.name || '',
-          description: data.description || '',
-          location: data.location || '',
-          category: data.category || '',
-          price: data.price || 0,
-          opening_time: data.opening_time || '',
-          closing_time: data.closing_time || '',
-          amenities: data.amenities || [],
-          images: data.images || [],
-          default_discount_percentage: data.default_discount_percentage || 0
+          name: venueData.name || '',
+          description: venueData.description || '',
+          location: venueData.location || '',
+          category: venueData.category || '',
+          price: venueData.price || 0,
+          opening_time: venueData.opening_time || '',
+          closing_time: venueData.closing_time || '',
+          amenities: venueData.amenities || [],
+          images: venueData.images || [],
+          default_discount_percentage: venueData.default_discount_percentage || 0
         });
       }
+
+      // Fetch venue services
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('venue_services')
+        .select('*')
+        .eq('venue_id', venueId);
+
+      if (servicesError) throw servicesError;
+
+      setServices(servicesData?.map(service => ({
+        id: service.id,
+        name: service.name,
+        description: service.description || '',
+        price: service.price,
+        duration: service.duration,
+        images: service.images || [],
+        discount_percentage: 0 // Services don't have discount_percentage in DB yet
+      })) || []);
+
     } catch (error: any) {
       toast({
         title: "Error",
@@ -87,7 +118,8 @@ const EditVenue = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Update venue
+      const { error: venueError } = await supabase
         .from('venues')
         .update({
           name: venue.name,
@@ -104,7 +136,40 @@ const EditVenue = () => {
         })
         .eq('id', venueId);
 
-      if (error) throw error;
+      if (venueError) throw venueError;
+
+      // Update services
+      for (const service of services) {
+        if (service.id) {
+          // Update existing service
+          const { error: updateError } = await supabase
+            .from('venue_services')
+            .update({
+              name: service.name,
+              description: service.description,
+              price: service.price,
+              duration: service.duration,
+              images: service.images
+            })
+            .eq('id', service.id);
+
+          if (updateError) throw updateError;
+        } else {
+          // Create new service
+          const { error: insertError } = await supabase
+            .from('venue_services')
+            .insert({
+              venue_id: venueId,
+              name: service.name,
+              description: service.description,
+              price: service.price,
+              duration: service.duration,
+              images: service.images
+            });
+
+          if (insertError) throw insertError;
+        }
+      }
 
       toast({
         title: "Success",
@@ -121,6 +186,28 @@ const EditVenue = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const addService = () => {
+    setServices([...services, {
+      name: '',
+      description: '',
+      price: 0,
+      duration: '',
+      images: [],
+      discount_percentage: 0
+    }]);
+  };
+
+  const removeService = (index: number) => {
+    const newServices = services.filter((_, i) => i !== index);
+    setServices(newServices);
+  };
+
+  const updateService = (index: number, field: keyof VenueService, value: any) => {
+    const newServices = [...services];
+    newServices[index] = { ...newServices[index], [field]: value };
+    setServices(newServices);
   };
 
   const handleDelete = async () => {
@@ -354,6 +441,100 @@ const EditVenue = () => {
                   </label>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Services Section */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Services</CardTitle>
+                <Button onClick={addService} variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Service
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {services.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No services added yet. Click "Add Service" to create your first service.</p>
+                </div>
+              ) : (
+                services.map((service, index) => (
+                  <Card key={index} className="border-dashed">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Service {index + 1}</h4>
+                        <Button
+                          onClick={() => removeService(index)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Service Name *</Label>
+                          <Input
+                            value={service.name}
+                            onChange={(e) => updateService(index, 'name', e.target.value)}
+                            placeholder="e.g., VIP Gaming Package"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Duration *</Label>
+                          <Input
+                            value={service.duration}
+                            onChange={(e) => updateService(index, 'duration', e.target.value)}
+                            placeholder="e.g., 2 hours"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Description</Label>
+                        <Textarea
+                          value={service.description}
+                          onChange={(e) => updateService(index, 'description', e.target.value)}
+                          placeholder="Describe what this service includes..."
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Price per Guest ($) *</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={service.price}
+                            onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Service Discount (%)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={service.discount_percentage}
+                            onChange={(e) => updateService(index, 'discount_percentage', parseInt(e.target.value) || 0)}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </CardContent>
           </Card>
 

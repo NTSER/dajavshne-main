@@ -25,7 +25,7 @@ import BookingForm from "@/components/BookingForm";
 import VenueMap from "@/components/VenueMap";
 import ReviewsList from "@/components/ReviewsList";
 import VenueServices from "@/components/VenueServices";
-import { VenueDiscounts } from "@/components/VenueDiscounts";
+import ServiceDiscountBanner from "@/components/ServiceDiscountBanner";
 import { useState } from "react";
 
 const VenuePage = () => {
@@ -87,6 +87,13 @@ const VenuePage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* Service Discount Banner - Top of venue */}
+        <ServiceDiscountBanner 
+          services={services || []}
+          selectedService={selectedService}
+          className="mb-6"
+        />
+        
         {/* Main Layout - Airbnb Style */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-140px)]">
           
@@ -211,14 +218,6 @@ const VenuePage = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto space-y-6 pb-20">
               
-              {/* Discounts */}
-              <VenueDiscounts 
-                venueId={venue.id}
-                defaultDiscount={venue.default_discount_percentage || 0}
-                servicePrice={selectedService?.price || venue.price}
-                showCalculation={true}
-              />
-
               {/* Price and Basic Info */}
               <div className="bg-card border border-border rounded-xl p-6 shadow-lg glass-effect">
                 <div className="flex items-baseline gap-2 mb-4">
