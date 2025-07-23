@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Wifi, Car, Tag } from "lucide-react";
+import { Star, MapPin, Wifi, Car, Tag, Zap } from "lucide-react";
 import { Venue, useVenueServices } from "@/hooks/useVenues";
 import FavoriteButton from "./FavoriteButton";
 
@@ -24,7 +24,10 @@ const VenueCard = ({ venue }: VenueCardProps) => {
         {hasServiceOffers && (
           <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-primary/20">
             <div className="px-4 py-2 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-1">
+                <Zap className="h-4 w-4 text-primary animate-pulse" />
+                <Tag className="h-3 w-3 text-primary" />
+              </div>
               <span className="text-sm font-medium text-primary">
                 {serviceCount} Service{serviceCount > 1 ? 's' : ''} Available
               </span>

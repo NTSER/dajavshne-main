@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Percent, Tag, Clock } from "lucide-react";
+import { Percent, Tag, Clock, Zap } from "lucide-react";
 import { VenueService } from "@/hooks/useVenues";
 
 interface ServiceDiscountBannerProps {
@@ -37,8 +37,11 @@ const ServiceDiscountBanner = ({
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">Service Offers Available</span>
+            <div className="flex items-center gap-1">
+              <Zap className="h-5 w-5 text-primary animate-pulse" />
+              <Tag className="h-4 w-4 text-primary" />
+            </div>
+            <span className="font-semibold text-foreground">Special Offers Available</span>
           </div>
           
           <div className="flex flex-wrap gap-2">
