@@ -13,8 +13,8 @@ import AuthDialog from "@/components/AuthDialog";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-// You'll need to replace this with your actual Stripe publishable key
-const stripePromise = loadStripe("pk_test_YOUR_STRIPE_PUBLISHABLE_KEY_HERE");
+// Stripe publishable key
+const stripePromise = loadStripe("pk_test_51Rab7tAcy0JncB9qlWWNkyQxCYjs4RqFlY5OYSkBLfSVBqxv5q7d38jkbXVDmyE7jLxoCKxheJ95hc0f9atUVjBp00OmeyVbjo");
 
 // Stripe Payment Form Component
 const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
