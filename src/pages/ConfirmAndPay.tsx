@@ -384,23 +384,24 @@ const ConfirmAndPay = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="rounded-full"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-2xl font-bold gradient-text">Confirm and pay</h1>
+    <Elements stripe={stripePromise}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(-1)}
+                className="rounded-full"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-2xl font-bold gradient-text">Confirm and pay</h1>
+            </div>
           </div>
         </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -484,9 +485,7 @@ const ConfirmAndPay = () => {
                 </div>
                 {currentStep === 2 && (
                   <div className="mt-4 space-y-4">
-                    <Elements stripe={stripePromise}>
-                      <SavedPaymentMethods showAddNew={true} />
-                    </Elements>
+                    <SavedPaymentMethods showAddNew={true} />
                   </div>
                 )}
               </CardContent>
@@ -510,14 +509,12 @@ const ConfirmAndPay = () => {
                 </div>
                 
                 {currentStep === 3 && !bookingComplete && (
-                  <Elements stripe={stripePromise}>
-                    <PaymentForm
-                      bookingData={bookingData}
-                      onSuccess={handlePaymentSuccess}
-                      onError={handlePaymentError}
-                      disabled={!user}
-                    />
-                  </Elements>
+                  <PaymentForm
+                    bookingData={bookingData}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    disabled={!user}
+                  />
                 )}
 
                 {bookingComplete && (
@@ -628,7 +625,8 @@ const ConfirmAndPay = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Elements>
   );
 };
 
