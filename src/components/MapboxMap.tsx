@@ -28,23 +28,35 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   // Fetch Mapbox token and initialize map
   useEffect(() => {
     const initializeMap = async () => {
-      if (!mapContainer.current || map.current) return;
+      console.log('MapboxMap: Starting initialization...');
+      if (!mapContainer.current || map.current) {
+        console.log('MapboxMap: Skipping - container missing or map already exists');
+        return;
+      }
 
       try {
+        console.log('MapboxMap: Fetching token from edge function...');
         // Fetch Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
+        console.log('MapboxMap: Edge function response:', { data, error });
+        
         if (error) {
-          throw new Error('Failed to get Mapbox token');
+          console.error('MapboxMap: Edge function error:', error);
+          throw new Error(`Failed to get Mapbox token: ${error.message}`);
         }
 
         const token = data?.token;
+        console.log('MapboxMap: Token received:', token ? 'YES' : 'NO');
+        
         if (!token) {
           throw new Error('Mapbox token not configured');
         }
 
+        console.log('MapboxMap: Setting Mapbox access token...');
         mapboxgl.accessToken = token;
 
+        console.log('MapboxMap: Creating map instance...');
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/light-v11',
@@ -52,6 +64,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
           zoom: 2
         });
 
+        console.log('MapboxMap: Map created, adding controls...');
         // Add navigation controls
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
@@ -71,10 +84,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
           }
         });
 
+        console.log('MapboxMap: Initialization complete!');
         setIsLoading(false);
         setError(null);
       } catch (err) {
-        console.error('Error initializing Mapbox:', err);
+        console.error('MapboxMap: Error during initialization:', err);
         setError(err instanceof Error ? err.message : 'Failed to initialize map');
         setIsLoading(false);
       }
