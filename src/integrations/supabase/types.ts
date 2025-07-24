@@ -208,6 +208,45 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_payment_methods: {
+        Row: {
+          card_brand: string | null
+          card_exp_month: number | null
+          card_exp_year: number | null
+          card_last4: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          stripe_payment_method_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          stripe_payment_method_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          stripe_payment_method_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_favorites: {
         Row: {
           created_at: string
