@@ -12,6 +12,7 @@ import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PartnerLayout from '@/components/PartnerLayout';
 import { DiscountManager } from '@/components/DiscountManager';
+import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 
 interface VenueService {
   id?: string;
@@ -505,6 +506,13 @@ const EditVenue = () => {
                           rows={3}
                         />
                       </div>
+                      
+                      {/* Service Images */}
+                      <ServiceImageUpload
+                        images={service.images}
+                        onImagesChange={(images) => updateService(index, 'images', images)}
+                        serviceIndex={index}
+                      />
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
