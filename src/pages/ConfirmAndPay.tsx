@@ -3,13 +3,169 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, MapPin, Users, Calendar } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Users, Calendar, CreditCard, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useVenue } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import AuthDialog from "@/components/AuthDialog";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+// You'll need to replace this with your actual Stripe publishable key
+const stripePromise = loadStripe("pk_test_YOUR_STRIPE_PUBLISHABLE_KEY_HERE");
+
+// Stripe Payment Form Component
+const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { user } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (bookingData && user) {
+      createPaymentIntent();
+    }
+  }, [bookingData, user]);
+
+  const createPaymentIntent = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+        body: {
+          amount: bookingData.totalPrice,
+          currency: 'usd',
+          bookingData: {
+            venueId: bookingData.venueId,
+            venueName: bookingData.venueName,
+            date: bookingData.date,
+            time: bookingData.arrivalTime,
+            guests: bookingData.guests,
+          },
+        },
+      });
+
+      if (error) throw error;
+      setClientSecret(data.clientSecret);
+    } catch (error: any) {
+      console.error('Error creating payment intent:', error);
+      onError(error.message || 'Failed to initialize payment');
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    if (!stripe || !elements || !clientSecret || disabled) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const card = elements.getElement(CardElement);
+    if (!card) {
+      onError('Payment form not loaded');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: card,
+          billing_details: {
+            name: user?.email || '',
+            email: user?.email || '',
+          },
+        },
+      });
+
+      if (confirmError) {
+        throw new Error(confirmError.message);
+      }
+
+      if (paymentIntent.status === 'succeeded') {
+        // Confirm payment with backend
+        const { data, error } = await supabase.functions.invoke('confirm-payment', {
+          body: {
+            paymentIntentId: paymentIntent.id,
+            bookingData: {
+              venueId: bookingData.venueId,
+              venueName: bookingData.venueName,
+              serviceIds: bookingData.serviceIds,
+              date: bookingData.date,
+              time: bookingData.arrivalTime,
+              guests: bookingData.guests,
+              total: bookingData.totalPrice,
+              specialRequests: bookingData.specialRequests,
+            },
+          },
+        });
+
+        if (error) throw error;
+        onSuccess(data);
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      onError(error.message || 'Payment failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (!clientSecret) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2 text-sm text-muted-foreground">Initializing payment...</span>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="p-4 border border-border/50 rounded-xl bg-background/50">
+        <CardElement
+          options={{
+            style: {
+              base: {
+                fontSize: '16px',
+                color: 'hsl(var(--foreground))',
+                '::placeholder': {
+                  color: 'hsl(var(--muted-foreground))',
+                },
+              },
+            },
+          }}
+        />
+      </div>
+      
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Lock className="w-3 h-3" />
+        <span>Your payment information is secure and encrypted</span>
+      </div>
+
+      <Button
+        type="submit"
+        disabled={!stripe || isProcessing || disabled}
+        className="w-full pulse-glow bg-gradient-to-r from-primary to-secondary"
+      >
+        {isProcessing ? (
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            Processing payment...
+          </div>
+        ) : (
+          <>
+            <CreditCard className="w-4 h-4 mr-2" />
+            Pay ${bookingData.totalPrice}
+          </>
+        )}
+      </Button>
+    </form>
+  );
+};
 
 interface BookingData {
   venueId: string;
@@ -45,6 +201,8 @@ const ConfirmAndPay = () => {
   const { data: venue } = useVenue(bookingData?.venueId);
   
   const [currentStep, setCurrentStep] = useState(1);
+  const [paymentAdded, setPaymentAdded] = useState(false);
+  const [bookingComplete, setBookingComplete] = useState(false);
 
   useEffect(() => {
     if (!bookingData) {
@@ -66,7 +224,6 @@ const ConfirmAndPay = () => {
 
   const handleContinue = async () => {
     if (!user && currentStep === 1) {
-      // Show auth dialog requirement
       toast({
         title: "Authentication Required",
         description: "Please sign in to continue with your booking.",
@@ -76,81 +233,27 @@ const ConfirmAndPay = () => {
     
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // Process the actual booking when user confirms payment
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to complete your booking.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      try {
-        // Validate booking data before proceeding
-        if (!bookingData.date || !bookingData.arrivalTime || !bookingData.departureTime) {
-          toast({
-            title: "Invalid booking data",
-            description: "Please go back and ensure all booking times are selected.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        toast({
-          title: "Processing booking...",
-          description: "Creating your booking and processing payment...",
-        });
-
-        // Create the booking in the database
-        const { data: booking, error: bookingError } = await supabase
-          .from('bookings')
-          .insert({
-            user_id: user.id,
-            user_email: user.email,
-            venue_id: bookingData.venueId,
-            service_id: bookingData.serviceIds.length > 0 ? bookingData.serviceIds[0] : null,
-            booking_date: bookingData.date,
-            booking_time: bookingData.arrivalTime,
-            guest_count: bookingData.guests,
-            total_price: bookingData.totalPrice,
-            special_requests: (bookingData.specialRequests || '') + 
-              `\nArrival: ${bookingData.arrivalTime}, Departure: ${bookingData.departureTime}` +
-              (bookingData.serviceBookings.length > 0 ? 
-                `\nService Times: ${bookingData.serviceBookings.map(sb => 
-                  `Service ${sb.serviceId}: ${sb.arrivalTime} - ${sb.departureTime}`
-                ).join(', ')}` : ''),
-            status: 'pending'
-          })
-          .select()
-          .single();
-
-        if (bookingError) {
-          throw bookingError;
-        }
-
-        // Note: No notifications sent at booking creation
-        // Confirmation/rejection notifications will be sent only when partner takes action
-
-        toast({
-          title: "Booking Request Submitted!",
-          description: "Your booking request has been sent to the venue owner for approval.",
-        });
-        
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
-        
-      } catch (error: any) {
-        console.error("Booking error:", error);
-        toast({
-          title: "Booking Failed",
-          description: error.message || "Failed to create booking. Please try again.",
-          variant: "destructive",
-        });
-      }
     }
+  };
+
+  const handlePaymentSuccess = (data: any) => {
+    setBookingComplete(true);
+    toast({
+      title: "Payment Successful!",
+      description: "Your booking has been confirmed and payment processed.",
+    });
+    
+    setTimeout(() => {
+      navigate('/booking-history');
+    }, 2000);
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast({
+      title: "Payment Failed",
+      description: error,
+      variant: "destructive",
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -272,55 +375,79 @@ const ConfirmAndPay = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">Add a payment method</h3>
                       {currentStep > 2 && (
-                        <p className="text-sm text-muted-foreground">Test payment method added</p>
+                        <p className="text-sm text-muted-foreground">Payment method ready</p>
                       )}
                     </div>
                   </div>
-                  {currentStep === 2 && (
+                  {currentStep === 2 && !paymentAdded && (
                     <Button 
-                      onClick={handleContinue}
+                      onClick={() => {
+                        setPaymentAdded(true);
+                        handleContinue();
+                      }}
                       className="pulse-glow"
                     >
-                      Add Payment
+                      Continue
                     </Button>
                   )}
                 </div>
                 {currentStep === 2 && (
-                  <div className="mt-4 p-4 bg-muted/20 rounded-xl">
-                    <p className="text-sm text-muted-foreground">
-                      🧪 This is a test environment. No real payment will be processed.
-                    </p>
+                  <div className="mt-4 space-y-4">
+                    <div className="p-4 bg-muted/20 rounded-xl">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CreditCard className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium">Secure Payment Processing</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Your payment will be processed securely via Stripe. Enter your payment details in the next step.
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Step 3 - Review */}
+            {/* Step 3 - Review & Pay */}
             <Card className={`glass-effect transition-all duration-200 ${
               currentStep === 3 ? 'border-primary/50' : 'border-border/30 opacity-60'
             }`}>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                    }`}>
-                      3
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">Review your request</h3>
-                      <p className="text-sm text-muted-foreground">Confirm booking details</p>
-                    </div>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    3
                   </div>
-                  {currentStep === 3 && (
-                    <Button 
-                      onClick={handleContinue}
-                      className="pulse-glow bg-gradient-to-r from-primary to-secondary"
-                    >
-                      Confirm Payment
-                    </Button>
-                  )}
+                  <div>
+                    <h3 className="font-semibold text-foreground">Complete Payment</h3>
+                    <p className="text-sm text-muted-foreground">Enter your payment details to confirm booking</p>
+                  </div>
                 </div>
+                
+                {currentStep === 3 && !bookingComplete && (
+                  <Elements stripe={stripePromise}>
+                    <PaymentForm
+                      bookingData={bookingData}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                      disabled={!user}
+                    />
+                  </Elements>
+                )}
+
+                {bookingComplete && (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-lg">✓</span>
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-lg text-foreground mb-2">Booking Confirmed!</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Payment processed successfully. Redirecting to your bookings...
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
