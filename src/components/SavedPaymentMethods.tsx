@@ -44,6 +44,7 @@ const SavedPaymentMethods = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [cardElementReady, setCardElementReady] = useState(false);
 
   const getCardIcon = (brand: string) => {
     switch (brand.toLowerCase()) {
@@ -78,7 +79,14 @@ const SavedPaymentMethods = ({
   };
 
   const handleAddPaymentMethod = async () => {
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !cardElementReady) {
+      toast({
+        title: "Error",
+        description: "Payment form is not ready. Please wait and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsProcessing(true);
     try {
@@ -113,10 +121,15 @@ const SavedPaymentMethods = ({
       if (setupIntent.status === 'succeeded') {
         // Save payment method to our database
         await savePaymentMethod(setupIntent.payment_method as string, paymentMethods.length === 0);
-        setShowAddForm(false);
         
-        // Clear the card element
-        card.clear();
+        // Reset form state
+        setShowAddForm(false);
+        setCardElementReady(false);
+        
+        toast({
+          title: "Success",
+          description: "Payment method added successfully.",
+        });
       }
     } catch (error: any) {
       console.error('Error adding payment method:', error);
@@ -128,6 +141,15 @@ const SavedPaymentMethods = ({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleCardReady = () => {
+    setCardElementReady(true);
+  };
+
+  const handleCancelAdd = () => {
+    setShowAddForm(false);
+    setCardElementReady(false);
   };
 
   if (loading) {
@@ -229,9 +251,10 @@ const SavedPaymentMethods = ({
                   <CreditCard className="w-4 h-4 text-primary" />
                   <span className="font-medium">Add New Card</span>
                 </div>
-                
+                 
                 <div className="p-4 border border-border/50 rounded-xl bg-background/50">
                   <CardElement
+                    onReady={handleCardReady}
                     options={{
                       style: {
                         base: {
@@ -249,14 +272,14 @@ const SavedPaymentMethods = ({
                 <div className="flex gap-2">
                   <Button
                     onClick={handleAddPaymentMethod}
-                    disabled={!stripe || isProcessing}
+                    disabled={!stripe || isProcessing || !cardElementReady}
                     className="flex-1"
                   >
                     {isProcessing ? "Adding..." : "Add Card"}
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => setShowAddForm(false)}
+                    onClick={handleCancelAdd}
                     disabled={isProcessing}
                   >
                     Cancel
