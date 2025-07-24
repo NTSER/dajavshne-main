@@ -81,7 +81,7 @@ serve(async (req) => {
       booking_time: bookingData.time,
       guest_count: bookingData.guests,
       total_price: bookingData.total,
-      status: 'confirmed',
+      status: 'pending',
       special_requests: bookingData.specialRequests || null,
       user_email: user.email,
     };
@@ -105,9 +105,9 @@ serve(async (req) => {
     const notificationData = {
       user_id: user.id,
       booking_id: booking.id,
-      type: 'booking_confirmed',
-      title: 'Booking Confirmed',
-      message: `Your booking for ${bookingData.venueName} on ${bookingData.date} has been confirmed.`,
+      type: 'booking_pending',
+      title: 'Booking Request Submitted',
+      message: `Your booking request for ${bookingData.venueName} on ${bookingData.date} has been submitted and is awaiting partner approval.`,
       read: false,
     };
 

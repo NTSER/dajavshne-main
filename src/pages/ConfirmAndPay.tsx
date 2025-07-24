@@ -319,8 +319,8 @@ const ConfirmAndPay = () => {
   const handlePaymentSuccess = (data: any) => {
     setBookingComplete(true);
     toast({
-      title: "Payment Successful!",
-      description: "Your booking has been confirmed and payment processed.",
+      title: "Booking Request Submitted!",
+      description: "Your booking request has been submitted and payment processed. The venue partner will review and confirm your booking shortly.",
     });
     
     setTimeout(() => {
