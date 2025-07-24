@@ -18,7 +18,7 @@ import { SavedPaymentMethod } from "@/hooks/useSavedPaymentMethods";
 // Stripe publishable key
 const stripePromise = loadStripe("pk_test_51Rab7tAcy0JncB9qlWWNkyQxCYjs4RqFlY5OYSkBLfSVBqxv5q7d38jkbXVDmyE7jLxoCKxheJ95hc0f9atUVjBp00OmeyVbjo");
 
-// Enhanced Payment Form Component with Saved Payment Methods
+// Enhanced Payment Form Component with One-time Payment Option
 const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -26,8 +26,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SavedPaymentMethod | null>(null);
-  const [useNewCard, setUseNewCard] = useState(false);
-  const [saveNewCard, setSaveNewCard] = useState(false);
+  const [useOneTimePayment, setUseOneTimePayment] = useState(false);
 
   useEffect(() => {
     if (bookingData && user) {
@@ -71,10 +70,9 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
 
     try {
       let paymentIntent;
-      let paymentMethodToSave = null;
 
-      if (selectedPaymentMethod && !useNewCard) {
-        // Use saved payment method - confirm the payment intent with the payment method ID
+      if (selectedPaymentMethod && !useOneTimePayment) {
+        // Use saved payment method
         const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: selectedPaymentMethod.stripe_payment_method_id,
           return_url: window.location.origin + window.location.pathname,
@@ -84,8 +82,8 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
           throw new Error(confirmError.message);
         }
         paymentIntent = intent;
-      } else {
-        // Use new card
+      } else if (useOneTimePayment) {
+        // Use one-time payment without saving
         if (!elements) {
           throw new Error('Payment form not loaded');
         }
@@ -110,29 +108,11 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
           throw new Error(confirmError.message);
         }
         paymentIntent = intent;
-        
-        // If user wants to save the card, store the payment method ID
-        if (saveNewCard && intent.payment_method) {
-          paymentMethodToSave = intent.payment_method as string;
-        }
+      } else {
+        throw new Error('Please select a payment method or choose one-time payment');
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Save payment method if requested
-        if (paymentMethodToSave) {
-          try {
-            await supabase.functions.invoke('save-payment-method', {
-              body: {
-                paymentMethodId: paymentMethodToSave,
-                isDefault: false,
-              },
-            });
-          } catch (saveError) {
-            console.error('Error saving payment method:', saveError);
-            // Don't fail the payment if saving the card fails
-          }
-        }
-
         // Confirm payment with backend
         const { data, error } = await supabase.functions.invoke('confirm-payment', {
           body: {
@@ -163,17 +143,17 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
 
   const handlePaymentMethodSelect = (paymentMethod: SavedPaymentMethod | null) => {
     setSelectedPaymentMethod(paymentMethod);
-    setUseNewCard(false);
+    setUseOneTimePayment(false);
     // Create new payment intent with the selected payment method
     if (paymentMethod) {
       createPaymentIntent(paymentMethod.stripe_payment_method_id);
     }
   };
 
-  const handleUseNewCard = () => {
-    setUseNewCard(true);
+  const handleUseOneTimePayment = () => {
+    setUseOneTimePayment(true);
     setSelectedPaymentMethod(null);
-    // Create new payment intent without a payment method for new card
+    // Create new payment intent without a payment method for one-time payment
     createPaymentIntent();
   };
 
@@ -190,59 +170,52 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Saved Payment Methods */}
       <div className="space-y-4">
+        <h4 className="font-medium text-foreground">Choose Payment Method</h4>
+        
         <SavedPaymentMethods
           onPaymentMethodSelect={handlePaymentMethodSelect}
           selectedPaymentMethodId={selectedPaymentMethod?.stripe_payment_method_id}
           showAddNew={false}
         />
         
-        {/* Use New Card Button */}
-        {!useNewCard && (
+        {/* One-time Payment Option */}
+        <div className="space-y-4">
           <Button
             type="button"
-            variant="outline"
-            onClick={handleUseNewCard}
+            variant={useOneTimePayment ? "default" : "outline"}
+            onClick={handleUseOneTimePayment}
             className="w-full"
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            Use New Card
+            Pay with New Card (One-time)
           </Button>
-        )}
-      </div>
 
-      {/* New Card Form */}
-      {useNewCard && (
-        <div className="space-y-4">
-          <div className="p-4 border border-border/50 rounded-xl bg-background/50">
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: 'hsl(var(--foreground))',
-                    '::placeholder': {
-                      color: 'hsl(var(--muted-foreground))',
+          {/* One-time Payment Form */}
+          {useOneTimePayment && (
+            <div className="space-y-4">
+              <div className="p-4 border border-border/50 rounded-xl bg-background/50">
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: 'hsl(var(--foreground))',
+                        '::placeholder': {
+                          color: 'hsl(var(--muted-foreground))',
+                        },
+                      },
                     },
-                  },
-                },
-              }}
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="saveCard"
-              checked={saveNewCard}
-              onChange={(e) => setSaveNewCard(e.target.checked)}
-              className="rounded border-border"
-            />
-            <label htmlFor="saveCard" className="text-sm text-muted-foreground">
-              Save this card for future payments
-            </label>
-          </div>
+                  }}
+                />
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                This card will not be saved for future payments
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
       
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Lock className="w-3 h-3" />
@@ -251,7 +224,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
 
       <Button
         type="submit"
-        disabled={!stripe || isProcessing || disabled || (!selectedPaymentMethod && !useNewCard)}
+        disabled={!stripe || isProcessing || disabled || (!selectedPaymentMethod && !useOneTimePayment)}
         className="w-full pulse-glow bg-gradient-to-r from-primary to-secondary"
       >
         {isProcessing ? (
@@ -304,7 +277,7 @@ const ConfirmAndPay = () => {
   const { data: venue } = useVenue(bookingData?.venueId);
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [paymentAdded, setPaymentAdded] = useState(false);
+  const [paymentMethodAdded, setPaymentMethodAdded] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
 
   useEffect(() => {
@@ -479,7 +452,7 @@ const ConfirmAndPay = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">Add a payment method</h3>
                       {currentStep > 2 && (
-                        <p className="text-sm text-muted-foreground">Payment method ready</p>
+                        <p className="text-sm text-muted-foreground">Payment methods ready</p>
                       )}
                     </div>
                   </div>
@@ -513,7 +486,7 @@ const ConfirmAndPay = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground">Complete Payment</h3>
-                    <p className="text-sm text-muted-foreground">Enter your payment details to confirm booking</p>
+                    <p className="text-sm text-muted-foreground">Choose your payment method and complete booking</p>
                   </div>
                 </div>
                 
