@@ -82,7 +82,7 @@ serve(async (req) => {
     // Convert amount to cents (Stripe uses smallest currency unit)
     const amountInCents = Math.round(amount * 100);
 
-    // Create payment intent with customer and optional payment method
+    // Create payment intent with customer
     const paymentIntentParams: any = {
       amount: amountInCents,
       currency: currency,
@@ -97,11 +97,9 @@ serve(async (req) => {
       },
     };
 
-    // If a payment method is provided, attach it to the payment intent
+    // If a payment method is provided, attach it to the payment intent but don't auto-confirm
     if (paymentMethodId) {
       paymentIntentParams.payment_method = paymentMethodId;
-      paymentIntentParams.confirmation_method = 'manual';
-      paymentIntentParams.confirm = true;
       console.log('Creating payment intent with saved payment method:', paymentMethodId);
     }
 

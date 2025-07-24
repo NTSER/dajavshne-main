@@ -74,19 +74,13 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
       let paymentMethodToSave = null;
 
       if (selectedPaymentMethod && !useNewCard) {
-        // For saved payment methods, the payment intent is already confirmed
-        // We just need to retrieve it to check the status
-        const { paymentIntent: intent } = await stripe.retrievePaymentIntent(clientSecret);
-        
-        if (intent.status === 'requires_confirmation') {
-          const { error: confirmError, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret);
-          if (confirmError) {
-            throw new Error(confirmError.message);
-          }
-          paymentIntent = confirmedIntent;
-        } else {
-          paymentIntent = intent;
+        // Use saved payment method - confirm the payment intent
+        const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret);
+
+        if (confirmError) {
+          throw new Error(confirmError.message);
         }
+        paymentIntent = intent;
       } else {
         // Use new card
         if (!elements) {
