@@ -44,13 +44,13 @@ serve(async (req) => {
     console.log('User authenticated:', user.id, user.email);
 
     // Parse request body
-    const { amount, currency = 'usd', bookingData } = await req.json();
+    const { amount, currency = 'usd', bookingData, paymentMethodId } = await req.json();
     
     if (!amount || amount <= 0) {
       throw new Error("Invalid amount provided");
     }
 
-    console.log('Payment details:', { amount, currency, bookingData });
+    console.log('Payment details:', { amount, currency, bookingData, paymentMethodId });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -82,8 +82,8 @@ serve(async (req) => {
     // Convert amount to cents (Stripe uses smallest currency unit)
     const amountInCents = Math.round(amount * 100);
 
-    // Create payment intent with customer
-    const paymentIntent = await stripe.paymentIntents.create({
+    // Create payment intent with customer and optional payment method
+    const paymentIntentParams: any = {
       amount: amountInCents,
       currency: currency,
       customer: customerId, // This is crucial for saved payment methods
@@ -95,7 +95,17 @@ serve(async (req) => {
         bookingTime: bookingData?.time || '',
         guests: bookingData?.guests?.toString() || '',
       },
-    });
+    };
+
+    // If a payment method is provided, attach it to the payment intent
+    if (paymentMethodId) {
+      paymentIntentParams.payment_method = paymentMethodId;
+      paymentIntentParams.confirmation_method = 'manual';
+      paymentIntentParams.confirm = true;
+      console.log('Creating payment intent with saved payment method:', paymentMethodId);
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
     console.log('Payment intent created:', paymentIntent.id);
 

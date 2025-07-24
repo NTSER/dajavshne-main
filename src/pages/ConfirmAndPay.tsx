@@ -35,12 +35,13 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
     }
   }, [bookingData, user]);
 
-  const createPaymentIntent = async () => {
+  const createPaymentIntent = async (paymentMethodId?: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           amount: bookingData.totalPrice,
           currency: 'usd',
+          paymentMethodId,
           bookingData: {
             venueId: bookingData.venueId,
             venueName: bookingData.venueName,
@@ -73,15 +74,19 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
       let paymentMethodToSave = null;
 
       if (selectedPaymentMethod && !useNewCard) {
-        // Use saved payment method
-        const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: selectedPaymentMethod.stripe_payment_method_id,
-        });
-
-        if (confirmError) {
-          throw new Error(confirmError.message);
+        // For saved payment methods, the payment intent is already confirmed
+        // We just need to retrieve it to check the status
+        const { paymentIntent: intent } = await stripe.retrievePaymentIntent(clientSecret);
+        
+        if (intent.status === 'requires_confirmation') {
+          const { error: confirmError, paymentIntent: confirmedIntent } = await stripe.confirmCardPayment(clientSecret);
+          if (confirmError) {
+            throw new Error(confirmError.message);
+          }
+          paymentIntent = confirmedIntent;
+        } else {
+          paymentIntent = intent;
         }
-        paymentIntent = intent;
       } else {
         // Use new card
         if (!elements) {
@@ -161,11 +166,17 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
   const handlePaymentMethodSelect = (paymentMethod: SavedPaymentMethod | null) => {
     setSelectedPaymentMethod(paymentMethod);
     setUseNewCard(false);
+    // Create new payment intent with the selected payment method
+    if (paymentMethod) {
+      createPaymentIntent(paymentMethod.stripe_payment_method_id);
+    }
   };
 
   const handleUseNewCard = () => {
     setUseNewCard(true);
     setSelectedPaymentMethod(null);
+    // Create new payment intent without a payment method for new card
+    createPaymentIntent();
   };
 
   if (!clientSecret) {
