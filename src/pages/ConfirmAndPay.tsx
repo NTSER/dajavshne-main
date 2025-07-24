@@ -168,54 +168,57 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Saved Payment Methods */}
-      <div className="space-y-4">
-        <h4 className="font-medium text-foreground">Choose Payment Method</h4>
-        
-        <SavedPaymentMethods
-          onPaymentMethodSelect={handlePaymentMethodSelect}
-          selectedPaymentMethodId={selectedPaymentMethod?.stripe_payment_method_id}
-          showAddNew={false}
-        />
-        
-        {/* One-time Payment Option */}
+      {/* Saved Payment Methods - only show if not in one-time flow */}
+      {!useOneTimePayment && (
         <div className="space-y-4">
-          <Button
-            type="button"
-            variant={useOneTimePayment ? "default" : "outline"}
-            onClick={handleUseOneTimePayment}
-            className="w-full"
-          >
-            <CreditCard className="w-4 h-4 mr-2" />
-            Pay with New Card (One-time)
-          </Button>
-
-          {/* One-time Payment Form */}
-          {useOneTimePayment && (
-            <div className="space-y-4">
-              <div className="p-4 border border-border/50 rounded-xl bg-background/50">
-                <CardElement
-                  options={{
-                    style: {
-                      base: {
-                        fontSize: '16px',
-                        color: 'hsl(var(--foreground))',
-                        '::placeholder': {
-                          color: 'hsl(var(--muted-foreground))',
-                        },
-                      },
-                    },
-                  }}
-                />
-              </div>
-              
-              <div className="text-sm text-muted-foreground">
-                This card will not be saved for future payments
-              </div>
-            </div>
-          )}
+          <h4 className="font-medium text-foreground">Choose Payment Method</h4>
+          
+          <SavedPaymentMethods
+            onPaymentMethodSelect={handlePaymentMethodSelect}
+            selectedPaymentMethodId={selectedPaymentMethod?.stripe_payment_method_id}
+            showAddNew={false}
+          />
+          
+          {/* One-time Payment Option */}
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant={useOneTimePayment ? "default" : "outline"}
+              onClick={handleUseOneTimePayment}
+              className="w-full"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Pay with New Card (One-time)
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* One-time Payment Form - show when useOneTimePayment is true */}
+      {useOneTimePayment && (
+        <div className="space-y-4">
+          <h4 className="font-medium text-foreground">Choose Payment Method</h4>
+          <div className="p-4 border border-border/50 rounded-xl bg-background/50">
+            <CardElement
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: 'hsl(var(--foreground))',
+                    '::placeholder': {
+                      color: 'hsl(var(--muted-foreground))',
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            This card will not be saved for future payments
+          </div>
+        </div>
+      )}
       
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Lock className="w-3 h-3" />
