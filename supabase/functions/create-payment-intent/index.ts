@@ -55,13 +55,38 @@ serve(async (req) => {
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
+    // Find or create Stripe customer
+    let customerId: string;
+    
+    // Check if customer already exists
+    const existingCustomers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    if (existingCustomers.data.length > 0) {
+      customerId = existingCustomers.data[0].id;
+      console.log('Existing customer found:', customerId);
+    } else {
+      // Create new customer
+      const customer = await stripe.customers.create({
+        email: user.email || '',
+        metadata: {
+          userId: user.id,
+        },
+      });
+      customerId = customer.id;
+      console.log('New customer created:', customerId);
+    }
+
     // Convert amount to cents (Stripe uses smallest currency unit)
     const amountInCents = Math.round(amount * 100);
 
-    // Create payment intent
+    // Create payment intent with customer
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: currency,
+      customer: customerId, // This is crucial for saved payment methods
       metadata: {
         userId: user.id,
         userEmail: user.email || '',
