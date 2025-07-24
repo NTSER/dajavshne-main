@@ -473,12 +473,9 @@ const ConfirmAndPay = () => {
                       )}
                     </div>
                   </div>
-                  {currentStep === 2 && !paymentAdded && (
+                  {currentStep === 2 && (
                     <Button 
-                      onClick={() => {
-                        setPaymentAdded(true);
-                        handleContinue();
-                      }}
+                      onClick={handleContinue}
                       className="pulse-glow"
                     >
                       Continue
@@ -487,15 +484,9 @@ const ConfirmAndPay = () => {
                 </div>
                 {currentStep === 2 && (
                   <div className="mt-4 space-y-4">
-                    <div className="p-4 bg-muted/20 rounded-xl">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CreditCard className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium">Secure Payment Processing</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Your payment will be processed securely via Stripe. Enter your payment details in the next step.
-                      </p>
-                    </div>
+                    <Elements stripe={stripePromise}>
+                      <SavedPaymentMethods showAddNew={true} />
+                    </Elements>
                   </div>
                 )}
               </CardContent>
