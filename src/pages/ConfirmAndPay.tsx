@@ -74,8 +74,10 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
       let paymentMethodToSave = null;
 
       if (selectedPaymentMethod && !useNewCard) {
-        // Use saved payment method - confirm the payment intent
-        const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret);
+        // Use saved payment method - confirm the payment intent with return URL
+        const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret, {
+          return_url: window.location.origin + window.location.pathname,
+        });
 
         if (confirmError) {
           throw new Error(confirmError.message);
@@ -100,6 +102,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
               email: user?.email || '',
             },
           },
+          return_url: window.location.origin + window.location.pathname,
         });
 
         if (confirmError) {
