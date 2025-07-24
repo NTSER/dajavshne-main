@@ -97,10 +97,32 @@ serve(async (req) => {
       },
     };
 
-    // If a payment method is provided, attach it to the payment intent but don't auto-confirm
+    // If a payment method is provided, ensure it's properly attached to the customer
     if (paymentMethodId) {
-      paymentIntentParams.payment_method = paymentMethodId;
       console.log('Creating payment intent with saved payment method:', paymentMethodId);
+      
+      try {
+        // Retrieve the payment method to check its status
+        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+        
+        // If the payment method is not attached to our customer, attach it
+        if (paymentMethod.customer !== customerId) {
+          console.log('Payment method not attached to customer, attaching now...');
+          await stripe.paymentMethods.attach(paymentMethodId, {
+            customer: customerId,
+          });
+          console.log('Payment method attached to customer:', customerId);
+        } else {
+          console.log('Payment method already attached to customer');
+        }
+        
+        paymentIntentParams.payment_method = paymentMethodId;
+      } catch (error) {
+        console.error('Error handling payment method:', error);
+        // If there's an error with the saved payment method, continue without it
+        // This allows the user to enter a new payment method
+        console.log('Continuing without saved payment method due to error');
+      }
     }
 
     const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
