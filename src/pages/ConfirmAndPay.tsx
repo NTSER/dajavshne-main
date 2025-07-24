@@ -19,14 +19,14 @@ import { SavedPaymentMethod } from "@/hooks/useSavedPaymentMethods";
 const stripePromise = loadStripe("pk_test_51Rab7tAcy0JncB9qlWWNkyQxCYjs4RqFlY5OYSkBLfSVBqxv5q7d38jkbXVDmyE7jLxoCKxheJ95hc0f9atUVjBp00OmeyVbjo");
 
 // Enhanced Payment Form Component with One-time Payment Option
-const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
+const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow = false }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SavedPaymentMethod | null>(null);
-  const [useOneTimePayment, setUseOneTimePayment] = useState(false);
+  const [useOneTimePayment, setUseOneTimePayment] = useState(useOneTimeFlow);
 
   useEffect(() => {
     if (bookingData && user) {
@@ -279,6 +279,7 @@ const ConfirmAndPay = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentMethodAdded, setPaymentMethodAdded] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [useOneTimePaymentFlow, setUseOneTimePaymentFlow] = useState(false);
 
   useEffect(() => {
     if (!bookingData) {
@@ -465,11 +466,27 @@ const ConfirmAndPay = () => {
                     </Button>
                   )}
                 </div>
-                {currentStep === 2 && (
-                  <div className="mt-4 space-y-4">
-                    <SavedPaymentMethods showAddNew={true} />
-                  </div>
-                )}
+                 {currentStep === 2 && (
+                   <div className="mt-4 space-y-4">
+                     <SavedPaymentMethods showAddNew={true} />
+                     <div className="border-t border-border/50 pt-4">
+                       <Button 
+                         variant="outline"
+                         onClick={() => {
+                           setUseOneTimePaymentFlow(true);
+                           handleContinue();
+                         }}
+                         className="w-full"
+                       >
+                         <CreditCard className="w-4 h-4 mr-2" />
+                         Pay One-Time (No card saved)
+                       </Button>
+                       <p className="text-xs text-muted-foreground mt-2 text-center">
+                         Enter payment details in the next step without saving your card
+                       </p>
+                     </div>
+                   </div>
+                 )}
               </CardContent>
             </Card>
 
@@ -490,14 +507,15 @@ const ConfirmAndPay = () => {
                   </div>
                 </div>
                 
-                {currentStep === 3 && !bookingComplete && (
-                  <PaymentForm
-                    bookingData={bookingData}
-                    onSuccess={handlePaymentSuccess}
-                    onError={handlePaymentError}
-                    disabled={!user}
-                  />
-                )}
+                 {currentStep === 3 && !bookingComplete && (
+                   <PaymentForm
+                     bookingData={bookingData}
+                     onSuccess={handlePaymentSuccess}
+                     onError={handlePaymentError}
+                     disabled={!user}
+                     useOneTimeFlow={useOneTimePaymentFlow}
+                   />
+                 )}
 
                 {bookingComplete && (
                   <div className="text-center py-8">
