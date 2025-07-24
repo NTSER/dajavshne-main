@@ -14,12 +14,15 @@ import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import PartnerLayout from '@/components/PartnerLayout';
+import LocationInput from '@/components/LocationInput';
 
 const AddVenue = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     location: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
     categoryId: '',
     images: [''],
     uploadedImages: [] as File[],
@@ -117,6 +120,8 @@ const AddVenue = () => {
         name: formData.name,
         description: formData.description,
         location: formData.location,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         category: selectedCategory,
         price: parseFloat(validServices[0].price), // Use first service price as base venue price
         images: allImages,
@@ -450,12 +455,23 @@ const AddVenue = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-gray-900 dark:text-white font-medium">Location *</Label>
-                <Input
-                  id="location"
+                <LocationInput
                   value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  required
+                  onChange={(location, coordinates) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      location, 
+                      latitude: coordinates?.lat || null,
+                      longitude: coordinates?.lng || null
+                    }));
+                  }}
+                  placeholder="Search for an address..."
                 />
+                {formData.latitude && formData.longitude && (
+                  <p className="text-xs text-muted-foreground">
+                    📍 Coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

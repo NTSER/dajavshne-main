@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useVenues } from "@/hooks/useVenues";
 import VenueCard from "@/components/VenueCard";
-import InteractiveMap from "@/components/InteractiveMap";
+import MapboxMap from "@/components/MapboxMap";
 import SearchFilters from "@/components/SearchFilters";
 import { Button } from "@/components/ui/button";
 import { Map, List, Filter } from "lucide-react";
@@ -25,14 +25,15 @@ const SearchResults = () => {
       // Filter venues based on map bounds when they change
       if (mapBounds) {
         const venuesInBounds = allVenues.filter(venue => {
-          // For demo purposes, we'll use a simple coordinate system
-          // In a real app, you'd have actual coordinates for each venue
-          const venueCoords = getVenueCoordinates(venue.location);
+          // Use actual coordinates if available, otherwise use mock coordinates
+          const lat = venue.latitude || getVenueCoordinates(venue.location).lat;
+          const lng = venue.longitude || getVenueCoordinates(venue.location).lng;
+          
           return (
-            venueCoords.lat >= mapBounds.south &&
-            venueCoords.lat <= mapBounds.north &&
-            venueCoords.lng >= mapBounds.west &&
-            venueCoords.lng <= mapBounds.east
+            lat >= mapBounds.south &&
+            lat <= mapBounds.north &&
+            lng >= mapBounds.west &&
+            lng <= mapBounds.east
           );
         });
         setFilteredVenues(venuesInBounds);
@@ -42,9 +43,8 @@ const SearchResults = () => {
     }
   }, [allVenues, mapBounds]);
 
-  // Helper function to generate mock coordinates based on location
+  // Helper function to generate mock coordinates based on location (fallback)
   const getVenueCoordinates = (location: string) => {
-    // This is a mock function - in a real app, venues would have actual coordinates
     const hash = location.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
@@ -179,9 +179,10 @@ const SearchResults = () => {
           {/* Interactive Map */}
           {(viewMode === 'split' || viewMode === 'map') && (
             <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} rounded-lg overflow-hidden border`}>
-              <InteractiveMap
+              <MapboxMap
                 venues={filteredVenues}
                 onBoundsChange={handleMapBoundsChange}
+                height="100%"
               />
             </div>
           )}
