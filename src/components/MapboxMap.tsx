@@ -3,8 +3,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Venue } from '@/hooks/useVenues';
 import { Card } from '@/components/ui/card';
-import { MapPin, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { MapPin, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
 interface MapboxMapProps {
   venues: Venue[];
@@ -22,65 +23,47 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [showTokenInput, setShowTokenInput] = useState(true);
 
-  // Fetch Mapbox token and initialize map
+  // Initialize map when token is provided
   useEffect(() => {
-    const initializeMap = async () => {
-      if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || !mapboxToken || map.current) return;
 
-      try {
-        // Fetch Mapbox token from Supabase Edge Function
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        
-        if (error) {
-          throw new Error('Failed to get Mapbox token');
+    mapboxgl.accessToken = mapboxToken;
+
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [0, 0], // Default center
+        zoom: 2
+      });
+
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Add fullscreen control
+      map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+      // Handle bounds change
+      map.current.on('moveend', () => {
+        if (map.current && onBoundsChange) {
+          const bounds = map.current.getBounds();
+          onBoundsChange({
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest()
+          });
         }
+      });
 
-        const token = data?.token;
-        if (!token) {
-          throw new Error('Mapbox token not configured');
-        }
-
-        mapboxgl.accessToken = token;
-
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/light-v11',
-          center: [0, 0], // Default center
-          zoom: 2
-        });
-
-        // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-        // Add fullscreen control
-        map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-
-        // Handle bounds change
-        map.current.on('moveend', () => {
-          if (map.current && onBoundsChange) {
-            const bounds = map.current.getBounds();
-            onBoundsChange({
-              north: bounds.getNorth(),
-              south: bounds.getSouth(),
-              east: bounds.getEast(),
-              west: bounds.getWest()
-            });
-          }
-        });
-
-        setIsLoading(false);
-        setError(null);
-      } catch (err) {
-        console.error('Error initializing Mapbox:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize map');
-        setIsLoading(false);
-      }
-    };
-
-    initializeMap();
+      setShowTokenInput(false);
+    } catch (error) {
+      console.error('Error initializing Mapbox:', error);
+      setShowTokenInput(true);
+    }
 
     return () => {
       if (map.current) {
@@ -88,11 +71,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         map.current = null;
       }
     };
-  }, [onBoundsChange]);
+  }, [mapboxToken, onBoundsChange]);
 
   // Add venue markers
   useEffect(() => {
-    if (!map.current || isLoading) return;
+    if (!map.current) return;
 
     // Clear existing markers
     markers.current.forEach(marker => marker.remove());
@@ -151,33 +134,41 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         maxZoom: 15 
       });
     }
-  }, [venues, isLoading]);
+  }, [venues]);
 
-  if (isLoading) {
+  if (showTokenInput) {
     return (
       <Card className={`${className} p-6`} style={{ height }}>
         <div className="flex flex-col items-center justify-center h-full space-y-4">
-          <MapPin className="h-12 w-12 text-muted-foreground animate-pulse" />
-          <h3 className="text-lg font-semibold">Loading Map...</h3>
+          <MapPin className="h-12 w-12 text-muted-foreground" />
+          <h3 className="text-lg font-semibold">Mapbox Token Required</h3>
           <p className="text-sm text-muted-foreground text-center">
-            Initializing interactive map
+            To display the interactive map, please enter your Mapbox public token.
           </p>
-        </div>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className={`${className} p-6`} style={{ height }}>
-        <div className="flex flex-col items-center justify-center h-full space-y-4">
-          <AlertCircle className="h-12 w-12 text-destructive" />
-          <h3 className="text-lg font-semibold">Map Unavailable</h3>
-          <p className="text-sm text-muted-foreground text-center">
-            {error}
-          </p>
+          <div className="flex flex-col space-y-2 w-full max-w-md">
+            <Input
+              type="password"
+              placeholder="Enter your Mapbox public token"
+              value={mapboxToken}
+              onChange={(e) => setMapboxToken(e.target.value)}
+            />
+            <Button 
+              onClick={() => setMapboxToken(mapboxToken)}
+              disabled={!mapboxToken.trim()}
+            >
+              Initialize Map
+            </Button>
+          </div>
           <p className="text-xs text-muted-foreground text-center">
-            Please configure the Mapbox token in your project settings.
+            Get your token from{' '}
+            <a 
+              href="https://mapbox.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              mapbox.com
+            </a>
           </p>
         </div>
       </Card>
