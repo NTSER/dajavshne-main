@@ -229,6 +229,7 @@ const VenuePage = () => {
                   venueId={venue.id}
                   venueName={venue.name}
                   venuePrice={venue.price}
+                  defaultDiscount={venue.default_discount_percentage || 0}
                   openingTime={venue.opening_time}
                   closingTime={venue.closing_time}
                   services={services}

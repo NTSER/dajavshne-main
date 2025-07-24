@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useVenueDiscounts, calculateDiscountedPrice } from "@/hooks/useDiscounts";
 
 interface BookingFormProps {
   venueId: string;
@@ -19,6 +20,7 @@ interface BookingFormProps {
   venuePrice: number;
   openingTime?: string;
   closingTime?: string;
+  defaultDiscount?: number;
   services?: Array<{
     id: string;
     name: string;
@@ -28,7 +30,7 @@ interface BookingFormProps {
   selectedServiceId?: string;
 }
 
-const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime, services = [], selectedServiceId }: BookingFormProps) => {
+const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime, defaultDiscount = 0, services = [], selectedServiceId }: BookingFormProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -47,6 +49,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     specialRequests: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Fetch venue discounts
+  const { data: discounts = [] } = useVenueDiscounts(venueId);
 
   // Update serviceIds when selectedServiceId prop changes
   useEffect(() => {
@@ -80,7 +85,17 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   };
   
   const durationHours = calculateDuration();
-  const totalPrice = basePrice * formData.guests * durationHours;
+  const baseTotalPrice = basePrice * formData.guests * durationHours;
+  
+  // Apply discounts to the total price
+  const discountCalculation = calculateDiscountedPrice(
+    baseTotalPrice,
+    defaultDiscount,
+    discounts,
+    durationHours
+  );
+  
+  const totalPrice = discountCalculation.finalPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -612,7 +627,17 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
           <div className="flex items-center gap-4">
             <div className="flex-1">
+              {discountCalculation.savings > 0 && (
+                <div className="text-sm text-muted-foreground line-through">
+                  ${baseTotalPrice.toFixed(2)}
+                </div>
+              )}
               <span className="text-3xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
+              {discountCalculation.savings > 0 && (
+                <div className="text-sm text-green-600 font-medium">
+                  Save ${discountCalculation.savings.toFixed(2)}
+                </div>
+              )}
             </div>
             <Button 
               onClick={handleSubmit}
