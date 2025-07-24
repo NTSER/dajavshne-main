@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useVenueCategories } from '@/hooks/useVenueData';
 import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PartnerLayout from '@/components/PartnerLayout';
@@ -41,6 +42,7 @@ const EditVenue = () => {
   const { venueId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: categories, isLoading: categoriesLoading } = useVenueCategories();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<VenueService[]>([]);
@@ -239,14 +241,6 @@ const EditVenue = () => {
     }
   };
 
-  const categories = [
-    "Entertainment",
-    "Sports",
-    "Conference",
-    "Wedding",
-    "Corporate",
-    "Gaming"
-  ];
 
   const commonAmenities = [
     "WiFi",
@@ -342,9 +336,9 @@ const EditVenue = () => {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                      {categories?.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          {cat.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
