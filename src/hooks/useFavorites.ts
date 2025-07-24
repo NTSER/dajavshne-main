@@ -84,7 +84,7 @@ export const useIsFavorite = (venueId: string) => {
         .select('id')
         .eq('venue_id', venueId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
