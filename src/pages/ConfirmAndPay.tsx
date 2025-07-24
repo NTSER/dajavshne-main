@@ -74,8 +74,9 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
       let paymentMethodToSave = null;
 
       if (selectedPaymentMethod && !useNewCard) {
-        // Use saved payment method - confirm the payment intent with return URL
+        // Use saved payment method - confirm the payment intent with the payment method ID
         const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: selectedPaymentMethod.stripe_payment_method_id,
           return_url: window.location.origin + window.location.pathname,
         });
 
