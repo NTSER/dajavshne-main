@@ -12,17 +12,22 @@ import { supabase } from "@/integrations/supabase/client";
 import AuthDialog from "@/components/AuthDialog";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import SavedPaymentMethods from "@/components/SavedPaymentMethods";
+import { SavedPaymentMethod } from "@/hooks/useSavedPaymentMethods";
 
 // Stripe publishable key
 const stripePromise = loadStripe("pk_test_51Rab7tAcy0JncB9qlWWNkyQxCYjs4RqFlY5OYSkBLfSVBqxv5q7d38jkbXVDmyE7jLxoCKxheJ95hc0f9atUVjBp00OmeyVbjo");
 
-// Stripe Payment Form Component
+// Enhanced Payment Form Component with Saved Payment Methods
 const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
   const stripe = useStripe();
   const elements = useElements();
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SavedPaymentMethod | null>(null);
+  const [useNewCard, setUseNewCard] = useState(false);
+  const [saveNewCard, setSaveNewCard] = useState(false);
 
   useEffect(() => {
     if (bookingData && user) {
@@ -57,35 +62,74 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!stripe || !elements || !clientSecret || disabled) {
+    if (!stripe || !clientSecret || disabled) {
       return;
     }
 
     setIsProcessing(true);
 
-    const card = elements.getElement(CardElement);
-    if (!card) {
-      onError('Payment form not loaded');
-      setIsProcessing(false);
-      return;
-    }
-
     try {
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: card,
-          billing_details: {
-            name: user?.email || '',
-            email: user?.email || '',
-          },
-        },
-      });
+      let paymentIntent;
+      let paymentMethodToSave = null;
 
-      if (confirmError) {
-        throw new Error(confirmError.message);
+      if (selectedPaymentMethod && !useNewCard) {
+        // Use saved payment method
+        const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: selectedPaymentMethod.stripe_payment_method_id,
+        });
+
+        if (confirmError) {
+          throw new Error(confirmError.message);
+        }
+        paymentIntent = intent;
+      } else {
+        // Use new card
+        if (!elements) {
+          throw new Error('Payment form not loaded');
+        }
+
+        const card = elements.getElement(CardElement);
+        if (!card) {
+          throw new Error('Payment form not loaded');
+        }
+
+        const { error: confirmError, paymentIntent: intent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: card,
+            billing_details: {
+              name: user?.email || '',
+              email: user?.email || '',
+            },
+          },
+        });
+
+        if (confirmError) {
+          throw new Error(confirmError.message);
+        }
+        paymentIntent = intent;
+        
+        // If user wants to save the card, store the payment method ID
+        if (saveNewCard && intent.payment_method) {
+          paymentMethodToSave = intent.payment_method as string;
+        }
       }
 
       if (paymentIntent.status === 'succeeded') {
+        // Save payment method if requested
+        if (paymentMethodToSave) {
+          try {
+            await supabase.functions.invoke('save-payment-method', {
+              body: {
+                paymentMethodId: paymentMethodToSave,
+                isDefault: false,
+              },
+            });
+          } catch (saveError) {
+            console.error('Error saving payment method:', saveError);
+            // Don't fail the payment if saving the card fails
+          }
+        }
+
         // Confirm payment with backend
         const { data, error } = await supabase.functions.invoke('confirm-payment', {
           body: {
@@ -114,6 +158,16 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
     }
   };
 
+  const handlePaymentMethodSelect = (paymentMethod: SavedPaymentMethod | null) => {
+    setSelectedPaymentMethod(paymentMethod);
+    setUseNewCard(false);
+  };
+
+  const handleUseNewCard = () => {
+    setUseNewCard(true);
+    setSelectedPaymentMethod(null);
+  };
+
   if (!clientSecret) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -124,22 +178,62 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 border border-border/50 rounded-xl bg-background/50">
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: '16px',
-                color: 'hsl(var(--foreground))',
-                '::placeholder': {
-                  color: 'hsl(var(--muted-foreground))',
-                },
-              },
-            },
-          }}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Saved Payment Methods */}
+      <div className="space-y-4">
+        <SavedPaymentMethods
+          onPaymentMethodSelect={handlePaymentMethodSelect}
+          selectedPaymentMethodId={selectedPaymentMethod?.stripe_payment_method_id}
+          showAddNew={false}
         />
+        
+        {/* Use New Card Button */}
+        {!useNewCard && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleUseNewCard}
+            className="w-full"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            Use New Card
+          </Button>
+        )}
       </div>
+
+      {/* New Card Form */}
+      {useNewCard && (
+        <div className="space-y-4">
+          <div className="p-4 border border-border/50 rounded-xl bg-background/50">
+            <CardElement
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: 'hsl(var(--foreground))',
+                    '::placeholder': {
+                      color: 'hsl(var(--muted-foreground))',
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="saveCard"
+              checked={saveNewCard}
+              onChange={(e) => setSaveNewCard(e.target.checked)}
+              className="rounded border-border"
+            />
+            <label htmlFor="saveCard" className="text-sm text-muted-foreground">
+              Save this card for future payments
+            </label>
+          </div>
+        </div>
+      )}
       
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Lock className="w-3 h-3" />
@@ -148,7 +242,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled }: any) => {
 
       <Button
         type="submit"
-        disabled={!stripe || isProcessing || disabled}
+        disabled={!stripe || isProcessing || disabled || (!selectedPaymentMethod && !useNewCard)}
         className="w-full pulse-glow bg-gradient-to-r from-primary to-secondary"
       >
         {isProcessing ? (

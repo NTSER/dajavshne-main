@@ -14,6 +14,7 @@ const SearchResults = lazy(() => import("./pages/SearchResults"));
 const VenuePage = lazy(() => import("./pages/VenuePage"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const ConfirmAndPay = lazy(() => import("./pages/ConfirmAndPay"));
+const PaymentMethods = lazy(() => import("./pages/PaymentMethods"));
 const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
 const BookingHistoryPage = lazy(() => import("./pages/BookingHistoryPage"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/venue/:id" element={<VenuePage />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
                 <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
+                <Route path="/payment-methods" element={<PaymentMethods />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/booking-history" element={<BookingHistoryPage />} />
                 <Route path="/auth" element={<Auth />} />
