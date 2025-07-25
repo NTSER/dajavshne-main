@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Carousel, 
   CarouselContent, 
@@ -22,11 +23,13 @@ import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import VenueMap from "@/components/VenueMap";
 import ServiceDiscountBanner from "@/components/ServiceDiscountBanner";
+import SingleVenueMap from "@/components/SingleVenueMap";
 import { useState } from "react";
 
 const VenuePage = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedService, setSelectedService] = useState<VenueService | undefined>();
+  const [showLocationMap, setShowLocationMap] = useState(false);
   
   const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
   const { data: services, isLoading: servicesLoading } = useVenueServices(id!);
@@ -109,10 +112,13 @@ const VenuePage = () => {
                       <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.review_count} reviews</span>
                     </div>
                     <span>·</span>
-                    <div className="flex items-center gap-1">
+                    <button 
+                      onClick={() => setShowLocationMap(true)}
+                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
                       <MapPin className="h-4 w-4" />
-                      <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.location}</span>
-                    </div>
+                      <span className="underline">View on map</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -215,6 +221,21 @@ const VenuePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Interactive Map Modal */}
+      <Dialog open={showLocationMap} onOpenChange={setShowLocationMap}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>{venue.name} - Location</DialogTitle>
+          </DialogHeader>
+          <div className="h-[60vh]">
+            <SingleVenueMap 
+              location={venue.location} 
+              venueName={venue.name}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
