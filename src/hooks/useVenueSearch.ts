@@ -7,15 +7,25 @@ export const useVenueSearch = () => {
   const { data: venues, isLoading } = useVenues(false); // Only show visible venues
 
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim() || !venues) return [];
+    if (!searchQuery.trim() || !venues || venues.length === 0) return [];
     
     const query = searchQuery.toLowerCase().trim();
+    console.log('Searching for:', query, 'in venues:', venues.length);
     
-    return venues.filter((venue: Venue) => 
-      venue.name.toLowerCase().includes(query) ||
-      venue.location.toLowerCase().includes(query) ||
-      venue.category.toLowerCase().includes(query)
-    ).slice(0, 8); // Limit to 8 results for better UX
+    const results = venues.filter((venue: Venue) => {
+      const nameMatch = venue.name.toLowerCase().includes(query);
+      const locationMatch = venue.location.toLowerCase().includes(query);
+      const categoryMatch = venue.category.toLowerCase().includes(query);
+      
+      if (nameMatch || locationMatch || categoryMatch) {
+        console.log('Match found:', venue.name, { nameMatch, locationMatch, categoryMatch });
+      }
+      
+      return nameMatch || locationMatch || categoryMatch;
+    }).slice(0, 8);
+    
+    console.log('Search results:', results.length);
+    return results;
   }, [searchQuery, venues]);
 
   const handleSearch = (query: string) => {
