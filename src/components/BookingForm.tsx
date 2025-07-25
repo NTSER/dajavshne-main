@@ -360,13 +360,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     });
   };
 
-  // Helper function to format time for display
+  // Helper function to format time for display (24-hour format)
   const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return time; // Return time as-is in 24-hour format (HH:MM)
   };
 
   return (
