@@ -44,22 +44,13 @@ const Header = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <div className="flex-1 flex items-center">
-                <div className="flex-1 px-3">
-                  <input
-                    type="text"
-                    placeholder="Location"
-                    className="w-full text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 text-sm"
-                  />
-                </div>
-                <div className="w-px h-6 bg-gray-300"></div>
-                <div className="flex-1 px-3">
-                  <input
-                    type="text"
-                    placeholder="Business name"
-                    className="w-full text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 text-sm"
-                  />
-                </div>
+              <div className="w-px h-6 bg-gray-300 mx-3"></div>
+              <div className="flex-1 px-3">
+                <input
+                  type="text"
+                  placeholder="Enter business name or location"
+                  className="w-full text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 text-sm"
+                />
               </div>
               <button className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-full hover:bg-blue-700 transition-colors">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
