@@ -50,10 +50,10 @@ const Header = () => {
               Browse Venues
             </Link>
             <Link
-              to="/favorites"
+              to="/categories"
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
-              Favorites
+              Categories
             </Link>
           </nav>
 
@@ -145,11 +145,11 @@ const Header = () => {
                 Browse Venues
               </Link>
               <Link
-                to="/favorites"
+                to="/categories"
                 className="text-gray-700 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Favorites
+                Categories
               </Link>
               <Link
                 to="/partner/auth"

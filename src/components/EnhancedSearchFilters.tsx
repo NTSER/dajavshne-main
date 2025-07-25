@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarIcon, MapPin, Search, Building, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import InteractiveMap from "./InteractiveMap";
+import { categories } from "@/data/mockData";
 
 interface SearchSuggestion {
   id: string;
@@ -21,6 +23,7 @@ interface SearchFilters {
   businessName: string;
   location: string;
   date: Date | undefined;
+  category: string;
 }
 
 interface VenueData {
@@ -35,6 +38,7 @@ const EnhancedSearchFilters = () => {
     businessName: "",
     location: "",
     date: undefined,
+    category: "",
   });
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -199,6 +203,9 @@ const EnhancedSearchFilters = () => {
     if (filters.date) {
       searchParams.append('date', format(filters.date, 'yyyy-MM-dd'));
     }
+    if (filters.category) {
+      searchParams.append('category', filters.category);
+    }
     
     navigate(`/search?${searchParams.toString()}`);
   };
@@ -301,6 +308,29 @@ const EnhancedSearchFilters = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Divider */}
+        <div className="w-px h-6 bg-border" />
+
+        {/* Category */}
+        <div className="flex-1">
+          <div className="px-4 py-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-1">Category</div>
+            <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
+              <SelectTrigger className="border-0 p-0 text-sm font-medium text-foreground focus:ring-0 bg-transparent h-auto">
+                <SelectValue placeholder="Any category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Any category</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Divider */}

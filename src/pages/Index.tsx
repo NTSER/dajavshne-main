@@ -41,44 +41,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Enhanced Categories Section */}
-      <section className="section-padding bg-gray-50">
-        <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-20"
-          >
-            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-6 py-2 mb-6">
-              <Trophy className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-600">Gaming Categories</span>
-            </div>
-            <h2 className="text-5xl md:text-6xl font-bold mb-8 gradient-text">
-              Choose Your Arena
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From casual hangouts to competitive battlegrounds, find the perfect venue for your gaming style
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {categories.map((category, index) => (
-              <motion.div
-                key={category.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="hover-lift"
-              >
-                <CategoryCard category={category} />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Enhanced Featured Venues Section */}
       <section className="section-padding bg-white">
