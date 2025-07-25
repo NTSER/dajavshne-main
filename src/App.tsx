@@ -85,7 +85,7 @@ const App = () => (
                 } />
                 
                 {/* Admin routes */}
-                <Route path="/admin/*" element={
+                <Route path="/admin" element={
                   <AdminProtectedRoute>
                     <AdminLayout />
                   </AdminProtectedRoute>
