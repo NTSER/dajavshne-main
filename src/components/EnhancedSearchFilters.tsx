@@ -215,7 +215,7 @@ const EnhancedSearchFilters = () => {
   return (
     <>
       {/* Horizontal Search Bar for All Screen Sizes */}
-      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-0 bg-card/80 backdrop-blur-sm rounded-full border border-border p-1.5 max-w-3xl mx-auto glass-effect">
+      <div className="flex flex-row items-center gap-0 bg-card/80 backdrop-blur-sm rounded-full border border-border p-1.5 max-w-3xl mx-auto glass-effect">
         {/* Business Name */}
         <div className="flex-1 relative" ref={searchRef}>
           <div className="px-4 py-3">
@@ -250,8 +250,8 @@ const EnhancedSearchFilters = () => {
           )}
         </div>
 
-        {/* Divider - hidden on mobile */}
-        <div className="hidden sm:block w-px h-6 bg-border" />
+        {/* Divider */}
+        <div className="w-px h-6 bg-border" />
 
         {/* Where */}
         <div className="flex-1 relative">
@@ -303,8 +303,8 @@ const EnhancedSearchFilters = () => {
           )}
         </div>
 
-        {/* Divider - hidden on mobile */}
-        <div className="hidden sm:block w-px h-6 bg-border" />
+        {/* Divider */}
+        <div className="w-px h-6 bg-border" />
 
         {/* Date */}
         <div className="flex-1">
