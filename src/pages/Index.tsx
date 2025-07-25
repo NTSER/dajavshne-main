@@ -56,12 +56,6 @@ const Index = () => {
               <Star className="w-4 h-4 text-primary fill-current" />
               <span className="text-sm font-medium text-primary">Featured Venues</span>
             </div>
-            <h2 className="text-5xl md:text-6xl font-bold mb-8 gradient-text">
-              Top Gaming Destinations
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              Handpicked venues offering the ultimate gaming experience with cutting-edge technology and unbeatable atmosphere
-            </p>
           </motion.div>
 
           {isLoading ? (
