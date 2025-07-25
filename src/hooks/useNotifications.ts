@@ -41,6 +41,7 @@ export const useNotifications = () => {
 
 export const useMarkNotificationAsRead = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async (notificationId: string) => {
@@ -54,7 +55,7 @@ export const useMarkNotificationAsRead = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
     },
   });
 };
@@ -78,13 +79,14 @@ export const useMarkAllNotificationsAsRead = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
     },
   });
 };
 
 export const useDeleteNotification = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async (notificationId: string) => {
@@ -98,7 +100,7 @@ export const useDeleteNotification = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
     },
   });
 };
