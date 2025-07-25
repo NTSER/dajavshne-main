@@ -162,7 +162,7 @@ const EnhancedSearchFilters = () => {
             variant="ghost"
             size="icon"
             onClick={() => setShowMap(true)}
-            className="h-10 w-10 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full"
+            className="h-10 w-10 text-primary hover:text-primary/80 hover:bg-primary/10"
           >
             <Map className="h-5 w-5" />
           </Button>
@@ -209,7 +209,7 @@ const EnhancedSearchFilters = () => {
         <div className="px-2">
           <Button 
             onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-10 h-10 p-0 shadow-lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-10 h-10 p-0 shadow-lg"
             disabled={loading}
           >
             <Search className="h-4 w-4" />

@@ -27,7 +27,7 @@ const Index = () => {
       </div>
       
       {/* Search Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -41,6 +41,69 @@ const Index = () => {
         </div>
       </section>
 
+
+      {/* Enhanced Featured Venues Section */}
+      <section className="section-padding bg-white">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-6 py-2 mb-6">
+              <Star className="w-4 h-4 text-primary fill-current" />
+              <span className="text-sm font-medium text-primary">Featured Venues</span>
+            </div>
+          </motion.div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 h-64 rounded-2xl mb-4 shimmer" />
+                  <div className="bg-gray-200 h-4 rounded mb-2 shimmer" />
+                  <div className="bg-gray-200 h-4 rounded w-2/3 shimmer" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {venues?.slice(0, 6).map((venue, index) => (
+                <motion.div
+                  key={venue.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="hover-lift"
+                >
+                  <VenueCard venue={venue} />
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            viewport={{ once: true }}
+            className="text-center mt-16"
+          >
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="group"
+              onClick={() => window.location.href = '/search'}
+            >
+              View All Venues
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Enhanced Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 section-padding">
