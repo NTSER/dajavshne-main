@@ -208,8 +208,6 @@ const VenuePage = () => {
               </div>
 
 
-              {/* Venue Location Map */}
-              <VenueMap location={venue.location} venueName={venue.name} />
 
               {/* Additional Info */}
               <div className="space-y-4">
