@@ -20,13 +20,20 @@ export const useAdminAuth = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
+      console.log('Fetching profile for user:', user.id, user.email);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile fetch error:', error);
+        throw error;
+      }
+      
+      console.log('Profile data:', data);
       return data as AdminProfile;
     },
     enabled: !!user?.id,
@@ -34,6 +41,8 @@ export const useAdminAuth = () => {
 
   const isAdmin = profile?.role === 'admin';
   const loading = authLoading || profileLoading;
+  
+  console.log('Admin auth state:', { user: user?.email, profile: profile?.role, isAdmin, loading });
 
   return {
     user,
