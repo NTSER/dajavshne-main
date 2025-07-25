@@ -30,7 +30,7 @@ export const useAdminBookings = (status?: string) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (status) {
+      if (status && status !== 'all') {
         bookingsQuery = bookingsQuery.eq('status', status);
       }
 

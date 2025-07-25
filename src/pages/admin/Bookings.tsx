@@ -21,7 +21,7 @@ import { format } from 'date-fns';
 import { useAdminBookings, useBookingStats, useUpdateBookingStatus } from '@/hooks/useAdminBookings';
 
 const Bookings: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: bookings, isLoading } = useAdminBookings(statusFilter || undefined);
@@ -149,7 +149,7 @@ const Bookings: React.FC = () => {
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="confirmed">Confirmed</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
