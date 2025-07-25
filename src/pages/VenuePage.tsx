@@ -155,12 +155,6 @@ const VenuePage = () => {
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="py-6 border-b border-border">
-                <p className="text-muted-foreground leading-relaxed text-base">
-                  {venue.description || "Experience premium gaming in a state-of-the-art facility designed for both casual and competitive gaming. Our venue offers cutting-edge equipment and an atmosphere perfect for tournaments and casual gaming sessions."}
-                </p>
-              </div>
 
               {/* Amenities */}
               {venue.amenities && venue.amenities.length > 0 && (
