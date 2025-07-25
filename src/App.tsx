@@ -87,29 +87,15 @@ const App = () => (
                 {/* Admin routes */}
                 <Route path="/admin" element={
                   <AdminProtectedRoute>
-                    <VenueApprovals />
+                    <AdminLayout />
                   </AdminProtectedRoute>
-                } />
-                <Route path="/admin/venues" element={
-                  <AdminProtectedRoute>
-                    <VenueManagement />
-                  </AdminProtectedRoute>
-                } />
-                <Route path="/admin/users" element={
-                  <AdminProtectedRoute>
-                    <UserManagement />
-                  </AdminProtectedRoute>
-                } />
-                <Route path="/admin/bookings" element={
-                  <AdminProtectedRoute>
-                    <AdminBookings />
-                  </AdminProtectedRoute>
-                } />
-                <Route path="/admin/settings" element={
-                  <AdminProtectedRoute>
-                    <AdminSettings />
-                  </AdminProtectedRoute>
-                } />
+                }>
+                  <Route index element={<VenueApprovals />} />
+                  <Route path="venues" element={<VenueManagement />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="bookings" element={<AdminBookings />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
