@@ -218,11 +218,11 @@ const VenuePage = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto space-y-6 pb-20">
               
-              {/* Price and Basic Info */}
-              <div className="bg-card border border-border rounded-xl p-6 shadow-lg glass-effect">
-                <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-2xl font-semibold text-foreground">${venue.price}</span>
-                  <span className="text-muted-foreground">per hour</span>
+              {/* Price and Basic Info - Enhanced prominence */}
+              <div className="bg-card border-2 border-primary/20 rounded-2xl p-8 shadow-2xl glass-effect ring-2 ring-primary/10 hover:ring-primary/20 transition-all duration-300">
+                <div className="flex items-baseline gap-2 mb-6">
+                  <span className="text-3xl font-bold text-foreground">${venue.price}</span>
+                  <span className="text-lg text-muted-foreground">per hour</span>
                 </div>
                 
                 <BookingForm 

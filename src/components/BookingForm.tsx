@@ -85,7 +85,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   };
   
   const durationHours = calculateDuration();
-  const baseTotalPrice = basePrice * formData.guests * durationHours;
+  const baseTotalPrice = basePrice * durationHours;
   
   // Apply discounts to the total price
   const discountCalculation = calculateDiscountedPrice(
@@ -371,9 +371,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   return (
     <div className="relative">
-      <Card className="border-0 shadow-none">
+      <Card className="border-0 shadow-none bg-transparent">
         <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-2xl font-medium">Book Your Session</CardTitle>
+          <CardTitle className="text-2xl font-bold text-foreground">Book Your Session</CardTitle>
         </CardHeader>
         <CardContent className="px-0 space-y-8 pb-24">
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -623,7 +623,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       </Card>
 
       {/* Sticky Reserve Section */}
-      <div className="fixed bottom-0 right-0 lg:absolute lg:bottom-0 lg:right-0 w-full lg:w-auto bg-background/95 backdrop-blur-sm border-t lg:border-0 p-4 lg:p-0">
+      <div className="fixed bottom-0 right-0 lg:absolute lg:bottom-0 lg:right-0 w-full lg:w-auto bg-gradient-to-r from-primary/10 to-blue-600/10 backdrop-blur-sm border-t-2 border-primary/20 lg:border-0 p-6 lg:p-0 rounded-t-2xl lg:rounded-none">
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
           <div className="flex items-center gap-4">
             <div className="flex-1">
@@ -632,7 +632,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                   ${baseTotalPrice.toFixed(2)}
                 </div>
               )}
-              <span className="text-3xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
+              <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">${totalPrice.toFixed(2)}</span>
               {discountCalculation.savings > 0 && (
                 <div className="text-sm text-green-600 font-medium">
                   Save ${discountCalculation.savings.toFixed(2)}
@@ -641,7 +641,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             </div>
             <Button 
               onClick={handleSubmit}
-              className="h-14 px-8 text-lg font-medium" 
+              className="h-16 px-10 text-xl font-bold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105" 
               disabled={
                 isSubmitting || 
                 !formData.date || 
