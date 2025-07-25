@@ -52,10 +52,6 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-6 py-2 mb-6">
-              <Star className="w-4 h-4 text-primary fill-current" />
-              <span className="text-sm font-medium text-primary">Featured Venues</span>
-            </div>
           </motion.div>
 
           {isLoading ? (

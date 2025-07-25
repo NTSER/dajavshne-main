@@ -35,27 +35,21 @@ const Header = () => {
             Dajavshne
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              to="/search"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-            >
-              Browse Venues
-            </Link>
-            <Link
-              to="/categories"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-            >
-              Categories
-            </Link>
-          </nav>
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Search venues..."
+                className="w-full px-4 py-2 pl-12 pr-4 text-gray-900 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
           {/* Desktop Auth & User Menu */}
           <div className="hidden md:flex items-center space-x-4">
