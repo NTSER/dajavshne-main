@@ -250,8 +250,8 @@ const EnhancedSearchFilters = () => {
           )}
         </div>
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-border" />
+        {/* Divider - hidden on mobile */}
+        <div className="hidden sm:block w-px h-6 bg-border" />
 
         {/* Where */}
         <div className="flex-1 relative">
@@ -303,8 +303,8 @@ const EnhancedSearchFilters = () => {
           )}
         </div>
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-border" />
+        {/* Divider - hidden on mobile */}
+        <div className="hidden sm:block w-px h-6 bg-border" />
 
         {/* Date */}
         <div className="flex-1">
