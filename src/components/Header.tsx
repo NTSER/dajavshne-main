@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, Heart, History, Building2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Menu, X, User, LogOut, Heart, History, Building2, Search, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "./NotificationBell";
 import ProfileDialog from "./ProfileDialog";
 import {
@@ -18,12 +20,48 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [profileDialogTab, setProfileDialogTab] = useState("profile");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showMap, setShowMap] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleSearch = async () => {
+    if (searchQuery.trim()) {
+      // Check for exact venue match
+      try {
+        const { data: venues, error } = await supabase
+          .from('venues')
+          .select('id, name')
+          .ilike('name', searchQuery.trim())
+          .limit(1);
+
+        if (!error && venues && venues.length > 0) {
+          const exactMatch = venues.find(venue => 
+            venue.name.toLowerCase() === searchQuery.toLowerCase().trim()
+          );
+          
+          if (exactMatch) {
+            window.open(`/venue/${exactMatch.id}`, '_blank');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for exact venue match:', error);
+      }
+      
+      // If no exact match, proceed with regular search
+      navigate(`/search?businessName=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleMapLocationSelect = (location: string) => {
+    setSearchQuery(location);
+    setShowMap(false);
   };
 
 
@@ -35,27 +73,45 @@ const Header = () => {
             Dajavshne
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              to="/search"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-            >
-              Browse Venues
-            </Link>
-            <Link
-              to="/categories"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-            >
-              Categories
-            </Link>
-          </nav>
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex items-center gap-0 bg-gray-50/80 backdrop-blur-sm rounded-full border border-gray-200 p-1.5 max-w-md mx-auto">
+            {/* Map Icon */}
+            <div className="px-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowMap(true)}
+                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full"
+              >
+                <Map className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-4 bg-gray-300" />
+
+            {/* Search Input */}
+            <div className="flex-1 px-3">
+              <Input
+                placeholder="Search venues..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="border-0 bg-transparent text-sm placeholder:text-gray-500 focus-visible:ring-0 h-8"
+              />
+            </div>
+
+            {/* Search Button */}
+            <div className="px-1">
+              <Button 
+                onClick={handleSearch}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0"
+                disabled={!searchQuery.trim()}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
           {/* Desktop Auth & User Menu */}
           <div className="hidden md:flex items-center space-x-4">
@@ -128,29 +184,36 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
+          <div className="md:hidden py-4 border-t border-gray-200">
+            {/* Mobile Search */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 bg-gray-50 rounded-full border border-gray-200 p-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowMap(true)}
+                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full flex-shrink-0"
+                >
+                  <Map className="h-4 w-4" />
+                </Button>
+                <Input
+                  placeholder="Search venues..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="border-0 bg-transparent text-sm placeholder:text-gray-500 focus-visible:ring-0"
+                />
+                <Button 
+                  onClick={handleSearch}
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0 flex-shrink-0"
+                  disabled={!searchQuery.trim()}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
             <nav className="flex flex-col space-y-4">
-              <Link
-                to="/"
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                to="/search"
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Browse Venues
-              </Link>
-              <Link
-                to="/categories"
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Categories
-              </Link>
               <Link
                 to="/partner/auth"
                 className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -205,6 +268,41 @@ const Header = () => {
           </div>
         )}
       </div>
+
+      {/* Map Modal */}
+      {showMap && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl border border-gray-200 overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <Map className="h-5 w-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-900">Select Location</h3>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setShowMap(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Select from these popular locations:
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {['Downtown District', 'Tech Park', 'Old Town', 'Gaming District'].map((location) => (
+                  <Button
+                    key={location}
+                    variant="outline"
+                    onClick={() => handleMapLocationSelect(location)}
+                    className="justify-start h-10"
+                  >
+                    <Map className="h-4 w-4 mr-2" />
+                    {location}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
