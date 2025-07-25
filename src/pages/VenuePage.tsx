@@ -15,16 +15,12 @@ import {
   MapPin, 
   Wifi, 
   Car, 
-  ArrowLeft,
-  Share,
-  Heart
+  ArrowLeft
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import VenueMap from "@/components/VenueMap";
-import ReviewsList from "@/components/ReviewsList";
-import VenueServices from "@/components/VenueServices";
 import ServiceDiscountBanner from "@/components/ServiceDiscountBanner";
 import { useState } from "react";
 
@@ -119,17 +115,6 @@ const VenuePage = () => {
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary">
-                    <Share className="h-4 w-4" />
-                    Share
-                  </Button>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary">
-                    <Heart className="h-4 w-4" />
-                    Save
-                  </Button>
-                </div>
               </div>
 
               {/* Image Gallery */}
@@ -195,21 +180,6 @@ const VenuePage = () => {
                 </div>
               )}
 
-              {/* Services Section */}
-              {services && services.length > 0 && (
-                <div className="py-6 border-b border-border">
-                  <VenueServices 
-                    services={services}
-                    onServiceSelect={setSelectedService}
-                    selectedService={selectedService}
-                  />
-                </div>
-              )}
-
-              {/* Reviews Section */}
-              <div className="py-6">
-                <ReviewsList venueId={venue.id} />
-              </div>
             </div>
           </div>
 
