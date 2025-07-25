@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Carousel, 
   CarouselContent, 
@@ -21,15 +20,12 @@ import {
 import { Link } from "react-router-dom";
 import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
-import VenueMap from "@/components/VenueMap";
 import ServiceDiscountBanner from "@/components/ServiceDiscountBanner";
-import SingleVenueMap from "@/components/SingleVenueMap";
 import { useState } from "react";
 
 const VenuePage = () => {
   const { id } = useParams<{ id: string }>();
   const [selectedService, setSelectedService] = useState<VenueService | undefined>();
-  const [showLocationMap, setShowLocationMap] = useState(false);
   
   const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
   const { data: services, isLoading: servicesLoading } = useVenueServices(id!);
@@ -112,13 +108,10 @@ const VenuePage = () => {
                       <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.review_count} reviews</span>
                     </div>
                     <span>·</span>
-                    <button 
-                      onClick={() => setShowLocationMap(true)}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors"
-                    >
+                    <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span className="underline">View on map</span>
-                    </button>
+                      <span>{venue.location}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -150,16 +143,6 @@ const VenuePage = () => {
                 </Carousel>
               </div>
 
-              {/* Host Info */}
-              <div className="flex items-center gap-4 py-6 border-b border-border">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <span className="text-muted-foreground font-medium">H</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Hosted by Venue Manager</h3>
-                  <p className="text-sm text-muted-foreground">Superhost · 2 years hosting</p>
-                </div>
-              </div>
 
 
               {/* Amenities */}
@@ -219,21 +202,6 @@ const VenuePage = () => {
           </div>
         </div>
       </div>
-
-      {/* Interactive Map Modal */}
-      <Dialog open={showLocationMap} onOpenChange={setShowLocationMap}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>{venue.name} - Location</DialogTitle>
-          </DialogHeader>
-          <div className="h-[60vh]">
-            <SingleVenueMap 
-              location={venue.location} 
-              venueName={venue.name}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
