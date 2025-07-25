@@ -38,7 +38,7 @@ const EnhancedSearchFilters = () => {
     businessName: "",
     location: "",
     date: undefined,
-    category: "",
+    category: "all",
   });
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -203,7 +203,7 @@ const EnhancedSearchFilters = () => {
     if (filters.date) {
       searchParams.append('date', format(filters.date, 'yyyy-MM-dd'));
     }
-    if (filters.category) {
+    if (filters.category && filters.category !== "all") {
       searchParams.append('category', filters.category);
     }
     
@@ -322,7 +322,7 @@ const EnhancedSearchFilters = () => {
                 <SelectValue placeholder="Any category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any category</SelectItem>
+                <SelectItem value="all">Any category</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.name}>
                     {category.name}
