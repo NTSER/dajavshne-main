@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { 
   Table, 
   TableBody, 
@@ -22,9 +24,15 @@ import {
   Star,
   Eye,
   EyeOff,
-  Loader2
+  Loader2,
+  Trash2,
+  ExternalLink,
+  Copy,
+  BarChart3
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const VenueManagement: React.FC = () => {
   const { data: venues, isLoading } = useAdminVenues();
@@ -48,6 +56,40 @@ const VenueManagement: React.FC = () => {
 
   const handleToggleVisibility = (venueId: string, currentVisibility: boolean) => {
     toggleVisibility.mutate({ venueId, isVisible: !currentVisibility });
+  };
+
+  const handleDeleteVenue = async (venueId: string, venueName: string) => {
+    try {
+      const { error } = await supabase
+        .from('venues')
+        .delete()
+        .eq('id', venueId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Venue Deleted",
+        description: `${venueName} has been permanently deleted.`,
+      });
+      
+      // Refresh the venues list
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete venue",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyLink = (venueId: string) => {
+    const venueUrl = `${window.location.origin}/venue/${venueId}`;
+    navigator.clipboard.writeText(venueUrl);
+    toast({
+      title: "Link Copied",
+      description: "Venue link copied to clipboard",
+    });
   };
 
   const getStatusBadge = (venue: any) => {
@@ -169,31 +211,91 @@ const VenueManagement: React.FC = () => {
                   </TableCell>
                   
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-white hover:bg-gray-700"
-                      >
-                        {venue.is_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-white hover:bg-gray-700"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-white hover:bg-gray-700"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                        <DropdownMenuItem 
+                          onClick={() => window.open(`/venue/${venue.id}`, '_blank')}
+                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Venue
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem 
+                          onClick={() => handleCopyLink(venue.id)}
+                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem 
+                          onClick={() => handleToggleVisibility(venue.id, venue.is_visible)}
+                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          disabled={venue.approval_status !== 'approved'}
+                        >
+                          {venue.is_visible ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                          {venue.is_visible ? 'Hide Venue' : 'Show Venue'}
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem 
+                          onClick={() => window.open(`/partner/venues/${venue.id}/edit`, '_blank')}
+                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Venue
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem 
+                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          View Analytics
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuSeparator className="bg-gray-700" />
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem 
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Venue
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-gray-800 border-gray-700">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">Delete Venue</AlertDialogTitle>
+                              <AlertDialogDescription className="text-gray-400">
+                                Are you sure you want to delete "{venue.name}"? This action cannot be undone and will permanently remove all venue data, bookings, and reviews.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600">
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteVenue(venue.id, venue.name)}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Delete Venue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
