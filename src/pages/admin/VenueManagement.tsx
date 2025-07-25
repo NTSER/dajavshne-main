@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminVenues, useToggleVenueVisibility } from '@/hooks/useAdminVenues';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const VenueManagement: React.FC = () => {
+  const queryClient = useQueryClient();
   const { data: venues, isLoading } = useAdminVenues();
   const toggleVisibility = useToggleVenueVisibility();
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,28 +69,52 @@ const VenueManagement: React.FC = () => {
 
       if (error) throw error;
 
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['admin-venues'] });
+      
       toast({
         title: "Venue Deleted",
         description: `${venueName} has been permanently deleted.`,
       });
-      
-      // Refresh the venues list
-      window.location.reload();
     } catch (error) {
+      console.error('Delete venue error:', error);
       toast({
         title: "Error",
-        description: "Failed to delete venue",
+        description: "Failed to delete venue. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const handleCopyLink = (venueId: string) => {
-    const venueUrl = `${window.location.origin}/venue/${venueId}`;
-    navigator.clipboard.writeText(venueUrl);
+  const handleCopyLink = async (venueId: string) => {
+    try {
+      const venueUrl = `${window.location.origin}/venue/${venueId}`;
+      await navigator.clipboard.writeText(venueUrl);
+      toast({
+        title: "Link Copied",
+        description: "Venue link copied to clipboard",
+      });
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = `${window.location.origin}/venue/${venueId}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      toast({
+        title: "Link Copied",
+        description: "Venue link copied to clipboard",
+      });
+    }
+  };
+
+  const handleViewAnalytics = (venueId: string, venueName: string) => {
+    // For now, show a toast with venue stats
     toast({
-      title: "Link Copied",
-      description: "Venue link copied to clipboard",
+      title: "Analytics Coming Soon",
+      description: `Detailed analytics for ${venueName} will be available soon.`,
     });
   };
 
@@ -221,10 +247,10 @@ const VenueManagement: React.FC = () => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                      <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700 z-50 shadow-xl">
                         <DropdownMenuItem 
                           onClick={() => window.open(`/venue/${venue.id}`, '_blank')}
-                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          className="text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Venue
@@ -232,7 +258,7 @@ const VenueManagement: React.FC = () => {
                         
                         <DropdownMenuItem 
                           onClick={() => handleCopyLink(venue.id)}
-                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          className="text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
                         >
                           <Copy className="h-4 w-4 mr-2" />
                           Copy Link
@@ -240,7 +266,7 @@ const VenueManagement: React.FC = () => {
                         
                         <DropdownMenuItem 
                           onClick={() => handleToggleVisibility(venue.id, venue.is_visible)}
-                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          className="text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
                           disabled={venue.approval_status !== 'approved'}
                         >
                           {venue.is_visible ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
@@ -249,14 +275,15 @@ const VenueManagement: React.FC = () => {
                         
                         <DropdownMenuItem 
                           onClick={() => window.open(`/partner/venues/${venue.id}/edit`, '_blank')}
-                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          className="text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit Venue
                         </DropdownMenuItem>
                         
                         <DropdownMenuItem 
-                          className="text-gray-300 hover:text-white hover:bg-gray-700"
+                          onClick={() => handleViewAnalytics(venue.id, venue.name)}
+                          className="text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
                         >
                           <BarChart3 className="h-4 w-4 mr-2" />
                           View Analytics
@@ -268,7 +295,7 @@ const VenueManagement: React.FC = () => {
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem 
                               onSelect={(e) => e.preventDefault()}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                              className="text-red-400 hover:text-red-300 hover:bg-red-900/20 cursor-pointer"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete Venue
