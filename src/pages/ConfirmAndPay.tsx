@@ -27,6 +27,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<SavedPaymentMethod | null>(null);
   const [useOneTimePayment, setUseOneTimePayment] = useState(useOneTimeFlow);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   useEffect(() => {
     if (bookingData && user) {
@@ -225,9 +226,25 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
         <span>Your payment information is secure and encrypted</span>
       </div>
 
+      {/* Terms Agreement */}
+      <div className="border-t border-border/50 pt-6">
+        <div className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreeToTerms}
+            onChange={(e) => setAgreeToTerms(e.target.checked)}
+            className="mt-1 h-4 w-4 text-primary focus:ring-primary border-border rounded"
+          />
+          <label htmlFor="terms" className="text-sm text-muted-foreground flex-1">
+            By selecting the button, I agree to the booking terms.
+          </label>
+        </div>
+      </div>
+
       <Button
         type="submit"
-        disabled={!stripe || isProcessing || disabled || (!selectedPaymentMethod && !useOneTimePayment)}
+        disabled={!stripe || isProcessing || disabled || (!selectedPaymentMethod && !useOneTimePayment) || !agreeToTerms}
         className="w-full pulse-glow bg-gradient-to-r from-primary to-secondary"
       >
         {isProcessing ? (
@@ -238,7 +255,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
         ) : (
           <>
             <CreditCard className="w-4 h-4 mr-2" />
-            Pay ${bookingData.totalPrice}
+            Confirm Reservation - ${bookingData.totalPrice}
           </>
         )}
       </Button>
@@ -280,9 +297,7 @@ const ConfirmAndPay = () => {
   const { data: venue } = useVenue(bookingData?.venueId);
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [paymentMethodAdded, setPaymentMethodAdded] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
-  const [useOneTimePaymentFlow, setUseOneTimePaymentFlow] = useState(false);
 
   useEffect(() => {
     if (!bookingData) {
@@ -311,8 +326,14 @@ const ConfirmAndPay = () => {
       return;
     }
     
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleGoBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -441,12 +462,12 @@ const ConfirmAndPay = () => {
               </CardContent>
             </Card>
 
-            {/* Step 2 - Payment Method */}
+            {/* Step 2 - Review your reservation */}
             <Card className={`glass-effect transition-all duration-200 ${
-              currentStep === 2 ? 'border-primary/50' : currentStep > 2 ? 'border-primary/30' : 'border-border/30 opacity-60'
+              currentStep === 2 ? 'border-primary/50' : 'border-border/30 opacity-60'
             }`}>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                       currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
@@ -454,71 +475,31 @@ const ConfirmAndPay = () => {
                       2
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">Add a payment method</h3>
-                      {currentStep > 2 && (
-                        <p className="text-sm text-muted-foreground">Payment methods ready</p>
-                      )}
+                      <h3 className="font-semibold text-foreground">Review your reservation</h3>
+                      <p className="text-sm text-muted-foreground">Choose payment method and confirm booking</p>
                     </div>
                   </div>
                   {currentStep === 2 && (
                     <Button 
-                      onClick={handleContinue}
-                      className="pulse-glow"
+                      variant="outline"
+                      onClick={handleGoBack}
+                      size="sm"
                     >
-                      Continue
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
                     </Button>
                   )}
                 </div>
-                 {currentStep === 2 && (
-                   <div className="mt-4 space-y-4">
-                     <SavedPaymentMethods showAddNew={true} />
-                     <div className="border-t border-border/50 pt-4">
-                       <Button 
-                         variant="outline"
-                         onClick={() => {
-                           setUseOneTimePaymentFlow(true);
-                           handleContinue();
-                         }}
-                         className="w-full"
-                       >
-                         <CreditCard className="w-4 h-4 mr-2" />
-                         Pay One-Time (No card saved)
-                       </Button>
-                       <p className="text-xs text-muted-foreground mt-2 text-center">
-                         Enter payment details in the next step without saving your card
-                       </p>
-                     </div>
-                   </div>
-                 )}
-              </CardContent>
-            </Card>
-
-            {/* Step 3 - Review & Pay */}
-            <Card className={`glass-effect transition-all duration-200 ${
-              currentStep === 3 ? 'border-primary/50' : 'border-border/30 opacity-60'
-            }`}>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">Complete Payment</h3>
-                    <p className="text-sm text-muted-foreground">Choose your payment method and complete booking</p>
-                  </div>
-                </div>
                 
-                 {currentStep === 3 && !bookingComplete && (
-                   <PaymentForm
-                     bookingData={bookingData}
-                     onSuccess={handlePaymentSuccess}
-                     onError={handlePaymentError}
-                     disabled={!user}
-                     useOneTimeFlow={useOneTimePaymentFlow}
-                   />
-                 )}
+                {currentStep === 2 && !bookingComplete && (
+                  <PaymentForm
+                    bookingData={bookingData}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    disabled={!user}
+                    useOneTimeFlow={false}
+                  />
+                )}
 
                 {bookingComplete && (
                   <div className="text-center py-8">
