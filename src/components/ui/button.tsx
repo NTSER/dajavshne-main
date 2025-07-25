@@ -10,11 +10,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary via-primary to-secondary text-primary-foreground hover:shadow-lg hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100",
+        default: "bg-gradient-to-r from-primary via-blue-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-95 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-lg hover:shadow-destructive/30 hover:scale-[1.02] active:scale-95",
-        outline: "border border-border bg-background/50 backdrop-blur-sm hover:bg-accent/10 hover:border-accent/50 hover:text-accent hover:shadow-lg hover:shadow-accent/20 hover:scale-[1.02] active:scale-95",
-        secondary: "bg-secondary/20 text-secondary border border-secondary/30 backdrop-blur-sm hover:bg-secondary/30 hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/20 hover:scale-[1.02] active:scale-95",
-        ghost: "hover:bg-accent/10 hover:text-foreground text-muted-foreground rounded-lg",
+        outline: "border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 hover:shadow-md hover:scale-[1.02] active:scale-95",
+        secondary: "bg-gray-100 text-gray-900 border border-gray-200 hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] active:scale-95",
+        ghost: "hover:bg-gray-100 hover:text-foreground text-muted-foreground rounded-lg",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
       },
       size: {

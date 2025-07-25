@@ -54,11 +54,12 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				gaming: {
-					purple: '#8B5CF6',
+					purple: '#6366F1',
 					blue: '#3B82F6',
 					cyan: '#06B6D4',
 					pink: '#EC4899',
-					orange: '#F97316'
+					orange: '#F97316',
+					gray: '#F8FAFC'
 				}
 			},
 			borderRadius: {

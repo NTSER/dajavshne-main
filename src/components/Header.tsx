@@ -28,10 +28,10 @@ const Header = () => {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          <Link to="/" className="text-2xl font-bold text-primary">
+          <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Dajavshne
           </Link>
 
@@ -39,19 +39,19 @@ const Header = () => {
           <nav className="hidden md:flex space-x-8">
             <Link
               to="/"
-              className="text-foreground hover:text-primary transition-colors"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               Home
             </Link>
             <Link
               to="/search"
-              className="text-foreground hover:text-primary transition-colors"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               Browse Venues
             </Link>
             <Link
               to="/favorites"
-              className="text-foreground hover:text-primary transition-colors"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               Favorites
             </Link>
@@ -60,7 +60,7 @@ const Header = () => {
           {/* Desktop Auth & User Menu */}
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/partner/auth">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-50">
                 <Building2 className="h-4 w-4 mr-2" />
                 Partner Portal
               </Button>
@@ -70,7 +70,7 @@ const Header = () => {
                 <NotificationBell />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="hover:bg-gray-100">
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -112,7 +112,7 @@ const Header = () => {
               </>
             ) : (
               <Link to="/auth">
-                <Button>Sign In</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Sign In</Button>
               </Link>
             )}
           </div>
@@ -132,37 +132,37 @@ const Header = () => {
             <nav className="flex flex-col space-y-4">
               <Link
                 to="/"
-                className="text-foreground hover:text-primary transition-colors"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
               </Link>
               <Link
                 to="/search"
-                className="text-foreground hover:text-primary transition-colors"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Browse Venues
               </Link>
               <Link
                 to="/favorites"
-                className="text-foreground hover:text-primary transition-colors"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Favorites
               </Link>
               <Link
                 to="/partner/auth"
-                className="text-foreground hover:text-primary transition-colors"
+                className="text-gray-700 hover:text-blue-600 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Partner Portal
               </Link>
-              <div className="pt-4 border-t border-border">
+              <div className="pt-4 border-t border-gray-200">
                 {user ? (
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-gray-500">
                         Signed in as {user.email}
                       </span>
                       <NotificationBell />
@@ -197,7 +197,7 @@ const Header = () => {
                   </div>
                 ) : (
                   <Link to="/auth" className="w-full">
-                    <Button className="w-full">Sign In</Button>
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">Sign In</Button>
                   </Link>
                 )}
               </div>
