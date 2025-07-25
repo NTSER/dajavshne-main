@@ -1,9 +1,9 @@
-
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, Heart, History, Building2 } from "lucide-react";
+import { Menu, X, User, LogOut, Heart, History, Building2, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useVenueSearch } from "@/hooks/useVenueSearch";
 import NotificationBell from "./NotificationBell";
 import ProfileDialog from "./ProfileDialog";
 import {
@@ -18,14 +18,37 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [profileDialogTab, setProfileDialogTab] = useState("profile");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
+  const { searchQuery, searchResults, isSearching, handleSearch, clearSearch } = useVenueSearch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchDropdownRef.current &&
+        !searchDropdownRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        clearSearch();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [clearSearch]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
+  const handleVenueSelect = (venueId: string) => {
+    clearSearch();
+    navigate(`/venue/${venueId}`);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 border-b border-gray-200 shadow-sm">
@@ -36,7 +59,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-3xl mx-8">
+          <div className="hidden md:flex flex-1 max-w-3xl mx-8 relative">
             <div className="relative w-full bg-gray-50 rounded-full border border-gray-200 flex items-center p-1 shadow-sm h-12">
               <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-full">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,8 +70,11 @@ const Header = () => {
               <div className="w-px h-6 bg-gray-300 mx-3"></div>
               <div className="flex-1 px-3">
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Enter business name or location"
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
                   className="w-full text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 text-sm"
                 />
               </div>
@@ -58,6 +84,44 @@ const Header = () => {
                 </svg>
               </button>
             </div>
+
+            {/* Search Results Dropdown */}
+            {isSearching && (
+              <div 
+                ref={searchDropdownRef}
+                className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto"
+              >
+                {searchResults.length > 0 ? (
+                  <div className="py-2">
+                    {searchResults.map((venue) => (
+                      <button
+                        key={venue.id}
+                        onClick={() => handleVenueSelect(venue.id)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                      >
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <MapPin className="w-5 h-5 text-gray-500" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{venue.name}</div>
+                          <div className="text-sm text-gray-500">{venue.location} • {venue.category}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-blue-600">${venue.price}/hr</div>
+                          <div className="text-xs text-gray-400">⭐ {venue.rating}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 px-4 text-center text-gray-500">
+                    <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    <div>No venues found</div>
+                    <div className="text-sm">Try adjusting your search terms</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Desktop Auth & User Menu */}
