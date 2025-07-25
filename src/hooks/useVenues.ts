@@ -28,14 +28,21 @@ export interface VenueService {
   images: string[];
 }
 
-export const useVenues = () => {
+export const useVenues = (showHidden = true) => {
   return useQuery({
-    queryKey: ['venues'],
+    queryKey: ['venues', showHidden],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('venues')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // If showHidden is false, filter to only show visible venues
+      if (!showHidden) {
+        query = query.eq('is_visible', true);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
