@@ -16,6 +16,16 @@ const Index = () => {
     <div className="min-h-screen bg-background bg-gaming-mesh">
       <Header />
       
+      {/* Admin Access Button */}
+      <div className="fixed top-20 right-4 z-50">
+        <Button 
+          onClick={() => window.location.href = '/admin'}
+          className="bg-primary hover:bg-primary/90"
+        >
+          Admin Panel
+        </Button>
+      </div>
+      
       {/* Search Section */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
