@@ -36,24 +36,24 @@ const Header = () => {
           </Link>
 
           {/* Desktop Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-3xl mx-8">
-            <div className="relative w-full bg-gray-100 rounded-full border border-gray-200 flex items-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full ml-1">
+          <div className="hidden md:flex flex-1 max-w-4xl mx-8">
+            <div className="relative w-full bg-gray-50 rounded-full border border-gray-200 flex items-center p-1 shadow-sm">
+              <div className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <div className="flex-1 px-4">
-                <div className="text-sm font-medium text-gray-700 mb-1">Search venues</div>
+              <div className="flex-1 px-6">
+                <div className="text-sm font-semibold text-gray-700 leading-tight">Search venues</div>
                 <input
                   type="text"
                   placeholder="Enter business name or location"
-                  className="w-full text-gray-600 bg-transparent border-none outline-none placeholder-gray-500"
+                  className="w-full text-gray-500 bg-transparent border-none outline-none placeholder-gray-400 text-sm mt-1"
                 />
               </div>
-              <button className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full mr-1">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full hover:bg-blue-700 transition-colors">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
