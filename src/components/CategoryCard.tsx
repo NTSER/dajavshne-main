@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import { DivideIcon as LucideIcon } from "lucide-react";
 
 interface Category {
   id: string;
