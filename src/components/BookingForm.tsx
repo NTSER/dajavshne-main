@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useVenueDiscounts, calculateDiscountedPrice } from "@/hooks/useDiscounts";
+import ServiceBookingDialog from "@/components/ServiceBookingDialog";
+import { VenueService } from "@/hooks/useVenues";
 
 interface BookingFormProps {
   venueId: string;
@@ -21,12 +23,7 @@ interface BookingFormProps {
   openingTime?: string;
   closingTime?: string;
   defaultDiscount?: number;
-  services?: Array<{
-    id: string;
-    name: string;
-    price: number;
-    duration: string;
-  }>;
+  services?: VenueService[];
   selectedServiceId?: string;
 }
 
@@ -49,6 +46,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     specialRequests: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialogService, setDialogService] = useState<VenueService | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   // Fetch venue discounts
   const { data: discounts = [] } = useVenueDiscounts(venueId);
@@ -365,6 +364,32 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     return time; // Return time as-is in 24-hour format (HH:MM)
   };
 
+  const handleServiceSelect = (service: VenueService) => {
+    setDialogService(service);
+    setIsDialogOpen(true);
+  };
+
+  const handleServiceConfirm = (data: {
+    service: VenueService;
+    guests: number;
+    date: Date;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      serviceIds: [...prev.serviceIds, data.service.id],
+      guests: data.guests,
+      date: data.date,
+      serviceBookings: [
+        ...prev.serviceBookings,
+        {
+          serviceId: data.service.id,
+          arrivalTime: '',
+          departureTime: ''
+        }
+      ]
+    }));
+  };
+
   return (
     <div className="relative">
       <Card className="border-0 shadow-none bg-transparent">
@@ -374,61 +399,65 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         <CardContent className="px-0 space-y-8 pb-24">
           <form onSubmit={handleSubmit} className="space-y-8">
             
-            {/* Guest Counter */}
-            <div className="flex items-center justify-between py-4 border-b border-border">
-              <span className="text-lg">{formData.guests} guest{formData.guests !== 1 ? 's' : ''}</span>
-              <div className="flex items-center gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setFormData(prev => ({ ...prev, guests: Math.max(1, prev.guests - 1) }))}
-                  disabled={formData.guests <= 1}
-                >
-                  -
-                </Button>
-                <span className="w-8 text-center font-medium">{formData.guests}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setFormData(prev => ({ ...prev, guests: Math.min(20, prev.guests + 1) }))}
-                  disabled={formData.guests >= 20}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-
-            {/* Date Selection */}
-            <div className="space-y-4">
-              <Popover>
-                <PopoverTrigger asChild>
+            {/* Guest Counter - Only show if services are selected */}
+            {formData.serviceIds.length > 0 && (
+              <div className="flex items-center justify-between py-4 border-b border-border">
+                <span className="text-lg">{formData.guests} guest{formData.guests !== 1 ? 's' : ''}</span>
+                <div className="flex items-center gap-4">
                   <Button
+                    type="button"
                     variant="outline"
-                    className={cn(
-                      "w-full justify-between text-left font-normal h-14 text-lg",
-                      !formData.date && "text-muted-foreground"
-                    )}
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setFormData(prev => ({ ...prev, guests: Math.max(1, prev.guests - 1) }))}
+                    disabled={formData.guests <= 1}
                   >
-                    {formData.date ? format(formData.date, "EEEE, MMMM do, yyyy") : "Select date"}
-                    <CalendarIcon className="h-5 w-5" />
+                    -
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.date}
-                    onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
-                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+                  <span className="w-8 text-center font-medium">{formData.guests}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setFormData(prev => ({ ...prev, guests: Math.min(20, prev.guests + 1) }))}
+                    disabled={formData.guests >= 20}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Date Selection - Only show if services are selected */}
+            {formData.serviceIds.length > 0 && (
+              <div className="space-y-4">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-between text-left font-normal h-14 text-lg",
+                        !formData.date && "text-muted-foreground"
+                      )}
+                    >
+                      {formData.date ? format(formData.date, "EEEE, MMMM do, yyyy") : "Select date"}
+                      <CalendarIcon className="h-5 w-5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.date}
+                      onSelect={(date) => setFormData(prev => ({ ...prev, date }))}
+                      disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
 
             {/* Main Booking Times - Only show if no services */}
             {services.length === 0 && (
@@ -494,41 +523,56 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             {/* Services Selection */}
             {services.length > 0 && (
               <div className="space-y-4">
-            {services.map((service) => {
-              const isSelected = formData.serviceIds.includes(service.id);
-              return (
-                <div 
-                  key={service.id}
-                  className={cn(
-                    "flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
-                    isSelected 
-                      ? "border-primary bg-primary/5" 
-                      : "border-border hover:border-primary/50"
-                  )}
-                   onClick={() => {
-                     setFormData(prev => ({
-                       ...prev,
-                       serviceIds: isSelected
-                         ? prev.serviceIds.filter(id => id !== service.id)
-                         : [...prev.serviceIds, service.id],
-                       serviceBookings: isSelected
-                         ? prev.serviceBookings.filter(sb => sb.serviceId !== service.id)
-                         : prev.serviceBookings
-                     }));
-                   }}
-                >
-                  <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
-                    <p className="text-muted-foreground">
-                      ${service.price} / guest · {service.duration}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+                <h3 className="text-lg font-medium">Available Services</h3>
+                {services.map((service) => {
+                  const isSelected = formData.serviceIds.includes(service.id);
+                  return (
+                    <div 
+                      key={service.id}
+                      className={cn(
+                        "flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                        isSelected 
+                          ? "border-primary bg-primary/5" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                      onClick={() => handleServiceSelect(service)}
+                    >
+                      {service.images && service.images.length > 0 ? (
+                        <img
+                          src={service.images[0]}
+                          alt={service.name}
+                          className="w-16 h-16 object-cover rounded-xl flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
+                        <p className="text-muted-foreground">
+                          ${service.price} / guest · {service.duration}
+                        </p>
+                        {service.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {service.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
+
+            {/* Service Booking Dialog */}
+            <ServiceBookingDialog
+              service={dialogService}
+              isOpen={isDialogOpen}
+              onClose={() => {
+                setIsDialogOpen(false);
+                setDialogService(null);
+              }}
+              onConfirm={handleServiceConfirm}
+            />
 
             {/* Service Time Selection */}
             {formData.serviceIds.length > 0 && (
