@@ -28,6 +28,15 @@ const EditVenue = lazy(() => import("./pages/partner/EditVenue"));
 const Analytics = lazy(() => import("./pages/partner/Analytics"));
 const PartnerProtectedRoute = lazy(() => import("./components/PartnerProtectedRoute"));
 
+// Admin pages
+const AdminLayout = lazy(() => import("./components/AdminLayout"));
+const AdminProtectedRoute = lazy(() => import("./components/AdminProtectedRoute"));
+const VenueApprovals = lazy(() => import("./pages/admin/VenueApprovals"));
+const VenueManagement = lazy(() => import("./pages/admin/VenueManagement"));
+const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
+const AdminBookings = lazy(() => import("./pages/admin/Bookings"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -74,6 +83,19 @@ const App = () => (
                     <Analytics />
                   </PartnerProtectedRoute>
                 } />
+                
+                {/* Admin routes */}
+                <Route path="/admin/*" element={
+                  <AdminProtectedRoute>
+                    <AdminLayout />
+                  </AdminProtectedRoute>
+                }>
+                  <Route index element={<VenueApprovals />} />
+                  <Route path="venues" element={<VenueManagement />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="bookings" element={<AdminBookings />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

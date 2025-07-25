@@ -389,6 +389,7 @@ export type Database = {
       venues: {
         Row: {
           amenities: string[] | null
+          approval_status: string | null
           category: string
           closing_time: string | null
           created_at: string | null
@@ -396,17 +397,23 @@ export type Database = {
           description: string | null
           id: string
           images: string[] | null
+          is_visible: boolean | null
+          latitude: number | null
           location: string
+          longitude: number | null
           name: string
           opening_time: string | null
           partner_id: string | null
           price: number
+          priority: number | null
           rating: number | null
+          rejected_reason: string | null
           review_count: number | null
           updated_at: string | null
         }
         Insert: {
           amenities?: string[] | null
+          approval_status?: string | null
           category: string
           closing_time?: string | null
           created_at?: string | null
@@ -414,17 +421,23 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
+          is_visible?: boolean | null
+          latitude?: number | null
           location: string
+          longitude?: number | null
           name: string
           opening_time?: string | null
           partner_id?: string | null
           price: number
+          priority?: number | null
           rating?: number | null
+          rejected_reason?: string | null
           review_count?: number | null
           updated_at?: string | null
         }
         Update: {
           amenities?: string[] | null
+          approval_status?: string | null
           category?: string
           closing_time?: string | null
           created_at?: string | null
@@ -432,12 +445,17 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
+          is_visible?: boolean | null
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           name?: string
           opening_time?: string | null
           partner_id?: string | null
           price?: number
+          priority?: number | null
           rating?: number | null
+          rejected_reason?: string | null
           review_count?: number | null
           updated_at?: string | null
         }
