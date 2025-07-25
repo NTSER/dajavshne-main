@@ -373,6 +373,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     service: VenueService;
     guests: number;
     date: Date;
+    arrivalTime: string;
+    departureTime: string;
   }) => {
     setFormData(prev => ({
       ...prev,
@@ -383,8 +385,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         ...prev.serviceBookings,
         {
           serviceId: data.service.id,
-          arrivalTime: '',
-          departureTime: ''
+          arrivalTime: data.arrivalTime,
+          departureTime: data.departureTime
         }
       ]
     }));
@@ -572,6 +574,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                 setDialogService(null);
               }}
               onConfirm={handleServiceConfirm}
+              openingTime={openingTime}
+              closingTime={closingTime}
             />
 
             {/* Service Time Selection */}
