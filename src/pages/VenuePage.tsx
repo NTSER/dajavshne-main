@@ -108,10 +108,13 @@ const VenuePage = () => {
                       <span className="underline hover:text-foreground transition-colors cursor-pointer">{venue.review_count} reviews</span>
                     </div>
                     <span>·</span>
-                    <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(venue.location)}`, '_blank')}
+                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
                       <MapPin className="h-4 w-4" />
-                      <span>{venue.location}</span>
-                    </div>
+                      <span className="underline">{venue.location}</span>
+                    </button>
                   </div>
                 </div>
               </div>
