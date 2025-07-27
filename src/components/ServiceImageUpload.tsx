@@ -12,7 +12,7 @@ interface ServiceImageUploadProps {
   serviceIndex: number;
 }
 
-export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
+const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
   images,
   onImagesChange,
   serviceIndex
@@ -191,3 +191,6 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
     </div>
   );
 };
+
+export { ServiceImageUpload };
+export default ServiceImageUpload;
