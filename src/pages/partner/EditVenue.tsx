@@ -8,6 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,12 +23,20 @@ import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 
 type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
 
+// Game options for each service type
+const SERVICE_GAMES = {
+  'PC Gaming': ['Counter-Strike 2', 'Valorant', 'Dota 2', 'League of Legends'],
+  'PlayStation 5': ['FIFA 24', 'Mortal Kombat 11', 'Call of Duty: Modern Warfare III', 'Gran Turismo 7'],
+  'Billiards': ['8-Ball Pool', '9-Ball Pool', 'Cutthroat', 'One Pocket']
+};
+
 interface VenueService {
   id?: string;
   service_type: ServiceType;
   price: number;
   images: string[];
   discount_percentage: number;
+  service_games?: string[];
 }
 
 interface VenueData {
@@ -88,7 +101,8 @@ const EditVenue = () => {
         service_type: service.service_type || 'PC Gaming',
         price: service.price,
         images: service.images || [],
-        discount_percentage: 0 // Services don't have discount_percentage in DB yet
+        discount_percentage: 0, // Services don't have discount_percentage in DB yet
+        service_games: [] // Initialize empty service games array
       })) || []);
 
     } catch (error: any) {
@@ -173,7 +187,8 @@ const EditVenue = () => {
       service_type: 'PC Gaming',
       price: 0,
       images: [],
-      discount_percentage: 0
+      discount_percentage: 0,
+      service_games: []
     }]);
   };
 
@@ -185,6 +200,25 @@ const EditVenue = () => {
   const updateService = (index: number, field: keyof VenueService, value: any) => {
     const newServices = [...services];
     newServices[index] = { ...newServices[index], [field]: value };
+    
+    // Reset service_games when service_type changes
+    if (field === 'service_type') {
+      newServices[index].service_games = [];
+    }
+    
+    setServices(newServices);
+  };
+
+  const toggleServiceGame = (serviceIndex: number, game: string) => {
+    const newServices = [...services];
+    const currentGames = newServices[serviceIndex].service_games || [];
+    
+    if (currentGames.includes(game)) {
+      newServices[serviceIndex].service_games = currentGames.filter(g => g !== game);
+    } else {
+      newServices[serviceIndex].service_games = [...currentGames, game];
+    }
+    
     setServices(newServices);
   };
 
@@ -398,6 +432,77 @@ const EditVenue = () => {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* Service Games - Show only for specific service types */}
+                      {(service.service_type === 'PC Gaming' || 
+                        service.service_type === 'PlayStation 5' || 
+                        service.service_type === 'Billiards') && (
+                        <div className="space-y-2">
+                          <Label>Service Games</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between"
+                              >
+                                {service.service_games?.length ? 
+                                  `${service.service_games.length} game(s) selected` : 
+                                  "Select games"
+                                }
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search games..." />
+                                <CommandEmpty>No games found.</CommandEmpty>
+                                <CommandGroup>
+                                  <CommandList>
+                                    {SERVICE_GAMES[service.service_type].map((game) => (
+                                      <CommandItem
+                                        key={game}
+                                        onSelect={() => toggleServiceGame(index, game)}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            service.service_games?.includes(game)
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          )}
+                                        />
+                                        {game}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandList>
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          
+                          {/* Display selected games as badges */}
+                          {service.service_games && service.service_games.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {service.service_games.map((game) => (
+                                <Badge
+                                  key={game}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {game}
+                                  <button
+                                    onClick={() => toggleServiceGame(index, game)}
+                                    className="ml-1 text-xs hover:text-red-500"
+                                  >
+                                    ×
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       
                       {/* Service Images */}
                       <ServiceImageUpload
