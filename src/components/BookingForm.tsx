@@ -469,37 +469,61 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                 <h3 className="text-lg font-medium">Available Services</h3>
                 {services.map((service) => {
                   const isSelected = formData.serviceIds.includes(service.id);
+                  const serviceBooking = formData.serviceBookings.find(sb => sb.serviceId === service.id);
+                  
                   return (
                     <div 
                       key={service.id}
                       className={cn(
-                        "flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                        "p-4 rounded-xl border-2 cursor-pointer transition-all",
                         isSelected 
                           ? "border-primary bg-primary/5" 
                           : "border-border hover:border-primary/50"
                       )}
                       onClick={() => handleServiceSelect(service)}
                     >
-                      {service.images && service.images.length > 0 ? (
-                        <img
-                          src={service.images[0]}
-                          alt={service.name}
-                          className="w-16 h-16 object-cover rounded-xl flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
-                        <p className="text-muted-foreground">
-                          ${service.price} / guest · {service.duration}
-                        </p>
-                        {service.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {service.description}
-                          </p>
+                      <div className="flex items-start gap-4">
+                        {service.images && service.images.length > 0 ? (
+                          <img
+                            src={service.images[0]}
+                            alt={service.name}
+                            className="w-16 h-16 object-cover rounded-xl flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
                         )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
+                          <p className="text-muted-foreground">
+                            ${service.price} / guest · {service.duration}
+                          </p>
+                          {service.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {service.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      
+                      {/* Selected booking information */}
+                      {isSelected && serviceBooking && formData.date && (
+                        <div className="mt-4 pt-4 border-t border-border space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Guests:</span>
+                            <span className="font-medium">{formData.guests}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Date:</span>
+                            <span className="font-medium">{format(formData.date, "MMM dd, yyyy")}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Time:</span>
+                            <span className="font-medium">
+                              {formatTime(serviceBooking.arrivalTime)} - {formatTime(serviceBooking.departureTime)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
