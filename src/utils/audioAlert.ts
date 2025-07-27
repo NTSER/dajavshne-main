@@ -60,7 +60,7 @@ class AudioAlert {
     }
   }
 
-  async playBookingSound(duration: number = 3000) {
+  async playBookingSound(duration: number = 4000) {
     if (this.isPlaying) return;
 
     try {
@@ -69,27 +69,47 @@ class AudioAlert {
 
       this.isPlaying = true;
 
-      // Create a more attention-grabbing sound for new bookings
+      // Create a much more attention-grabbing sound for booking alerts
       this.oscillator = this.audioContext.createOscillator();
       this.gainNode = this.audioContext.createGain();
 
       this.oscillator.connect(this.gainNode);
       this.gainNode.connect(this.audioContext.destination);
 
-      // Rising tone pattern for booking alerts
-      this.oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
-      this.oscillator.frequency.linearRampToValueAtTime(800, this.audioContext.currentTime + 0.2);
-      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.4);
-      this.oscillator.frequency.linearRampToValueAtTime(1000, this.audioContext.currentTime + 0.6);
-      this.oscillator.frequency.setValueAtTime(1000, this.audioContext.currentTime + 1.0);
-      this.oscillator.frequency.linearRampToValueAtTime(400, this.audioContext.currentTime + 1.4);
+      // Urgent alarm-like pattern - much louder and more distinctive
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime);
+      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.15);
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 0.3);
+      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.45);
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 0.6);
+      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.75);
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 0.9);
+      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 1.05);
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 1.2);
+      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 1.35);
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 1.5);
+      this.oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 1.65);
+      this.oscillator.frequency.setValueAtTime(1200, this.audioContext.currentTime + 1.8);
+      this.oscillator.frequency.linearRampToValueAtTime(600, this.audioContext.currentTime + 2.2);
 
-      // Pulsing volume
-      this.gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime);
-      this.gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime + 0.5);
-      this.gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime + 1.0);
-      this.gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime + 1.5);
-      this.gainNode.gain.setValueAtTime(0.4, this.audioContext.currentTime + 2.0);
+      // Much louder volume - hard to miss!
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 0.1);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 0.2);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 0.3);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 0.4);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 0.5);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 0.6);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 0.7);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 0.8);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 0.9);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 1.0);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 1.1);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 1.2);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 1.3);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 1.4);
+      this.gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime + 1.5);
+      this.gainNode.gain.setValueAtTime(0.7, this.audioContext.currentTime + 1.6);
       this.gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration / 1000);
 
       this.oscillator.start(this.audioContext.currentTime);

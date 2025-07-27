@@ -142,8 +142,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
             setPendingBookings(prev => [newBooking, ...prev]);
             
-            // Play booking sound alert
-            audioAlert.playBookingSound(3000);
+            // Play LOUD booking sound alert - harder to miss!
+            audioAlert.playBookingSound(4000);
             
             // Show notification toast
             toast({
