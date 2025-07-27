@@ -224,6 +224,18 @@ const EditVenue = () => {
     return allGames.filter(game => game.category === serviceType);
   };
 
+  // Generate 30-minute time slots
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this venue? This action cannot be undone.')) {
       return;
@@ -349,23 +361,41 @@ const EditVenue = () => {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="opening">Opening Time</Label>
-                  <Input
-                    id="opening"
-                    type="time"
-                    value={venue.opening_time}
-                    onChange={(e) => setVenue({...venue, opening_time: e.target.value})}
-                  />
+                  <Label htmlFor="opening">Opening Time *</Label>
+                  <Select 
+                    value={venue.opening_time} 
+                    onValueChange={(value) => setVenue({...venue, opening_time: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select opening time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeSlots().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="closing">Closing Time</Label>
-                  <Input
-                    id="closing"
-                    type="time"
-                    value={venue.closing_time}
-                    onChange={(e) => setVenue({...venue, closing_time: e.target.value})}
-                  />
+                  <Label htmlFor="closing">Closing Time *</Label>
+                  <Select 
+                    value={venue.closing_time} 
+                    onValueChange={(value) => setVenue({...venue, closing_time: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select closing time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateTimeSlots().map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
