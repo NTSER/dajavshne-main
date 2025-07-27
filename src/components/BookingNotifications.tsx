@@ -36,8 +36,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
   useEffect(() => {
     if (profile?.id) {
+      console.log('🚀 Partner profile loaded, setting up BookingNotifications for:', profile.id);
       fetchPendingBookings();
-      subscribeToBookings();
+      const cleanup = subscribeToBookings();
+      return cleanup;
+    } else {
+      console.log('⏳ Waiting for partner profile...');
     }
   }, [profile]);
 
