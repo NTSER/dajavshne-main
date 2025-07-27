@@ -40,6 +40,7 @@ const ServiceBookingDialog = ({
   const [guests, setGuests] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [arrivalTime, setArrivalTime] = useState("");
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [departureTime, setDepartureTime] = useState("");
 
   // Generate 30-minute time slots based on venue hours
@@ -170,34 +171,10 @@ const ServiceBookingDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Book {service.name}</DialogTitle>
+          <DialogTitle className="text-xl">Book {service.name} - ${service.price}/guest</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Service Info */}
-          <Card className="border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                {service.images && service.images.length > 0 && (
-                  <img
-                    src={service.images[0]}
-                    alt={service.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
-                )}
-                <div className="flex-1">
-                  <h3 className="font-semibold">{service.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {service.description}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">${service.price}/guest</Badge>
-                    <Badge variant="outline">{service.duration}</Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Guest Count */}
           <div className="space-y-3">
@@ -234,7 +211,7 @@ const ServiceBookingDialog = ({
           {/* Date Selection */}
           <div className="space-y-3">
             <label className="text-sm font-medium">Select Date</label>
-            <Popover>
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -251,7 +228,10 @@ const ServiceBookingDialog = ({
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setIsDatePickerOpen(false);
+                  }}
                   disabled={(date) => date < new Date()}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
