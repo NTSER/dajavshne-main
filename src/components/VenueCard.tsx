@@ -86,7 +86,11 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               ))}
             </div>
             <div className="text-right">
-              <span className="font-semibold text-blue-600">${venue.price}</span>
+              <span className="font-semibold text-blue-600">
+                ${services && services.length > 0 
+                  ? Math.min(...services.map(s => s.price)) 
+                  : venue.price}
+              </span>
               <span className="text-sm text-gray-500">/hour</span>
             </div>
           </div>
