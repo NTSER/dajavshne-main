@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Minus, Plus, Users, Clock } from "lucide-react";
+import { CalendarIcon, Minus, Plus, Users, Clock, Gamepad2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -48,7 +48,27 @@ const ServiceBookingDialog = ({
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
+  const [selectedGame, setSelectedGame] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Available games list
+  const availableGames = [
+    "Counter-Strike 2",
+    "Fortnite",
+    "League of Legends",
+    "Valorant",
+    "Call of Duty: Warzone",
+    "Apex Legends",
+    "Overwatch 2",
+    "Rocket League",
+    "FIFA 24",
+    "Grand Theft Auto V",
+    "Minecraft",
+    "Among Us",
+    "Fall Guys",
+    "Cyberpunk 2077",
+    "The Witcher 3"
+  ];
 
   // Set initial values when dialog opens with existing data
   useEffect(() => {
@@ -63,6 +83,7 @@ const ServiceBookingDialog = ({
       setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
+      setSelectedGame("");
     }
   }, [isOpen, initialData]);
 
@@ -170,6 +191,7 @@ const ServiceBookingDialog = ({
       setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
+      setSelectedGame("");
       onClose();
     }
   };
@@ -262,6 +284,33 @@ const ServiceBookingDialog = ({
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Game Selection */}
+          {selectedDate && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Select Game</label>
+              <Select value={selectedGame} onValueChange={setSelectedGame}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose a game">
+                    <div className="flex items-center gap-2">
+                      <Gamepad2 className="h-4 w-4" />
+                      {selectedGame || "Choose a game"}
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-h-[160px]">
+                  {availableGames.map((game) => (
+                    <SelectItem key={game} value={game}>
+                      <div className="flex items-center gap-2">
+                        <Gamepad2 className="h-4 w-4" />
+                        {game}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Time Selection */}
           {selectedDate && (
