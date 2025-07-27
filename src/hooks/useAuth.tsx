@@ -20,12 +20,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
+        
+        // Handle different auth events
+        if (event === 'SIGNED_OUT' || !session) {
+          setSession(null);
+          setUser(null);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+        
         setLoading(false);
         
         // Log auth events for debugging
@@ -37,12 +49,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Then get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithEmail = async (email: string, password: string) => {
@@ -65,8 +81,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      // Clear local state first to prevent UI issues
+      setUser(null);
+      setSession(null);
+      
+      // Then call Supabase signOut
+      const { error } = await supabase.auth.signOut();
+      
+      // Force clear any remaining session data
+      localStorage.removeItem('supabase.auth.token');
+      
+      return { error };
+    } catch (error) {
+      console.error('Sign out error:', error);
+      return { error };
+    }
   };
 
   const value = {

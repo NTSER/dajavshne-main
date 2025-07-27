@@ -41,8 +41,17 @@ const Header = () => {
   }, [clearSearch]);
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+      }
+      navigate("/");
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      // Still navigate to clear the UI state
+      navigate("/");
+    }
   };
 
   const handleVenueSelect = (venueId: string) => {
