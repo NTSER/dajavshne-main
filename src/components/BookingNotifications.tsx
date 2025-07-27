@@ -367,48 +367,33 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           </DialogHeader>
           
           {selectedBooking && (
-            <div className="space-y-8 pt-6">
-              {/* Top Section - Customer & Booking Date */}
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-foreground">Customer Information</h3>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary font-medium text-sm">
-                          {selectedBooking.user_email.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">Guest</p>
-                        <p className="text-sm text-muted-foreground">{selectedBooking.user_email}</p>
-                      </div>
+            <div className="space-y-6 pt-6">
+              {/* 1. User Information */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Customer Information</h3>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-primary font-medium text-sm">
+                        {selectedBooking.user_email.charAt(0).toUpperCase()}
+                      </span>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-foreground">Booking Date</h3>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-8 w-8 text-primary" />
-                      <div>
-                        <p className="font-medium text-foreground">{formatDate(selectedBooking.booking_date)}</p>
-                        <p className="text-sm text-muted-foreground">Requested booking date</p>
-                      </div>
+                    <div>
+                      <p className="font-medium text-foreground">Guest</p>
+                      <p className="text-sm text-muted-foreground">{selectedBooking.user_email}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Service Details Section - Styled like client interface */}
+              {/* 2. Services Information - Styled like client-side selection */}
               {selectedBooking.service_name && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-foreground">Reserved Service</h3>
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">Service Details</h3>
                   <div className="bg-background border border-border rounded-xl p-6 shadow-sm">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-primary font-bold text-lg">🎯</span>
+                      <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-2xl">🎱</span>
                       </div>
                       <div className="flex-1">
                         <h4 className="text-xl font-semibold text-foreground mb-1">{selectedBooking.service_name}</h4>
@@ -416,23 +401,24 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                           ${(selectedBooking.total_price / selectedBooking.guest_count).toFixed(0)} / guest • {selectedBooking.service_name}
                         </p>
                         
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                           <div>
                             <span className="text-muted-foreground">Guests:</span>
                             <span className="ml-2 font-medium text-foreground">{selectedBooking.guest_count}</span>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Date:</span>
-                            <span className="ml-2 font-medium text-foreground">{formatDate(selectedBooking.booking_date).split(',')[0]}</span>
+                            <span className="ml-2 font-medium text-foreground">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                           </div>
-                          <div>
+                          <div className="col-span-2">
                             <span className="text-muted-foreground">Time:</span>
                             <span className="ml-2 font-medium text-foreground">{formatTime(selectedBooking.booking_time)}</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Total:</span>
-                            <span className="ml-2 font-semibold text-primary text-lg">${selectedBooking.total_price.toFixed(0)}</span>
-                          </div>
+                        </div>
+                        
+                        <div className="text-right">
+                          <span className="text-sm text-muted-foreground">Total:</span>
+                          <span className="ml-2 text-2xl font-bold text-primary">${selectedBooking.total_price.toFixed(0)}</span>
                         </div>
                       </div>
                     </div>
@@ -440,67 +426,28 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                 </div>
               )}
 
-              {/* Booking Summary Grid */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-foreground">Booking Details</h3>
-                  
-                  <div className="flex items-center gap-3 p-4 rounded-lg border">
-                    <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">{selectedBooking.venue_name}</p>
-                      <p className="text-sm text-muted-foreground">Venue location</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 rounded-lg border">
-                    <Calendar className="h-6 w-6 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">{formatDate(selectedBooking.booking_date)}</p>
-                      <p className="text-sm text-muted-foreground">Booking date</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 rounded-lg border">
-                    <Clock className="h-6 w-6 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">{formatTime(selectedBooking.booking_time)}</p>
-                      <p className="text-sm text-muted-foreground">Session time</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 p-4 rounded-lg border">
-                    <Users className="h-6 w-6 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">{selectedBooking.guest_count} guest{selectedBooking.guest_count !== 1 ? 's' : ''}</p>
-                      <p className="text-sm text-muted-foreground">Number of attendees</p>
-                    </div>
-                  </div>
+              {/* 3. Special Requests */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Special Requests</h3>
+                <div className="bg-muted/30 rounded-lg p-4 border min-h-[100px]">
+                  {selectedBooking.special_requests ? (
+                    <p className="text-foreground leading-relaxed">
+                      {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() || 'No additional requests'}
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground italic">No special requests</p>
+                  )}
                 </div>
-                
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-foreground">Special Requests</h4>
-                    <div className="bg-muted/30 rounded-lg p-4 border min-h-[100px]">
-                      {selectedBooking.special_requests ? (
-                        <p className="text-foreground leading-relaxed">
-                          {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() || 'No additional requests'}
-                        </p>
-                      ) : (
-                        <p className="text-muted-foreground italic">No special requests</p>
-                      )}
-                    </div>
+              </div>
+
+              {/* 4. Total Price */}
+              <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
+                    <p className="text-3xl font-bold text-primary">${selectedBooking.total_price.toFixed(0)}</p>
                   </div>
-                  
-                  <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Amount</p>
-                        <p className="text-2xl font-bold text-primary">${selectedBooking.total_price.toFixed(2)}</p>
-                      </div>
-                      <DollarSign className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
+                  <DollarSign className="h-10 w-10 text-primary" />
                 </div>
               </div>
 
