@@ -154,7 +154,11 @@ const VenuePage = () => {
               {/* Price and Basic Info - Enhanced prominence */}
               <div className="bg-card border-2 border-primary/20 rounded-2xl p-8 shadow-2xl glass-effect ring-2 ring-primary/10 hover:ring-primary/20 transition-all duration-300">
                 <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-bold text-foreground">${venue.price}</span>
+                  <span className="text-3xl font-bold text-foreground">
+                    ${services && services.length > 0 
+                      ? Math.min(...services.map(s => s.price)) 
+                      : venue.price}
+                  </span>
                   <span className="text-lg text-muted-foreground">per hour</span>
                 </div>
                 
