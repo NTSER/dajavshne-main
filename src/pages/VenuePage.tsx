@@ -13,8 +13,6 @@ import {
 import { 
   Star, 
   MapPin, 
-  Wifi, 
-  Car, 
   ArrowLeft
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -64,10 +62,6 @@ const VenuePage = () => {
     );
   }
 
-  const amenityIcons: { [key: string]: any } = {
-    'WiFi': Wifi,
-    'Parking': Car,
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,23 +142,6 @@ const VenuePage = () => {
 
 
 
-              {/* Amenities */}
-              {venue.amenities && venue.amenities.length > 0 && (
-                <div className="py-6 border-b border-border">
-                  <h2 className="text-xl font-semibold mb-6 text-foreground">What this place offers</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {venue.amenities.map((amenity) => {
-                      const IconComponent = amenityIcons[amenity];
-                      return (
-                        <div key={amenity} className="flex items-center gap-4 py-3">
-                          {IconComponent && <IconComponent className="h-6 w-6 text-muted-foreground" />}
-                          <span className="text-foreground">{amenity}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
             </div>
           </div>
