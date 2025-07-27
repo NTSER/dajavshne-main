@@ -24,6 +24,7 @@ interface ServiceBookingDialogProps {
     date: Date;
     arrivalTime: string;
     departureTime: string;
+    selectedGames: string[];
   }) => void;
   openingTime?: string;
   closingTime?: string;
@@ -186,7 +187,8 @@ const ServiceBookingDialog = ({
         guests,
         date: selectedDate,
         arrivalTime,
-        departureTime
+        departureTime,
+        selectedGames
       });
       // Reset form
       setGuests(1);

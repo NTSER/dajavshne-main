@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CalendarIcon, X } from "lucide-react";
+import { CalendarIcon, X, Gamepad2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +42,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       serviceId: string;
       arrivalTime: string;
       departureTime: string;
+      selectedGames?: string[];
     }>,
     guests: 1,
     serviceIds: selectedServiceId ? [selectedServiceId] : [] as string[],
@@ -385,6 +387,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     date: Date;
     arrivalTime: string;
     departureTime: string;
+    selectedGames: string[];
   }) => {
     setFormData(prev => ({
       ...prev,
@@ -396,7 +399,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         {
           serviceId: data.service.id,
           arrivalTime: data.arrivalTime,
-          departureTime: data.departureTime
+          departureTime: data.departureTime,
+          selectedGames: data.selectedGames
         }
       ]
     }));
@@ -551,6 +555,31 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                             <span className="text-muted-foreground">Time:</span>
                             <span className="font-medium">
                               {formatTime(serviceBooking.arrivalTime)} - {formatTime(serviceBooking.departureTime)}
+                            </span>
+                          </div>
+                          {serviceBooking.selectedGames && serviceBooking.selectedGames.length > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-muted-foreground text-sm">Selected Games:</span>
+                              <div className="flex flex-wrap gap-1">
+                                {serviceBooking.selectedGames.map((game) => (
+                                  <Badge key={game} variant="secondary" className="text-xs flex items-center gap-1">
+                                    <Gamepad2 className="h-3 w-3" />
+                                    {game}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between text-sm pt-2 border-t">
+                            <span className="text-muted-foreground font-medium">Total:</span>
+                            <span className="font-bold text-primary">
+                              ${(() => {
+                                const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
+                                const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
+                                const diffMs = end.getTime() - start.getTime();
+                                const hours = diffMs / (1000 * 60 * 60);
+                                return (service.price * formData.guests * hours).toFixed(0);
+                              })()}
                             </span>
                           </div>
                         </div>
