@@ -529,14 +529,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
-                          <p className="text-muted-foreground">
-                            ${service.price} / guest · {service.duration}
-                          </p>
-                          {service.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {service.description}
-                            </p>
-                          )}
+                           <p className="text-muted-foreground">
+                             ${service.price} / guest · {service.service_type}
+                           </p>
                         </div>
                       </div>
                       

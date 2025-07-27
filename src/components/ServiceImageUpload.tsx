@@ -44,8 +44,8 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
         .from('service-images')
         .getPublicUrl(filePath);
 
-      // Add to images array
-      const newImages = [...images, publicUrl];
+      // Replace with single image (limit to one)
+      const newImages = [publicUrl];
       onImagesChange(newImages);
 
       toast({
@@ -97,7 +97,10 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
   };
 
   const triggerFileSelect = () => {
-    fileInputRef.current?.click();
+    // Only allow upload if no image exists (limit to one)
+    if (images.length === 0) {
+      fileInputRef.current?.click();
+    }
   };
 
   return (
@@ -110,14 +113,14 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
           type="button"
           variant="outline"
           onClick={triggerFileSelect}
-          disabled={uploading}
+          disabled={uploading || images.length > 0}
           className="flex items-center gap-2"
         >
           <Upload className="h-4 w-4" />
-          {uploading ? 'Uploading...' : 'Upload Image'}
+          {uploading ? 'Uploading...' : images.length > 0 ? 'One Image Max' : 'Upload Image'}
         </Button>
         <span className="text-sm text-muted-foreground">
-          Max 5MB, JPG/PNG/GIF
+          Max 5MB, JPG/PNG/GIF {images.length > 0 && '(1 image limit)'}
         </span>
       </div>
 
@@ -130,40 +133,38 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
         className="hidden"
       />
 
-      {/* Images Grid */}
+      {/* Single Image Display */}
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((imageUrl, index) => (
-            <Card key={index} className="relative group overflow-hidden">
-              <CardContent className="p-0">
-                <div className="aspect-square relative">
-                  <img
-                    src={imageUrl}
-                    alt={`Service image ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder.svg';
-                    }}
-                  />
-                  
-                  {/* Remove button overlay */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeImage(index)}
-                      className="flex items-center gap-1"
-                    >
-                      <X className="h-3 w-3" />
-                      Remove
-                    </Button>
-                  </div>
+        <div className="max-w-sm">
+          <Card className="relative group overflow-hidden">
+            <CardContent className="p-0">
+              <div className="aspect-square relative">
+                <img
+                  src={images[0]}
+                  alt="Service image"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
+                />
+                
+                {/* Remove button overlay */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeImage(0)}
+                    className="flex items-center gap-1"
+                  >
+                    <X className="h-3 w-3" />
+                    Remove
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -174,14 +175,14 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
             <div className="text-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-2">No images uploaded yet</p>
-              <Button
+               <Button
                 type="button"
                 variant="outline"
                 onClick={triggerFileSelect}
                 disabled={uploading}
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Upload First Image
+                Upload Service Image
               </Button>
             </div>
           </CardContent>

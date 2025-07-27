@@ -23,8 +23,7 @@ export interface VenueService {
   venue_id: string;
   name: string;
   price: number;
-  duration: string;
-  description: string;
+  service_type: 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
   images: string[];
 }
 

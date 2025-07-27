@@ -21,7 +21,7 @@ export interface Booking {
   };
   venue_services?: {
     name: string;
-    duration: string;
+    service_type: string;
   };
 }
 
@@ -46,7 +46,7 @@ export const useUserBookings = () => {
           ),
           venue_services (
             name,
-            duration
+            service_type
           )
         `)
         .eq('user_id', user.id)

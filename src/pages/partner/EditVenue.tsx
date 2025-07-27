@@ -15,12 +15,12 @@ import PartnerLayout from '@/components/PartnerLayout';
 import { DiscountManager } from '@/components/DiscountManager';
 import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 
+type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
+
 interface VenueService {
   id?: string;
-  name: string;
-  description: string;
+  service_type: ServiceType;
   price: number;
-  duration: string;
   images: string[];
   discount_percentage: number;
 }
@@ -99,10 +99,8 @@ const EditVenue = () => {
 
       setServices(servicesData?.map(service => ({
         id: service.id,
-        name: service.name,
-        description: service.description || '',
+        service_type: service.service_type || 'PC Gaming',
         price: service.price,
-        duration: service.duration,
         images: service.images || [],
         discount_percentage: 0 // Services don't have discount_percentage in DB yet
       })) || []);
@@ -148,10 +146,9 @@ const EditVenue = () => {
           const { error: updateError } = await supabase
             .from('venue_services')
             .update({
-              name: service.name,
-              description: service.description,
+              name: service.service_type, // Use service_type as name for now
+              service_type: service.service_type,
               price: service.price,
-              duration: service.duration,
               images: service.images
             })
             .eq('id', service.id);
@@ -163,10 +160,9 @@ const EditVenue = () => {
             .from('venue_services')
             .insert({
               venue_id: venueId,
-              name: service.name,
-              description: service.description,
+              name: service.service_type, // Use service_type as name for now
+              service_type: service.service_type,
               price: service.price,
-              duration: service.duration,
               images: service.images
             });
 
@@ -193,10 +189,8 @@ const EditVenue = () => {
 
   const addService = () => {
     setServices([...services, {
-      name: '',
-      description: '',
+      service_type: 'PC Gaming',
       price: 0,
-      duration: '',
       images: [],
       discount_percentage: 0
     }]);
@@ -472,33 +466,22 @@ const EditVenue = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Service Name *</Label>
-                          <Input
-                            value={service.name}
-                            onChange={(e) => updateService(index, 'name', e.target.value)}
-                            placeholder="e.g., VIP Gaming Package"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Duration *</Label>
-                          <Input
-                            value={service.duration}
-                            onChange={(e) => updateService(index, 'duration', e.target.value)}
-                            placeholder="e.g., 2 hours"
-                          />
-                        </div>
-                      </div>
-                      
                       <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Textarea
-                          value={service.description}
-                          onChange={(e) => updateService(index, 'description', e.target.value)}
-                          placeholder="Describe what this service includes..."
-                          rows={3}
-                        />
+                        <Label>Service Type *</Label>
+                        <Select 
+                          value={service.service_type} 
+                          onValueChange={(value: ServiceType) => updateService(index, 'service_type', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select service type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PC Gaming">PC Gaming</SelectItem>
+                            <SelectItem value="PlayStation 5">PlayStation 5</SelectItem>
+                            <SelectItem value="Billiards">Billiards</SelectItem>
+                            <SelectItem value="Table Tennis">Table Tennis</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       
                       {/* Service Images */}

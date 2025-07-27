@@ -59,21 +59,15 @@ const VenueServices = ({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {service.duration}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-4 w-4" />
-                      ${service.price}/guest
-                    </div>
-                  </div>
-                  {service.description && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {service.description}
-                    </p>
-                  )}
+                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                     <div className="flex items-center gap-1">
+                       <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">{service.service_type}</span>
+                     </div>
+                     <div className="flex items-center gap-1">
+                       <DollarSign className="h-4 w-4" />
+                       ${service.price}/guest
+                     </div>
+                   </div>
                   <Button 
                     variant={selectedService?.id === service.id ? "default" : "outline"}
                     size="sm"

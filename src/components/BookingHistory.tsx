@@ -119,7 +119,7 @@ const BookingHistory = () => {
                     Service: {booking.venue_services.name}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Duration: {booking.venue_services.duration}
+                    Type: {booking.venue_services.service_type}
                   </div>
                 </div>
               )}
