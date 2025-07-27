@@ -104,10 +104,10 @@ const Header = () => {
                         </div>
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">{venue.name}</div>
-                          <div className="text-sm text-gray-500">{venue.location} • {venue.category}</div>
+                          <div className="text-sm text-gray-500">{venue.location}</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium text-blue-600">${venue.price}/hr</div>
+                          <div className="text-sm font-medium text-blue-600">Services Available</div>
                           <div className="text-xs text-gray-400">⭐ {venue.rating}</div>
                         </div>
                       </button>

@@ -611,12 +611,12 @@ const ConfirmAndPay = () => {
                 <div className="border-t border-border/50 pt-4 space-y-3">
                   <h4 className="font-medium text-foreground">Price details</h4>
                   
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      ${venue.price} × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
-                    </span>
-                    <span className="text-sm text-foreground">${bookingData.totalPrice}</span>
-                  </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        Service booking × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
+                      </span>
+                      <span className="text-sm text-foreground">${bookingData.totalPrice}</span>
+                    </div>
                   
                   <div className="border-t border-border/50 pt-3 flex justify-between font-semibold">
                     <span className="text-foreground">Total USD</span>

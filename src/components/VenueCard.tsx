@@ -44,11 +44,6 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             alt={venue.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-3 right-3 flex items-center gap-2">
-            <Badge variant="secondary" className="bg-white/90 text-gray-700 border-gray-200 shadow-sm">
-              {venue.category}
-            </Badge>
-          </div>
           <div className="absolute top-3 left-3">
             <FavoriteButton venueId={venue.id} size="sm" />
           </div>
@@ -96,7 +91,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
               <span className="font-semibold text-blue-600">
                 ${services && services.length > 0 
                   ? Math.min(...services.map(s => s.price)) 
-                  : venue.price}
+                  : 'Contact'}
               </span>
               <span className="text-sm text-gray-500">/hour</span>
             </div>

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useVenueCategories } from '@/hooks/useVenueData';
+
 import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PartnerLayout from '@/components/PartnerLayout';
@@ -27,13 +27,9 @@ interface VenueService {
 
 interface VenueData {
   name: string;
-  description: string;
   location: string;
-  category: string;
-  price: number;
   opening_time: string;
   closing_time: string;
-  amenities: string[];
   images: string[];
   default_discount_percentage: number;
 }
@@ -42,19 +38,15 @@ const EditVenue = () => {
   const { venueId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: categories, isLoading: categoriesLoading } = useVenueCategories();
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<VenueService[]>([]);
   const [venue, setVenue] = useState<VenueData>({
     name: '',
-    description: '',
     location: '',
-    category: '',
-    price: 0,
     opening_time: '',
     closing_time: '',
-    amenities: [],
     images: [],
     default_discount_percentage: 0
   });
@@ -77,13 +69,9 @@ const EditVenue = () => {
       if (venueData) {
         setVenue({
           name: venueData.name || '',
-          description: venueData.description || '',
           location: venueData.location || '',
-          category: venueData.category || '',
-          price: venueData.price || 0,
           opening_time: venueData.opening_time || '',
           closing_time: venueData.closing_time || '',
-          amenities: venueData.amenities || [],
           images: venueData.images || [],
           default_discount_percentage: venueData.default_discount_percentage || 0
         });
@@ -124,13 +112,9 @@ const EditVenue = () => {
         .from('venues')
         .update({
           name: venue.name,
-          description: venue.description,
           location: venue.location,
-          category: venue.category,
-          price: venue.price,
           opening_time: venue.opening_time,
           closing_time: venue.closing_time,
-          amenities: venue.amenities,
           images: venue.images,
           default_discount_percentage: venue.default_discount_percentage,
           updated_at: new Date().toISOString()
@@ -236,16 +220,6 @@ const EditVenue = () => {
   };
 
 
-  const commonAmenities = [
-    "WiFi",
-    "Parking",
-    "Air Conditioning",
-    "Sound System",
-    "Projector",
-    "Catering",
-    "Security",
-    "Restrooms"
-  ];
 
   if (loading) {
     return (
@@ -312,32 +286,14 @@ const EditVenue = () => {
               <CardTitle className="text-gray-900 dark:text-white">Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Venue Name *</Label>
-                  <Input
-                    id="name"
-                    value={venue.name}
-                    onChange={(e) => setVenue({...venue, name: e.target.value})}
-                    placeholder="Enter venue name"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select value={venue.category} onValueChange={(value) => setVenue({...venue, category: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.name}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Venue Name *</Label>
+                <Input
+                  id="name"
+                  value={venue.name}
+                  onChange={(e) => setVenue({...venue, name: e.target.value})}
+                  placeholder="Enter venue name"
+                />
               </div>
 
               <div className="space-y-2">
@@ -349,38 +305,15 @@ const EditVenue = () => {
                   placeholder="Enter venue location"
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={venue.description}
-                  onChange={(e) => setVenue({...venue, description: e.target.value})}
-                  placeholder="Describe your venue..."
-                  rows={4}
-                />
-              </div>
             </CardContent>
           </Card>
 
-          {/* Pricing & Hours */}
+          {/* Operating Hours */}
           <Card>
             <CardHeader>
-              <CardTitle>Pricing & Operating Hours</CardTitle>
+              <CardTitle>Operating Hours</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Price per Hour ($) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={venue.price}
-                  onChange={(e) => setVenue({...venue, price: parseFloat(e.target.value) || 0})}
-                />
-              </div>
-
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="opening">Opening Time</Label>
@@ -405,33 +338,6 @@ const EditVenue = () => {
             </CardContent>
           </Card>
 
-          {/* Amenities */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Amenities</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-2">
-                {commonAmenities.map((amenity) => (
-                  <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={venue.amenities.includes(amenity)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setVenue({...venue, amenities: [...venue.amenities, amenity]});
-                        } else {
-                          setVenue({...venue, amenities: venue.amenities.filter(a => a !== amenity)});
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <span className="text-sm">{amenity}</span>
-                  </label>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Services Section */}
           <Card>

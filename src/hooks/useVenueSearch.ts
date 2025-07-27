@@ -15,13 +15,12 @@ export const useVenueSearch = () => {
     const results = venues.filter((venue: Venue) => {
       const nameMatch = venue.name.toLowerCase().includes(query);
       const locationMatch = venue.location.toLowerCase().includes(query);
-      const categoryMatch = venue.category.toLowerCase().includes(query);
       
-      if (nameMatch || locationMatch || categoryMatch) {
-        console.log('Match found:', venue.name, { nameMatch, locationMatch, categoryMatch });
+      if (nameMatch || locationMatch) {
+        console.log('Match found:', venue.name, { nameMatch, locationMatch });
       }
       
-      return nameMatch || locationMatch || categoryMatch;
+      return nameMatch || locationMatch;
     }).slice(0, 8);
     
     console.log('Search results:', results.length);

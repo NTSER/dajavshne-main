@@ -204,7 +204,7 @@ const VenueManagement: React.FC = () => {
                   <TableCell>
                     <div className="space-y-1">
                       <p className="font-medium text-white">{venue.name}</p>
-                      <p className="text-sm text-gray-400">${venue.price}</p>
+                      <p className="text-sm text-gray-400">Services Available</p>
                     </div>
                   </TableCell>
                   

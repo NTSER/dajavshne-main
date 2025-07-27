@@ -35,7 +35,6 @@ const VenueMarkerContent = ({ venue }: { venue: VenueMarker }) => {
       <div className="space-y-3">
         <div className="flex justify-between items-start">
           <h4 className="font-semibold text-lg">{venue.name}</h4>
-          <Badge variant="secondary">{venue.category}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">{venue.location}</p>
         
@@ -68,7 +67,7 @@ const VenueMarkerContent = ({ venue }: { venue: VenueMarker }) => {
             <span className="font-semibold text-primary">
               ${services && services.length > 0 
                 ? Math.min(...services.map(s => s.price)) 
-                : venue.price}
+                : 'Contact'}
             </span>
             <span className="text-sm text-muted-foreground">/hour</span>
           </div>
@@ -190,27 +189,35 @@ const InteractiveMap = ({ venues, onBoundsChange }: InteractiveMapProps) => {
         </svg>
 
         {/* Venue Markers */}
-        {venueMarkers.map((venue) => (
-          <HoverCard key={venue.id}>
-            <HoverCardTrigger asChild>
-              <div
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer hover:scale-110 transition-transform z-10"
-                style={{
-                  left: venue.x,
-                  top: venue.y
-                }}
-              >
-                <div className="relative">
-                  <MapPin className="w-8 h-8 text-primary fill-primary drop-shadow-lg" />
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                    ${venue.price}
+        {venueMarkers.map((venue) => {
+          const VenueMarker = () => {
+            const { data: markerServices } = useVenueServices(venue.id);
+            
+            return (
+              <HoverCard key={venue.id}>
+                <HoverCardTrigger asChild>
+                  <div
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer hover:scale-110 transition-transform z-10"
+                    style={{
+                      left: venue.x,
+                      top: venue.y
+                    }}
+                  >
+                    <div className="relative">
+                      <MapPin className="w-8 h-8 text-primary fill-primary drop-shadow-lg" />
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                        ${markerServices && markerServices.length > 0 ? Math.min(...markerServices.map(s => s.price)) : '?'}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </HoverCardTrigger>
-            <VenueMarkerContent venue={venue} />
-          </HoverCard>
-        ))}
+                </HoverCardTrigger>
+                <VenueMarkerContent venue={venue} />
+              </HoverCard>
+            );
+          };
+          
+          return <VenueMarker key={venue.id} />;
+        })}
       </div>
 
       {/* Map Controls */}

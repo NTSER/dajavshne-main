@@ -5,14 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Venue {
   id: string;
   name: string;
-  category: string;
   location: string;
   rating: number;
   review_count: number;
-  price: number;
   images: string[];
-  amenities: string[];
-  description: string;
   opening_time?: string;
   closing_time?: string;
   default_discount_percentage?: number;

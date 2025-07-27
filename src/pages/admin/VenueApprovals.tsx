@@ -103,7 +103,7 @@ const VenueApprovals: React.FC = () => {
                       </div>
                     </div>
                     <Badge variant="outline" className="border-purple-500 text-purple-400 w-fit">
-                      {venue.category}
+                      Services Available
                     </Badge>
                   </div>
                   
@@ -185,21 +185,14 @@ const VenueApprovals: React.FC = () => {
               </CardHeader>
               
               <CardContent className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">Description</h4>
-                  <p className="text-gray-400 text-sm">
-                    {venue.description || 'No description provided'}
-                  </p>
-                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-2">Business Details</h4>
-                    <div className="space-y-1 text-sm text-gray-400">
-                      <p>Price: ${venue.price}</p>
-                      <p>Partner: {venue.profiles?.email}</p>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-300 mb-2">Business Details</h4>
+                      <div className="space-y-1 text-sm text-gray-400">
+                        <p>Partner: {venue.profiles?.email}</p>
+                      </div>
                     </div>
-                  </div>
                   
                   <div>
                     <h4 className="text-sm font-medium text-gray-300 mb-2">Request Info</h4>
@@ -209,19 +202,6 @@ const VenueApprovals: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
-                {venue.amenities && venue.amenities.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-2">Amenities</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {venue.amenities.map((amenity, index) => (
-                        <Badge key={index} variant="secondary" className="bg-gray-700 text-gray-300">
-                          {amenity}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}

@@ -157,7 +157,7 @@ const VenuePage = () => {
                   <span className="text-3xl font-bold text-foreground">
                     ${services && services.length > 0 
                       ? Math.min(...services.map(s => s.price)) 
-                      : venue.price}
+                      : 'Contact'}
                   </span>
                   <span className="text-lg text-muted-foreground">per hour</span>
                 </div>
@@ -165,7 +165,7 @@ const VenuePage = () => {
                 <BookingForm 
                   venueId={venue.id}
                   venueName={venue.name}
-                  venuePrice={venue.price}
+                  venuePrice={services && services.length > 0 ? Math.min(...services.map(s => s.price)) : 0}
                   defaultDiscount={venue.default_discount_percentage || 0}
                   openingTime={venue.opening_time}
                   closingTime={venue.closing_time}

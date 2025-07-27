@@ -5,14 +5,10 @@ import { toast } from 'sonner';
 export interface AdminVenue {
   id: string;
   name: string;
-  description: string | null;
   location: string;
-  price: number;
   rating: number | null;
   review_count: number | null;
-  category: string;
   images: string[] | null;
-  amenities: string[] | null;
   approval_status: 'pending' | 'approved' | 'rejected';
   is_visible: boolean;
   priority: number;

@@ -445,13 +445,10 @@ export type Database = {
       }
       venues: {
         Row: {
-          amenities: string[] | null
           approval_status: string | null
-          category: string
           closing_time: string | null
           created_at: string | null
           default_discount_percentage: number | null
-          description: string | null
           id: string
           images: string[] | null
           is_visible: boolean | null
@@ -461,7 +458,6 @@ export type Database = {
           name: string
           opening_time: string | null
           partner_id: string | null
-          price: number
           priority: number | null
           rating: number | null
           rejected_reason: string | null
@@ -469,13 +465,10 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          amenities?: string[] | null
           approval_status?: string | null
-          category: string
           closing_time?: string | null
           created_at?: string | null
           default_discount_percentage?: number | null
-          description?: string | null
           id?: string
           images?: string[] | null
           is_visible?: boolean | null
@@ -485,7 +478,6 @@ export type Database = {
           name: string
           opening_time?: string | null
           partner_id?: string | null
-          price: number
           priority?: number | null
           rating?: number | null
           rejected_reason?: string | null
@@ -493,13 +485,10 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          amenities?: string[] | null
           approval_status?: string | null
-          category?: string
           closing_time?: string | null
           created_at?: string | null
           default_discount_percentage?: number | null
-          description?: string | null
           id?: string
           images?: string[] | null
           is_visible?: boolean | null
@@ -509,7 +498,6 @@ export type Database = {
           name?: string
           opening_time?: string | null
           partner_id?: string | null
-          price?: number
           priority?: number | null
           rating?: number | null
           rejected_reason?: string | null
