@@ -119,7 +119,7 @@ const VenuePage = () => {
                   <CarouselContent>
                     {venue.images?.map((image, index) => (
                       <CarouselItem key={index}>
-                        <div className="aspect-[16/10] relative overflow-hidden">
+                        <div className="aspect-[4/3] relative overflow-hidden">
                           <img
                             src={image}
                             alt={`${venue.name} - Image ${index + 1}`}
@@ -129,7 +129,7 @@ const VenuePage = () => {
                       </CarouselItem>
                     )) || (
                       <CarouselItem>
-                        <div className="aspect-[16/10] bg-muted rounded-xl flex items-center justify-center">
+                        <div className="aspect-[4/3] bg-muted rounded-xl flex items-center justify-center">
                           <span className="text-muted-foreground">No images available</span>
                         </div>
                       </CarouselItem>
