@@ -401,14 +401,63 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                 </div>
               </div>
 
-              {/* Booking Details Grid */}
-              <div className="grid md:grid-cols-2 gap-8">
+              {/* Service Details Section - Styled like client interface */}
+              {selectedBooking.service_name && (
                 <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">Reserved Service</h3>
+                  <div className="bg-background border border-border rounded-xl p-6 shadow-sm">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-primary font-bold text-lg">🎯</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-xl font-semibold text-foreground mb-1">{selectedBooking.service_name}</h4>
+                        <p className="text-muted-foreground mb-4">
+                          ${(selectedBooking.total_price / selectedBooking.guest_count).toFixed(0)} / guest • {selectedBooking.service_name}
+                        </p>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Guests:</span>
+                            <span className="ml-2 font-medium text-foreground">{selectedBooking.guest_count}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Date:</span>
+                            <span className="ml-2 font-medium text-foreground">{formatDate(selectedBooking.booking_date).split(',')[0]}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Time:</span>
+                            <span className="ml-2 font-medium text-foreground">{formatTime(selectedBooking.booking_time)}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Total:</span>
+                            <span className="ml-2 font-semibold text-primary text-lg">${selectedBooking.total_price.toFixed(0)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Booking Summary Grid */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">Booking Details</h3>
+                  
                   <div className="flex items-center gap-3 p-4 rounded-lg border">
                     <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
                     <div>
                       <p className="font-medium text-foreground">{selectedBooking.venue_name}</p>
                       <p className="text-sm text-muted-foreground">Venue location</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-4 rounded-lg border">
+                    <Calendar className="h-6 w-6 text-primary flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-foreground">{formatDate(selectedBooking.booking_date)}</p>
+                      <p className="text-sm text-muted-foreground">Booking date</p>
                     </div>
                   </div>
                   
@@ -427,40 +476,31 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                       <p className="text-sm text-muted-foreground">Number of attendees</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
-                    <DollarSign className="h-6 w-6 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-xl text-foreground">${selectedBooking.total_price.toFixed(2)}</p>
-                      <p className="text-sm text-muted-foreground">Total booking amount</p>
-                    </div>
-                  </div>
                 </div>
                 
                 <div className="space-y-6">
-                  {selectedBooking.service_name && (
-                    <div className="space-y-3">
-                      <h4 className="text-lg font-semibold text-foreground">Selected Service</h4>
-                      <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-                        <p className="font-medium text-foreground">{selectedBooking.service_name}</p>
-                        <p className="text-sm text-muted-foreground mt-1">Additional service requested</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {selectedBooking.special_requests && (
-                    <div className="space-y-3">
-                      <h4 className="text-lg font-semibold text-foreground">Special Requests</h4>
-                      <div className="bg-muted/30 rounded-lg p-4 border">
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-foreground">Special Requests</h4>
+                    <div className="bg-muted/30 rounded-lg p-4 border min-h-[100px]">
+                      {selectedBooking.special_requests ? (
                         <p className="text-foreground leading-relaxed">
-                          {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim()}
+                          {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() || 'No additional requests'}
                         </p>
-                        {!selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() && (
-                          <p className="text-muted-foreground italic">No special requests</p>
-                        )}
-                      </div>
+                      ) : (
+                        <p className="text-muted-foreground italic">No special requests</p>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Amount</p>
+                        <p className="text-2xl font-bold text-primary">${selectedBooking.total_price.toFixed(2)}</p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-primary" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
