@@ -98,17 +98,16 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     console.log('Setting up booking subscription for partner:', profile.id);
     
     const channel = supabase
-      .channel('booking-changes')
+      .channel('partner-booking-notifications')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'bookings',
-          filter: `status=eq.pending`
         },
         async (payload) => {
-          console.log('New booking received:', payload);
+          console.log('🔔 NEW BOOKING RECEIVED:', payload);
           
           // Fetch the complete booking data with venue info
           const { data, error } = await supabase
@@ -121,10 +120,10 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
             .eq('id', payload.new.id)
             .single();
 
-          console.log('Booking data fetched:', data, error);
+          console.log('📊 Booking data fetched:', data, error);
 
-          if (data && data.venues.partner_id === profile.id) {
-            console.log('Booking is for this partner, adding to notifications');
+          if (data && data.venues.partner_id === profile.id && data.status === 'pending') {
+            console.log('✅ Booking is for this partner, adding to notifications');
             
             const newBooking = {
               id: data.id,
@@ -140,18 +139,29 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               service_name: data.venue_services?.name
             };
 
-            setPendingBookings(prev => [newBooking, ...prev]);
+            console.log('🎯 Adding booking to state:', newBooking);
+            setPendingBookings(prev => {
+              const updated = [newBooking, ...prev];
+              console.log('📈 Updated pending bookings state:', updated);
+              return updated;
+            });
             
             // Play LOUD booking sound alert - harder to miss!
             audioAlert.playBookingSound(4000);
             
             // Show notification toast
             toast({
-              title: "New Booking Request!",
+              title: "🔔 New Booking Request!",
               description: `${data.user_email} wants to book ${data.venues.name}`,
+              duration: 8000,
             });
           } else {
-            console.log('Booking not for this partner or data missing');
+            console.log('❌ Booking not for this partner or not pending:', {
+              isForPartner: data?.venues?.partner_id === profile.id,
+              status: data?.status,
+              partnerId: profile.id,
+              venuePartnerId: data?.venues?.partner_id
+            });
           }
         }
       )
@@ -164,18 +174,27 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           table: 'bookings',
         },
         async (payload) => {
-          console.log('Booking updated:', payload);
+          console.log('📝 Booking updated:', payload);
           
           // If booking status changed from pending, remove it from the list
           if (payload.old.status === 'pending' && payload.new.status !== 'pending') {
+            console.log('🗑️ Removing booking from pending list:', payload.new.id);
             setPendingBookings(prev => prev.filter(b => b.id !== payload.new.id));
           }
         }
       )
-      .subscribe();
+      .subscribe(async (status, error) => {
+        console.log('📡 Realtime subscription status:', status);
+        if (error) {
+          console.error('❌ Realtime subscription error:', error);
+        }
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to booking changes');
+        }
+      });
 
     return () => {
-      console.log('Unsubscribing from booking notifications');
+      console.log('🔌 Unsubscribing from booking notifications');
       supabase.removeChannel(channel);
     };
   };

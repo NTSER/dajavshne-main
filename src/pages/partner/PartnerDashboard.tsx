@@ -8,15 +8,11 @@ import { Plus, Building2, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import BookingNotifications from '@/components/BookingNotifications';
 import PartnerLayout from '@/components/PartnerLayout';
-import { useRealtimePartnerBookings } from '@/hooks/useRealtimePartnerBookings';
 
 const PartnerDashboard = () => {
   const { profile } = usePartnerAuth();
   const { data: venues, isLoading } = usePartnerVenues();
   const navigate = useNavigate();
-  
-  // Enable real-time booking notifications for partners
-  useRealtimePartnerBookings();
 
   if (isLoading) {
     return (
