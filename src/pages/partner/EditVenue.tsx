@@ -12,7 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PartnerLayout from '@/components/PartnerLayout';
-import { DiscountManager } from '@/components/DiscountManager';
+
+import VenueImageUpload from '@/components/VenueImageUpload';
 import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 
 type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
@@ -31,7 +32,6 @@ interface VenueData {
   opening_time: string;
   closing_time: string;
   images: string[];
-  default_discount_percentage: number;
 }
 
 const EditVenue = () => {
@@ -47,8 +47,7 @@ const EditVenue = () => {
     location: '',
     opening_time: '',
     closing_time: '',
-    images: [],
-    default_discount_percentage: 0
+    images: []
   });
 
   useEffect(() => {
@@ -72,8 +71,7 @@ const EditVenue = () => {
           location: venueData.location || '',
           opening_time: venueData.opening_time || '',
           closing_time: venueData.closing_time || '',
-          images: venueData.images || [],
-          default_discount_percentage: venueData.default_discount_percentage || 0
+          images: venueData.images || []
         });
       }
 
@@ -116,7 +114,6 @@ const EditVenue = () => {
           opening_time: venue.opening_time,
           closing_time: venue.closing_time,
           images: venue.images,
-          default_discount_percentage: venue.default_discount_percentage,
           updated_at: new Date().toISOString()
         })
         .eq('id', venueId);
@@ -432,25 +429,17 @@ const EditVenue = () => {
           {/* Images */}
           <Card>
             <CardHeader>
-              <CardTitle>Images</CardTitle>
+              <CardTitle>Venue Images</CardTitle>
             </CardHeader>
             <CardContent>
-              <Alert>
-                <AlertDescription>
-                  Image management will be enhanced in a future update. Currently showing: {venue.images.length} image(s)
-                </AlertDescription>
-              </Alert>
+              <VenueImageUpload
+                images={venue.images}
+                onImagesChange={(images) => setVenue({...venue, images})}
+                venueId={venueId!}
+              />
             </CardContent>
           </Card>
 
-          {/* Discounts */}
-          <div>
-            <DiscountManager
-              venueId={venueId!}
-              defaultDiscount={venue.default_discount_percentage}
-              onDefaultDiscountChange={(value) => setVenue({...venue, default_discount_percentage: value})}
-            />
-          </div>
         </div>
       </div>
     </PartnerLayout>

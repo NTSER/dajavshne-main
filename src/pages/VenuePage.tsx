@@ -166,7 +166,7 @@ const VenuePage = () => {
                   venueId={venue.id}
                   venueName={venue.name}
                   venuePrice={services && services.length > 0 ? Math.min(...services.map(s => s.price)) : 0}
-                  defaultDiscount={venue.default_discount_percentage || 0}
+                  defaultDiscount={0}
                   openingTime={venue.opening_time}
                   closingTime={venue.closing_time}
                   services={services}

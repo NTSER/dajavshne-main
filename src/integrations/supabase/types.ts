@@ -448,7 +448,6 @@ export type Database = {
           approval_status: string | null
           closing_time: string | null
           created_at: string | null
-          default_discount_percentage: number | null
           id: string
           images: string[] | null
           is_visible: boolean | null
@@ -468,7 +467,6 @@ export type Database = {
           approval_status?: string | null
           closing_time?: string | null
           created_at?: string | null
-          default_discount_percentage?: number | null
           id?: string
           images?: string[] | null
           is_visible?: boolean | null
@@ -488,7 +486,6 @@ export type Database = {
           approval_status?: string | null
           closing_time?: string | null
           created_at?: string | null
-          default_discount_percentage?: number | null
           id?: string
           images?: string[] | null
           is_visible?: boolean | null
