@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useRealtimeBookings } from "@/hooks/useRealtimeBookings";
 import EmailConfirmationGuard from "@/components/EmailConfirmationGuard";
 import Header from "@/components/Header";
 
@@ -39,6 +40,68 @@ const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 
 const queryClient = new QueryClient();
 
+// Main app wrapper to include real-time functionality
+const AppWrapper = () => {
+  useRealtimeBookings(); // Enable real-time booking updates throughout the app
+  
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/venue/:id" element={<VenuePage />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
+          <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
+          <Route path="/payment-methods" element={<PaymentMethods />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/booking-history" element={<BookingHistoryPage />} />
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Partner routes */}
+          <Route path="/partner/auth" element={<PartnerAuth />} />
+          <Route path="/partner/dashboard" element={
+            <PartnerProtectedRoute>
+              <PartnerDashboard />
+            </PartnerProtectedRoute>
+          } />
+          <Route path="/partner/venues/add" element={
+            <PartnerProtectedRoute>
+              <AddVenue />
+            </PartnerProtectedRoute>
+          } />
+          <Route path="/partner/venues/:venueId/edit" element={
+            <PartnerProtectedRoute>
+              <EditVenue />
+            </PartnerProtectedRoute>
+          } />
+          <Route path="/partner/analytics" element={
+            <PartnerProtectedRoute>
+              <Analytics />
+            </PartnerProtectedRoute>
+          } />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }>
+            <Route index element={<VenueApprovals />} />
+            <Route path="venues" element={<VenueManagement />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="bookings" element={<AdminBookings />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </div>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -47,60 +110,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <EmailConfirmationGuard>
-            <div className="min-h-screen bg-background">
-              <Header />
-              <Suspense fallback={<div>Loading...</div>}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/search" element={<SearchResults />} />
-                <Route path="/venue/:id" element={<VenuePage />} />
-                <Route path="/category/:category" element={<CategoryPage />} />
-                <Route path="/confirm-and-pay" element={<ConfirmAndPay />} />
-                <Route path="/payment-methods" element={<PaymentMethods />} />
-                <Route path="/favorites" element={<FavoritesPage />} />
-                <Route path="/booking-history" element={<BookingHistoryPage />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                {/* Partner routes */}
-                <Route path="/partner/auth" element={<PartnerAuth />} />
-                <Route path="/partner/dashboard" element={
-                  <PartnerProtectedRoute>
-                    <PartnerDashboard />
-                  </PartnerProtectedRoute>
-                } />
-                <Route path="/partner/venues/add" element={
-                  <PartnerProtectedRoute>
-                    <AddVenue />
-                  </PartnerProtectedRoute>
-                } />
-                <Route path="/partner/venues/:venueId/edit" element={
-                  <PartnerProtectedRoute>
-                    <EditVenue />
-                  </PartnerProtectedRoute>
-                } />
-                <Route path="/partner/analytics" element={
-                  <PartnerProtectedRoute>
-                    <Analytics />
-                  </PartnerProtectedRoute>
-                } />
-                
-                {/* Admin routes */}
-                <Route path="/admin" element={
-                  <AdminProtectedRoute>
-                    <AdminLayout />
-                  </AdminProtectedRoute>
-                }>
-                  <Route index element={<VenueApprovals />} />
-                  <Route path="venues" element={<VenueManagement />} />
-                  <Route path="users" element={<UserManagement />} />
-                  <Route path="bookings" element={<AdminBookings />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                </Route>
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </div>
+            <AppWrapper />
           </EmailConfirmationGuard>
         </BrowserRouter>
       </TooltipProvider>

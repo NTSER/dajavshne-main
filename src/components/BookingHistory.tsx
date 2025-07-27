@@ -1,4 +1,5 @@
 import { useUserBookings } from "@/hooks/useBookings";
+import { useRealtimeBookings } from "@/hooks/useRealtimeBookings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import { useNavigate } from "react-router-dom";
 const BookingHistory = () => {
   const { data: bookings, isLoading, error } = useUserBookings();
   const navigate = useNavigate();
+  
+  // Enable real-time booking status updates
+  useRealtimeBookings();
 
   console.log('BookingHistory render:', { bookings, isLoading, error });
 
