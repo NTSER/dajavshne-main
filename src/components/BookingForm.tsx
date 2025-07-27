@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
@@ -369,6 +369,15 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     setIsDialogOpen(true);
   };
 
+  const handleRemoveService = (serviceId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering service select
+    setFormData(prev => ({
+      ...prev,
+      serviceIds: prev.serviceIds.filter(id => id !== serviceId),
+      serviceBookings: prev.serviceBookings.filter(sb => sb.serviceId !== serviceId)
+    }));
+  };
+
   const handleServiceConfirm = (data: {
     service: VenueService;
     guests: number;
@@ -508,6 +517,17 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                       {/* Selected booking information */}
                       {isSelected && serviceBooking && formData.date && (
                         <div className="mt-4 pt-4 border-t border-border space-y-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-muted-foreground">Booking Details</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => handleRemoveService(service.id, e)}
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Guests:</span>
                             <span className="font-medium">{formData.guests}</span>
