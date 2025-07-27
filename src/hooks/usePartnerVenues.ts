@@ -10,7 +10,6 @@ export interface CreateVenueData {
   category: string;
   price: number;
   images: string[];
-  amenities: string[];
   openingTime: string;
   closingTime: string;
 }
@@ -53,7 +52,6 @@ export const useCreateVenue = () => {
           category: venueData.category,
           price: venueData.price,
           images: venueData.images,
-          amenities: venueData.amenities,
           opening_time: venueData.openingTime,
           closing_time: venueData.closingTime,
           partner_id: user.id,

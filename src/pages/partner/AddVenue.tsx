@@ -92,7 +92,6 @@ const AddVenue = () => {
         category: 'Gaming', // Default category since we removed category selection
         price: validServices[0].price, // Use first service price as base venue price
         images: venue.images,
-        amenities: [], // No amenities
         openingTime: venue.opening_time,
         closingTime: venue.closing_time,
       });
