@@ -20,6 +20,7 @@ export interface VenueService {
   price: number;
   service_type: 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
   images: string[];
+  service_games?: string[];
 }
 
 export const useVenues = (showHidden = true) => {

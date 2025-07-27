@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { VenueService } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
-import { useVenueGames } from "@/hooks/useGames";
 
 interface ServiceBookingDialogProps {
   service: VenueService | null;
@@ -57,9 +56,8 @@ const ServiceBookingDialog = ({
   const [isGameComboboxOpen, setIsGameComboboxOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // Fetch venue games
-  const { data: venueGames } = useVenueGames(venueId || '');
-  const availableGames = venueGames?.map(vg => vg.game?.name).filter(Boolean) || [];
+  // Use service-specific games instead of all venue games
+  const availableGames = service.service_games || [];
 
   // Set initial values when dialog opens with existing data
   useEffect(() => {
@@ -245,76 +243,78 @@ const ServiceBookingDialog = ({
             </div>
           </div>
 
-          {/* Game Selection */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Select Games</label>
-            <Popover open={isGameComboboxOpen} onOpenChange={setIsGameComboboxOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={isGameComboboxOpen}
-                  className="w-full justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Gamepad2 className="h-4 w-4" />
-                    {selectedGames.length > 0 ? `${selectedGames.length} game${selectedGames.length > 1 ? 's' : ''} selected` : "Choose games"}
-                  </div>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search games..." />
-                  <CommandList className="max-h-[160px]">
-                    <CommandEmpty>No game found.</CommandEmpty>
-                    <CommandGroup>
-                      {availableGames.map((game) => (
-                        <CommandItem
-                          key={game}
-                          value={game}
-                          onSelect={(currentValue) => {
-                            setSelectedGames(prev => {
-                              const isSelected = prev.includes(currentValue);
-                              if (isSelected) {
-                                return prev.filter(g => g !== currentValue);
-                              } else {
-                                return [...prev, currentValue];
-                              }
-                            });
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedGames.includes(game) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <Gamepad2 className="mr-2 h-4 w-4" />
-                          {game}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedGames.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedGames.map((game) => (
-                  <Badge key={game} variant="secondary" className="flex items-center gap-1">
-                    {game}
-                    <X
-                      className="h-3 w-3 cursor-pointer hover:text-destructive"
-                      onClick={() => {
-                        setSelectedGames(prev => prev.filter(g => g !== game));
-                      }}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Game Selection - Only show if service has games */}
+          {availableGames.length > 0 && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Select Games</label>
+              <Popover open={isGameComboboxOpen} onOpenChange={setIsGameComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isGameComboboxOpen}
+                    className="w-full justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Gamepad2 className="h-4 w-4" />
+                      {selectedGames.length > 0 ? `${selectedGames.length} game${selectedGames.length > 1 ? 's' : ''} selected` : "Choose games"}
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search games..." />
+                    <CommandList className="max-h-[160px]">
+                      <CommandEmpty>No game found.</CommandEmpty>
+                      <CommandGroup>
+                        {availableGames.map((game) => (
+                          <CommandItem
+                            key={game}
+                            value={game}
+                            onSelect={(currentValue) => {
+                              setSelectedGames(prev => {
+                                const isSelected = prev.includes(currentValue);
+                                if (isSelected) {
+                                  return prev.filter(g => g !== currentValue);
+                                } else {
+                                  return [...prev, currentValue];
+                                }
+                              });
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedGames.includes(game) ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <Gamepad2 className="mr-2 h-4 w-4" />
+                            {game}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {selectedGames.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedGames.map((game) => (
+                    <Badge key={game} variant="secondary" className="flex items-center gap-1">
+                      {game}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive"
+                        onClick={() => {
+                          setSelectedGames(prev => prev.filter(g => g !== game));
+                        }}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Date Selection */}
           <div className="space-y-3">
