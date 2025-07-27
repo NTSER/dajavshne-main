@@ -185,15 +185,7 @@ const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
             <div className="text-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-2">No image uploaded yet</p>
-               <Button
-                type="button"
-                variant="outline"
-                onClick={triggerFileSelect}
-                disabled={uploading}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Service Image
-              </Button>
+              <p className="text-sm text-muted-foreground">Click the upload button above to add a service image</p>
             </div>
           </CardContent>
         </Card>
