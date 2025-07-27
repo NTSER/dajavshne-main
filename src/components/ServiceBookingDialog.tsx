@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Minus, Plus, Users, Clock, Gamepad2, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon, Minus, Plus, Users, Clock, Gamepad2, Check, ChevronsUpDown, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -49,7 +49,7 @@ const ServiceBookingDialog = ({
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
-  const [selectedGame, setSelectedGame] = useState("");
+  const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const [isGameComboboxOpen, setIsGameComboboxOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -85,7 +85,7 @@ const ServiceBookingDialog = ({
       setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
-      setSelectedGame("");
+      setSelectedGames([]);
     }
   }, [isOpen, initialData]);
 
@@ -193,7 +193,7 @@ const ServiceBookingDialog = ({
       setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
-      setSelectedGame("");
+      setSelectedGames([]);
       onClose();
     }
   };
@@ -255,6 +255,77 @@ const ServiceBookingDialog = ({
             </div>
           </div>
 
+          {/* Game Selection */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Select Games</label>
+            <Popover open={isGameComboboxOpen} onOpenChange={setIsGameComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={isGameComboboxOpen}
+                  className="w-full justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <Gamepad2 className="h-4 w-4" />
+                    {selectedGames.length > 0 ? `${selectedGames.length} game${selectedGames.length > 1 ? 's' : ''} selected` : "Choose games"}
+                  </div>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search games..." />
+                  <CommandList className="max-h-[160px]">
+                    <CommandEmpty>No game found.</CommandEmpty>
+                    <CommandGroup>
+                      {availableGames.map((game) => (
+                        <CommandItem
+                          key={game}
+                          value={game}
+                          onSelect={(currentValue) => {
+                            setSelectedGames(prev => {
+                              const isSelected = prev.includes(currentValue);
+                              if (isSelected) {
+                                return prev.filter(g => g !== currentValue);
+                              } else {
+                                return [...prev, currentValue];
+                              }
+                            });
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedGames.includes(game) ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <Gamepad2 className="mr-2 h-4 w-4" />
+                          {game}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedGames.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedGames.map((game) => (
+                  <Badge key={game} variant="secondary" className="flex items-center gap-1">
+                    {game}
+                    <X
+                      className="h-3 w-3 cursor-pointer hover:text-destructive"
+                      onClick={() => {
+                        setSelectedGames(prev => prev.filter(g => g !== game));
+                      }}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Date Selection */}
           <div className="space-y-3">
             <label className="text-sm font-medium">Select Date</label>
@@ -286,58 +357,6 @@ const ServiceBookingDialog = ({
               </PopoverContent>
             </Popover>
           </div>
-
-          {/* Game Selection */}
-          {selectedDate && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium">Select Game</label>
-              <Popover open={isGameComboboxOpen} onOpenChange={setIsGameComboboxOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={isGameComboboxOpen}
-                    className="w-full justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Gamepad2 className="h-4 w-4" />
-                      {selectedGame || "Choose a game"}
-                    </div>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search games..." />
-                    <CommandList className="max-h-[160px]">
-                      <CommandEmpty>No game found.</CommandEmpty>
-                      <CommandGroup>
-                        {availableGames.map((game) => (
-                          <CommandItem
-                            key={game}
-                            value={game}
-                            onSelect={(currentValue) => {
-                              setSelectedGame(currentValue === selectedGame ? "" : currentValue);
-                              setIsGameComboboxOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedGame === game ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <Gamepad2 className="mr-2 h-4 w-4" />
-                            {game}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
 
           {/* Time Selection */}
           {selectedDate && (
