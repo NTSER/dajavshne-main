@@ -13,6 +13,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Badge } from '@/components/ui/badge';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useGames } from '@/hooks/useGames';
 
 import { ArrowLeft, Save, Trash2, Plus, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -22,13 +23,6 @@ import VenueImageUpload from '@/components/VenueImageUpload';
 import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 
 type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
-
-// Game options for each service type
-const SERVICE_GAMES = {
-  'PC Gaming': ['Counter-Strike 2', 'Valorant', 'Dota 2', 'League of Legends'],
-  'PlayStation 5': ['FIFA 24', 'Mortal Kombat 11', 'Call of Duty: Modern Warfare III', 'Gran Turismo 7'],
-  'Billiards': ['8-Ball Pool', '9-Ball Pool', 'Cutthroat', 'One Pocket']
-};
 
 interface VenueService {
   id?: string;
@@ -51,6 +45,7 @@ const EditVenue = () => {
   const { venueId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: allGames = [] } = useGames();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -102,7 +97,7 @@ const EditVenue = () => {
         price: service.price,
         images: service.images || [],
         discount_percentage: 0, // Services don't have discount_percentage in DB yet
-        service_games: [] // Initialize empty service games array
+        service_games: service.service_games || [] // Load service games from database
       })) || []);
 
     } catch (error: any) {
@@ -144,7 +139,8 @@ const EditVenue = () => {
               name: service.service_type, // Use service_type as name for now
               service_type: service.service_type,
               price: service.price,
-              images: service.images
+              images: service.images,
+              service_games: service.service_games || []
             })
             .eq('id', service.id);
 
@@ -158,7 +154,8 @@ const EditVenue = () => {
               name: service.service_type, // Use service_type as name for now
               service_type: service.service_type,
               price: service.price,
-              images: service.images
+              images: service.images,
+              service_games: service.service_games || []
             });
 
           if (insertError) throw insertError;
@@ -220,6 +217,11 @@ const EditVenue = () => {
     }
     
     setServices(newServices);
+  };
+
+  // Filter games by category for the dropdown
+  const getGamesForServiceType = (serviceType: ServiceType) => {
+    return allGames.filter(game => game.category === serviceType);
   };
 
   const handleDelete = async () => {
@@ -459,20 +461,20 @@ const EditVenue = () => {
                                 <CommandEmpty>No games found.</CommandEmpty>
                                 <CommandGroup>
                                   <CommandList>
-                                    {SERVICE_GAMES[service.service_type].map((game) => (
+                                    {getGamesForServiceType(service.service_type).map((game) => (
                                       <CommandItem
-                                        key={game}
-                                        onSelect={() => toggleServiceGame(index, game)}
+                                        key={game.id}
+                                        onSelect={() => toggleServiceGame(index, game.name)}
                                       >
                                         <Check
                                           className={cn(
                                             "mr-2 h-4 w-4",
-                                            service.service_games?.includes(game)
+                                            service.service_games?.includes(game.name)
                                               ? "opacity-100"
                                               : "opacity-0"
                                           )}
                                         />
-                                        {game}
+                                        {game.name}
                                       </CommandItem>
                                     ))}
                                   </CommandList>

@@ -412,6 +412,7 @@ export type Database = {
           images: string[] | null
           name: string
           price: number
+          service_games: string[] | null
           service_type: Database["public"]["Enums"]["service_type"] | null
           venue_id: string | null
         }
@@ -421,6 +422,7 @@ export type Database = {
           images?: string[] | null
           name: string
           price: number
+          service_games?: string[] | null
           service_type?: Database["public"]["Enums"]["service_type"] | null
           venue_id?: string | null
         }
@@ -430,6 +432,7 @@ export type Database = {
           images?: string[] | null
           name?: string
           price?: number
+          service_games?: string[] | null
           service_type?: Database["public"]["Enums"]["service_type"] | null
           venue_id?: string | null
         }
