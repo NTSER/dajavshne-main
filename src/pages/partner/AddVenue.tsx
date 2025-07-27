@@ -88,7 +88,6 @@ const AddVenue = () => {
       const venueData = await createVenue.mutateAsync({
         name: venue.name,
         location: venue.location,
-        price: validServices[0].price, // Use first service price as base venue price
         images: venue.images,
         openingTime: venue.opening_time,
         closingTime: venue.closing_time,
