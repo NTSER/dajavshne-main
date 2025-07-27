@@ -40,27 +40,6 @@ export const useCreateVenue = () => {
     mutationFn: async (venueData: CreateVenueData) => {
       if (!user?.id) throw new Error('User not authenticated');
 
-      console.log('Creating venue with user:', user);
-      console.log('User ID:', user.id);
-      
-      // Check user profile and role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Profile error:', profileError);
-        throw new Error('Could not verify user profile');
-      }
-      
-      console.log('User profile:', profile);
-      
-      if (profile.role !== 'partner') {
-        throw new Error('User must have partner role to create venues');
-      }
-
       const { data, error } = await supabase
         .from('venues')
         .insert([{
