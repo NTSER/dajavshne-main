@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -484,13 +485,34 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                     <div 
                       key={service.id}
                       className={cn(
-                        "p-4 rounded-xl border-2 cursor-pointer transition-all",
+                        "p-4 rounded-xl border-2 cursor-pointer transition-all relative",
                         isSelected 
                           ? "border-primary bg-primary/5" 
                           : "border-border hover:border-primary/50"
                       )}
                       onClick={() => handleServiceSelect(service)}
                     >
+                      {/* Remove button for selected services */}
+                      {isSelected && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => handleRemoveService(service.id, e)}
+                                className="absolute top-2 right-2 h-6 w-6 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 z-10"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Discard Service</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      
                       <div className="flex items-start gap-4">
                         {service.images && service.images.length > 0 ? (
                           <img
@@ -517,17 +539,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                       {/* Selected booking information */}
                       {isSelected && serviceBooking && formData.date && (
                         <div className="mt-4 pt-4 border-t border-border space-y-2">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-muted-foreground">Booking Details</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => handleRemoveService(service.id, e)}
-                              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Guests:</span>
                             <span className="font-medium">{formData.guests}</span>
