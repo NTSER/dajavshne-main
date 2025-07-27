@@ -5,7 +5,6 @@ import { Venue } from './useVenues';
 
 export interface CreateVenueData {
   name: string;
-  description: string;
   location: string;
   price: number;
   images: string[];
@@ -46,7 +45,6 @@ export const useCreateVenue = () => {
         .from('venues')
         .insert([{
           name: venueData.name,
-          description: venueData.description,
           location: venueData.location,
           price: venueData.price,
           images: venueData.images,
