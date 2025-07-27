@@ -7,6 +7,7 @@ import { Bell, Check, X, Calendar, Clock, Users, MapPin, DollarSign } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePartnerAuth } from '@/hooks/usePartnerAuth';
+import { audioAlert } from '@/utils/audioAlert';
 
 interface PendingBooking {
   id: string;
@@ -140,6 +141,9 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
             };
 
             setPendingBookings(prev => [newBooking, ...prev]);
+            
+            // Play booking sound alert
+            audioAlert.playBookingSound(3000);
             
             // Show notification toast
             toast({

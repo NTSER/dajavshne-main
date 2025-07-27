@@ -1,7 +1,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { audioAlert } from '@/utils/audioAlert';
 
 export interface Notification {
   id: string;
@@ -17,7 +19,85 @@ export interface Notification {
 
 export const useNotifications = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('New notification received:', payload);
+          
+          // Add the new notification to the cache
+          queryClient.setQueryData(['notifications', user.id], (old: Notification[] = []) => {
+            const newNotification = payload.new as Notification;
+            
+            // Play sound for different notification types
+            if (newNotification.type === 'booking_confirmed' || newNotification.type === 'booking_rejected') {
+              audioAlert.playNotificationSound(2500);
+            } else if (newNotification.type.includes('before')) {
+              audioAlert.playNotificationSound(2000);
+            }
+            
+            return [newNotification, ...old];
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Notification updated:', payload);
+          
+          // Update the notification in the cache
+          queryClient.setQueryData(['notifications', user.id], (old: Notification[] = []) => {
+            return old.map(notification => 
+              notification.id === payload.new.id 
+                ? { ...notification, ...payload.new } as Notification
+                : notification
+            );
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Notification deleted:', payload);
+          
+          // Remove the notification from the cache
+          queryClient.setQueryData(['notifications', user.id], (old: Notification[] = []) => {
+            return old.filter(notification => notification.id !== payload.old.id);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
   return useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async () => {
