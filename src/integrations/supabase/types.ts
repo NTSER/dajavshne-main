@@ -408,32 +408,29 @@ export type Database = {
       venue_services: {
         Row: {
           created_at: string | null
-          description: string | null
-          duration: string
           id: string
           images: string[] | null
           name: string
           price: number
+          service_type: Database["public"]["Enums"]["service_type"] | null
           venue_id: string | null
         }
         Insert: {
           created_at?: string | null
-          description?: string | null
-          duration: string
           id?: string
           images?: string[] | null
           name: string
           price: number
+          service_type?: Database["public"]["Enums"]["service_type"] | null
           venue_id?: string | null
         }
         Update: {
           created_at?: string | null
-          description?: string | null
-          duration?: string
           id?: string
           images?: string[] | null
           name?: string
           price?: number
+          service_type?: Database["public"]["Enums"]["service_type"] | null
           venue_id?: string | null
         }
         Relationships: [
@@ -540,6 +537,7 @@ export type Database = {
       }
     }
     Enums: {
+      service_type: "PC Gaming" | "PlayStation 5" | "Billiards" | "Table Tennis"
       user_role: "customer" | "partner" | "admin"
     }
     CompositeTypes: {
@@ -668,6 +666,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      service_type: ["PC Gaming", "PlayStation 5", "Billiards", "Table Tennis"],
       user_role: ["customer", "partner", "admin"],
     },
   },
