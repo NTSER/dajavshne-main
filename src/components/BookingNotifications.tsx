@@ -368,86 +368,91 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           
           {selectedBooking && (
             <div className="space-y-6 pt-6">
-              {/* 1. User Information */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-foreground">Customer Information</h3>
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-primary font-medium text-sm">
-                        {selectedBooking.user_email.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Guest</p>
-                      <p className="text-sm text-muted-foreground">{selectedBooking.user_email}</p>
-                    </div>
-                  </div>
-                </div>
+              {/* Username/Email */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Customer</h3>
+                <p className="text-lg font-medium text-foreground">{selectedBooking.user_email}</p>
               </div>
 
-              {/* 2. Services Information - Styled like client-side selection */}
-              {selectedBooking.service_name && (
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-foreground">Service Details</h3>
-                  <div className="bg-background border border-border rounded-xl p-6 shadow-sm">
-                    <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl">🎱</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-xl font-semibold text-foreground mb-1">{selectedBooking.service_name}</h4>
-                        <p className="text-muted-foreground mb-4">
-                          ${(selectedBooking.total_price / selectedBooking.guest_count).toFixed(0)} / guest • {selectedBooking.service_name}
-                        </p>
-                        
-                        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                          <div>
-                            <span className="text-muted-foreground">Guests:</span>
-                            <span className="ml-2 font-medium text-foreground">{selectedBooking.guest_count}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Date:</span>
-                            <span className="ml-2 font-medium text-foreground">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-muted-foreground">Time:</span>
-                            <span className="ml-2 font-medium text-foreground">{formatTime(selectedBooking.booking_time)}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="text-right">
-                          <span className="text-sm text-muted-foreground">Total:</span>
-                          <span className="ml-2 text-2xl font-bold text-primary">${selectedBooking.total_price.toFixed(0)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Selected Service */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Selected Service</h3>
+                <p className="text-lg font-medium text-foreground">
+                  {selectedBooking.service_name || 'General Booking'}
+                </p>
+              </div>
 
-              {/* 3. Special Requests */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-foreground">Special Requests</h3>
-                <div className="bg-muted/30 rounded-lg p-4 border min-h-[100px]">
+              {/* Selected Games */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Selected Games</h3>
+                <p className="text-lg font-medium text-foreground">
+                  {selectedBooking.service_name || 'Not specified'}
+                </p>
+              </div>
+
+              {/* Date */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Date</h3>
+                <p className="text-lg font-medium text-foreground">
+                  {new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
+
+              {/* Arrival Time */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Arrival Time</h3>
+                <p className="text-lg font-medium text-foreground">
+                  {selectedBooking.booking_time || 'Not specified'}
+                </p>
+              </div>
+
+              {/* Departure Time */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Departure Time</h3>
+                <p className="text-lg font-medium text-foreground">
+                  {selectedBooking.booking_time ? 
+                    (() => {
+                      const [hours, minutes] = selectedBooking.booking_time.split(':');
+                      const departureHour = (parseInt(hours) + 2) % 24; // Assuming 2-hour session
+                      return `${departureHour.toString().padStart(2, '0')}:${minutes}`;
+                    })() 
+                    : 'Not specified'
+                  }
+                </p>
+              </div>
+
+              {/* Service Amount */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Service Amount</h3>
+                <p className="text-lg font-medium text-foreground">
+                  ${(selectedBooking.total_price / selectedBooking.guest_count).toFixed(2)} per guest
+                </p>
+              </div>
+
+              {/* Total Amount */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Total Amount</h3>
+                <p className="text-2xl font-bold text-primary">
+                  ${selectedBooking.total_price.toFixed(2)}
+                </p>
+              </div>
+
+              {/* Special Requests */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Special Requests</h3>
+                <div className="bg-muted/30 rounded-lg p-4 min-h-[80px]">
                   {selectedBooking.special_requests ? (
                     <p className="text-foreground leading-relaxed">
-                      {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() || 'No additional requests'}
+                      {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() || 'No special requests'}
                     </p>
                   ) : (
                     <p className="text-muted-foreground italic">No special requests</p>
                   )}
-                </div>
-              </div>
-
-              {/* 4. Total Price */}
-              <div className="bg-primary/5 rounded-lg p-6 border border-primary/20">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
-                    <p className="text-3xl font-bold text-primary">${selectedBooking.total_price.toFixed(0)}</p>
-                  </div>
-                  <DollarSign className="h-10 w-10 text-primary" />
                 </div>
               </div>
 
