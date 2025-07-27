@@ -335,7 +335,19 @@ const EditVenue = () => {
             </CardContent>
           </Card>
 
-
+          {/* Venue Images */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Venue Images</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <VenueImageUpload
+                images={venue.images}
+                onImagesChange={(images) => setVenue({...venue, images})}
+                venueId={venueId!}
+              />
+            </CardContent>
+          </Card>
           {/* Services Section */}
           <Card>
             <CardHeader>
@@ -426,19 +438,6 @@ const EditVenue = () => {
             </CardContent>
           </Card>
 
-          {/* Images */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Venue Images</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VenueImageUpload
-                images={venue.images}
-                onImagesChange={(images) => setVenue({...venue, images})}
-                venueId={venueId!}
-              />
-            </CardContent>
-          </Card>
 
         </div>
       </div>
