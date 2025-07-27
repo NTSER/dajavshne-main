@@ -45,7 +45,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     guests: 1,
     serviceIds: selectedServiceId ? [selectedServiceId] : [] as string[],
     specialRequests: "",
-    selectedGame: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogService, setDialogService] = useState<VenueService | null>(null);
@@ -170,7 +169,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       serviceIds: formData.serviceIds,
       totalPrice,
       specialRequests: formData.specialRequests,
-      selectedGame: formData.selectedGame,
     };
 
     navigate('/confirm-and-pay', { 
@@ -601,38 +599,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                 rows={4}
               />
             </div>
-
-            {/* Games Selection - Show when booking details are complete */}
-            {((services.length === 0 && formData.date && formData.arrivalTime && formData.departureTime) || 
-              (services.length > 0 && formData.serviceIds.length > 0 && formData.date && formData.serviceBookings.length > 0)) && (
-              <div className="space-y-4">
-                <Label htmlFor="games" className="text-lg font-medium">
-                  Select a Game (Optional)
-                </Label>
-                <Select 
-                  value={formData.selectedGame} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, selectedGame: value }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose a game to play during your session" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="counter-strike">Counter-Strike 2</SelectItem>
-                    <SelectItem value="league-of-legends">League of Legends</SelectItem>
-                    <SelectItem value="valorant">Valorant</SelectItem>
-                    <SelectItem value="dota-2">Dota 2</SelectItem>
-                    <SelectItem value="overwatch-2">Overwatch 2</SelectItem>
-                    <SelectItem value="apex-legends">Apex Legends</SelectItem>
-                    <SelectItem value="fortnite">Fortnite</SelectItem>
-                    <SelectItem value="fifa-24">FIFA 24</SelectItem>
-                    <SelectItem value="call-of-duty">Call of Duty: Modern Warfare</SelectItem>
-                    <SelectItem value="rocket-league">Rocket League</SelectItem>
-                    <SelectItem value="minecraft">Minecraft</SelectItem>
-                    <SelectItem value="gta-v">Grand Theft Auto V</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </form>
         </CardContent>
       </Card>
