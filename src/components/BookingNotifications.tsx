@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePartnerAuth } from '@/hooks/usePartnerAuth';
 import { audioAlert } from '@/utils/audioAlert';
+import { cn } from '@/lib/utils';
 
 interface PendingBooking {
   id: string;
@@ -368,84 +369,68 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           
           {selectedBooking && (
             <div className="space-y-6 pt-6">
-              {/* Username/Email */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Customer</h3>
-                <p className="text-lg font-medium text-foreground">{selectedBooking.user_email}</p>
-              </div>
-
-              {/* Selected Service */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Selected Service</h3>
-                <p className="text-lg font-medium text-foreground">
-                  {selectedBooking.service_name || 'General Booking'}
-                </p>
-              </div>
-
-              {/* Selected Games */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Selected Games</h3>
-                <p className="text-lg font-medium text-foreground">
-                  {selectedBooking.service_name || 'Not specified'}
-                </p>
-              </div>
-
-              {/* Date */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Date</h3>
-                <p className="text-lg font-medium text-foreground">
-                  {new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              </div>
-
-              {/* Arrival Time */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Arrival Time</h3>
-                <p className="text-lg font-medium text-foreground">
-                  {selectedBooking.booking_time || 'Not specified'}
-                </p>
-              </div>
-
-              {/* Departure Time */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Departure Time</h3>
-                <p className="text-lg font-medium text-foreground">
-                  {selectedBooking.booking_time ? 
-                    (() => {
-                      const [hours, minutes] = selectedBooking.booking_time.split(':');
-                      const departureHour = (parseInt(hours) + 2) % 24; // Assuming 2-hour session
-                      return `${departureHour.toString().padStart(2, '0')}:${minutes}`;
-                    })() 
-                    : 'Not specified'
-                  }
-                </p>
-              </div>
-
-              {/* Service Amount */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Service Amount</h3>
-                <p className="text-lg font-medium text-foreground">
-                  ${(selectedBooking.total_price / selectedBooking.guest_count).toFixed(2)} per guest
-                </p>
-              </div>
-
-              {/* Total Amount */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Total Amount</h3>
-                <p className="text-2xl font-bold text-primary">
-                  ${selectedBooking.total_price.toFixed(2)}
-                </p>
-              </div>
+              {/* Service Information - EXACT same layout as client side */}
+              {selectedBooking.service_name && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Service Details</h3>
+                  <div className={cn(
+                    "p-4 rounded-xl border-2 border-primary bg-primary/5"
+                  )}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-lg mb-1">{selectedBooking.service_name}</h4>
+                        <p className="text-muted-foreground">
+                          ${(selectedBooking.total_price / selectedBooking.guest_count).toFixed(0)} / guest · {selectedBooking.service_name}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Selected booking information - EXACT same as client */}
+                    <div className="mt-4 pt-4 border-t border-border space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Guests:</span>
+                        <span className="font-medium">{selectedBooking.guest_count}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Date:</span>
+                        <span className="font-medium">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Time:</span>
+                        <span className="font-medium">
+                          {selectedBooking.booking_time} - {(() => {
+                            const [hours, minutes] = selectedBooking.booking_time.split(':');
+                            const departureHour = (parseInt(hours) + 2) % 24;
+                            return `${departureHour.toString().padStart(2, '0')}:${minutes}`;
+                          })()}
+                        </span>
+                      </div>
+                      {/* Selected Games section - placeholder for now */}
+                      <div className="space-y-2">
+                        <span className="text-muted-foreground text-sm">Selected Games:</span>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                            <span>🎮</span>
+                            {selectedBooking.service_name}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm pt-2 border-t">
+                        <span className="text-muted-foreground font-medium">Total:</span>
+                        <span className="font-bold text-primary">
+                          ${selectedBooking.total_price.toFixed(0)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Special Requests */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">Special Requests</h3>
-                <div className="bg-muted/30 rounded-lg p-4 min-h-[80px]">
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium">Special Requests</h3>
+                <div className="bg-muted/30 rounded-lg p-4 border min-h-[80px]">
                   {selectedBooking.special_requests ? (
                     <p className="text-foreground leading-relaxed">
                       {selectedBooking.special_requests.replace(/Service\s+[a-f0-9-]+:\s*\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/g, '').trim() || 'No special requests'}
