@@ -369,6 +369,24 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           
           {selectedBooking && (
             <div className="space-y-6 pt-6">
+              {/* Customer Information */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium">Customer Information</h3>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-primary font-medium text-sm">
+                        {selectedBooking.user_email.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Guest</p>
+                      <p className="text-sm text-muted-foreground">{selectedBooking.user_email}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Service Information - EXACT same layout as client side */}
               {selectedBooking.service_name && (
                 <div className="space-y-4">
@@ -399,21 +417,31 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Time:</span>
                         <span className="font-medium">
-                          {selectedBooking.booking_time} - {(() => {
+                          {selectedBooking.booking_time?.substring(0, 5)} - {(() => {
+                            if (!selectedBooking.booking_time) return 'Not specified';
                             const [hours, minutes] = selectedBooking.booking_time.split(':');
                             const departureHour = (parseInt(hours) + 2) % 24;
                             return `${departureHour.toString().padStart(2, '0')}:${minutes}`;
                           })()}
                         </span>
                       </div>
-                      {/* Selected Games section - placeholder for now */}
+                      {/* Selected Games section - extract from special requests or show service name */}
                       <div className="space-y-2">
                         <span className="text-muted-foreground text-sm">Selected Games:</span>
                         <div className="flex flex-wrap gap-1">
-                          <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                            <span>🎮</span>
-                            {selectedBooking.service_name}
-                          </Badge>
+                          {(() => {
+                            // Try to extract games from special requests or fall back to service name
+                            const gamesText = selectedBooking.special_requests || '';
+                            const gameMatches = gamesText.match(/Games?:\s*([^.]+)/i);
+                            const games = gameMatches ? gameMatches[1].split(',').map(g => g.trim()) : [selectedBooking.service_name];
+                            
+                            return games.map((game, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                                <span>🎮</span>
+                                {game}
+                              </Badge>
+                            ));
+                          })()}
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-sm pt-2 border-t">
