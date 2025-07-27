@@ -8,6 +8,7 @@ export interface UserProfile {
   email: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  role: 'customer' | 'partner' | 'admin';
   created_at: string | null;
   updated_at: string | null;
 }

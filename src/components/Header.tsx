@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, Heart, History, Building2, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useVenueSearch } from "@/hooks/useVenueSearch";
 import NotificationBell from "./NotificationBell";
 import ProfileDialog from "./ProfileDialog";
@@ -21,6 +22,7 @@ const Header = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
+  const { data: profile } = useProfile();
   const { searchQuery, searchResults, isSearching, handleSearch, clearSearch } = useVenueSearch();
   const navigate = useNavigate();
 
@@ -135,6 +137,14 @@ const Header = () => {
 
           {/* Desktop Auth & User Menu */}
           <div className="hidden md:flex items-center space-x-4">
+            {profile?.role === 'admin' && (
+              <Link to="/admin">
+                <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50">
+                  <User className="h-4 w-4 mr-2" />
+                  Admin Panel
+                </Button>
+              </Link>
+            )}
             <Link to="/partner/auth">
               <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-50">
                 <Building2 className="h-4 w-4 mr-2" />
