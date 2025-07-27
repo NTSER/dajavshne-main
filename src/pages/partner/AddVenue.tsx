@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import PartnerLayout from '@/components/PartnerLayout';
 
+type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
+
 const AddVenue = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -27,11 +29,13 @@ const AddVenue = () => {
     selectedGameIds: [] as string[],
     services: [{ 
       name: '', 
+      service_type: 'PC Gaming' as ServiceType,
       price: '', 
       duration: '', 
       images: [] as string[], 
       uploadedImages: [] as File[],
-      discount_percentage: 0
+      discount_percentage: 0,
+      service_games: [] as string[]
     }],
     openingTime: '',
     closingTime: '',
@@ -45,7 +49,7 @@ const AddVenue = () => {
   const createVenue = useCreateVenue();
   const { toast } = useToast();
   const { data: categories, isLoading: categoriesLoading } = useVenueCategories();
-  const { data: games, isLoading: gamesLoading } = useGames();
+  const { data: allGames, isLoading: gamesLoading } = useGames();
   const { updateVenueGames } = useVenueGamesMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -154,11 +158,11 @@ const AddVenue = () => {
 
           await supabase.from('venue_services').insert({
             venue_id: venueData.id,
-            name: service.name,
-            description: '', // No description
+            name: service.service_type, // Use service_type as name for consistency
+            service_type: service.service_type,
             price: parseFloat(service.price),
-            duration: service.duration,
             images: allServiceImages,
+            service_games: service.service_games || []
           });
         }
       }
@@ -214,22 +218,48 @@ const AddVenue = () => {
       ...prev,
       services: [...prev.services, { 
         name: '', 
+        service_type: 'PC Gaming' as ServiceType,
         price: '', 
         duration: '', 
         images: [''], 
         uploadedImages: [],
-        discount_percentage: 0
+        discount_percentage: 0,
+        service_games: []
       }]
     }));
   };
 
-  const updateService = (index: number, field: string, value: string) => {
+  const updateService = (index: number, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       services: prev.services.map((service, i) => 
-        i === index ? { ...service, [field]: value } : service
+        i === index ? { 
+          ...service, 
+          [field]: value,
+          // Reset service_games when service_type changes
+          ...(field === 'service_type' ? { service_games: [] } : {})
+        } : service
       )
     }));
+  };
+
+  const toggleServiceGame = (serviceIndex: number, game: string) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === serviceIndex ? {
+          ...service,
+          service_games: service.service_games.includes(game)
+            ? service.service_games.filter(g => g !== game)
+            : [...service.service_games, game]
+        } : service
+      )
+    }));
+  };
+
+  // Filter games by category for the dropdown
+  const getGamesForServiceType = (serviceType: ServiceType) => {
+    return allGames?.filter(game => game.category === serviceType) || [];
   };
 
   const removeService = (index: number) => {
@@ -496,7 +526,7 @@ const AddVenue = () => {
                       <CommandList className="max-h-[200px]">
                         <CommandEmpty>No game found.</CommandEmpty>
                         <CommandGroup>
-                          {games?.map((game) => (
+                          {allGames?.map((game) => (
                             <CommandItem
                               key={game.id}
                               value={game.name}
@@ -527,7 +557,7 @@ const AddVenue = () => {
                 {formData.selectedGameIds.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.selectedGameIds.map((gameId) => {
-                      const game = games?.find(g => g.id === gameId);
+                      const game = allGames?.find(g => g.id === gameId);
                       return game ? (
                         <Badge key={gameId} variant="secondary" className="flex items-center gap-1">
                           <Gamepad2 className="h-3 w-3" />
@@ -652,6 +682,96 @@ const AddVenue = () => {
                         </Button>
                       )}
                     </div>
+                    
+                    
+                    <div className="space-y-2">
+                      <Label className="text-gray-900 dark:text-white font-medium">Service Type *</Label>
+                      <Select 
+                        value={service.service_type} 
+                        onValueChange={(value: ServiceType) => updateService(index, 'service_type', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select service type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PC Gaming">PC Gaming</SelectItem>
+                          <SelectItem value="PlayStation 5">PlayStation 5</SelectItem>
+                          <SelectItem value="Billiards">Billiards</SelectItem>
+                          <SelectItem value="Table Tennis">Table Tennis</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Service Games - Show only for specific service types */}
+                    {(service.service_type === 'PC Gaming' || 
+                      service.service_type === 'PlayStation 5' || 
+                      service.service_type === 'Billiards') && (
+                      <div className="space-y-2">
+                        <Label className="text-gray-900 dark:text-white font-medium">Service Games</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {service.service_games?.length ? 
+                                `${service.service_games.length} game(s) selected` : 
+                                "Select games"
+                              }
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search games..." />
+                              <CommandEmpty>No games found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandList>
+                                  {getGamesForServiceType(service.service_type).map((game) => (
+                                    <CommandItem
+                                      key={game.id}
+                                      onSelect={() => toggleServiceGame(index, game.name)}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          service.service_games?.includes(game.name)
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {game.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        
+                        {/* Display selected games as badges */}
+                        {service.service_games && service.service_games.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {service.service_games.map((game) => (
+                              <Badge
+                                key={game}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {game}
+                                <button
+                                  onClick={() => toggleServiceGame(index, game)}
+                                  className="ml-1 text-xs hover:text-red-500"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
