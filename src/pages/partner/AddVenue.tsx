@@ -277,7 +277,7 @@ const AddVenue = () => {
                     <SelectContent>
                       {generateTimeSlots().map((time) => (
                         <SelectItem key={time} value={time}>
-                          {formatTime(time)}
+                          {time}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -296,7 +296,7 @@ const AddVenue = () => {
                     <SelectContent>
                       {generateTimeSlots().map((time) => (
                         <SelectItem key={time} value={time}>
-                          {formatTime(time)}
+                          {time}
                         </SelectItem>
                       ))}
                     </SelectContent>
