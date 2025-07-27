@@ -57,7 +57,7 @@ const ServiceBookingDialog = ({
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Use service-specific games instead of all venue games
-  const availableGames = service.service_games || [];
+  const availableGames = service?.service_games || [];
 
   // Set initial values when dialog opens with existing data
   useEffect(() => {
