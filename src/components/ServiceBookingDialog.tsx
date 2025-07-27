@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Minus, Plus, Users, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +26,12 @@ interface ServiceBookingDialogProps {
   }) => void;
   openingTime?: string;
   closingTime?: string;
+  initialData?: {
+    guests: number;
+    date: Date;
+    arrivalTime: string;
+    departureTime: string;
+  };
 }
 
 const ServiceBookingDialog = ({ 
@@ -34,14 +40,31 @@ const ServiceBookingDialog = ({
   onClose, 
   onConfirm,
   openingTime,
-  closingTime
+  closingTime,
+  initialData
 }: ServiceBookingDialogProps) => {
   const { toast } = useToast();
   const [guests, setGuests] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [arrivalTime, setArrivalTime] = useState("");
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [departureTime, setDepartureTime] = useState("");
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Set initial values when dialog opens with existing data
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setGuests(initialData.guests);
+      setSelectedDate(initialData.date);
+      setArrivalTime(initialData.arrivalTime);
+      setDepartureTime(initialData.departureTime);
+    } else if (isOpen && !initialData) {
+      // Reset to defaults when opening without initial data
+      setGuests(1);
+      setSelectedDate(undefined);
+      setArrivalTime("");
+      setDepartureTime("");
+    }
+  }, [isOpen, initialData]);
 
   // Generate 30-minute time slots based on venue hours
   const generateTimeSlots = () => {

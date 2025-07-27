@@ -541,6 +541,16 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               onConfirm={handleServiceConfirm}
               openingTime={openingTime}
               closingTime={closingTime}
+              initialData={
+                dialogService && formData.serviceIds.includes(dialogService.id) && formData.date
+                  ? {
+                      guests: formData.guests,
+                      date: formData.date,
+                      arrivalTime: formData.serviceBookings.find(sb => sb.serviceId === dialogService.id)?.arrivalTime || "",
+                      departureTime: formData.serviceBookings.find(sb => sb.serviceId === dialogService.id)?.departureTime || ""
+                    }
+                  : undefined
+              }
             />
 
 
