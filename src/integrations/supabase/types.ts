@@ -101,6 +101,30 @@ export type Database = {
           },
         ]
       }
+      games: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           booking_id: string
@@ -344,6 +368,42 @@ export type Database = {
           venue_id?: string
         }
         Relationships: []
+      }
+      venue_games: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_games_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_games_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       venue_services: {
         Row: {

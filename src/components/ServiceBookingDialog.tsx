@@ -13,9 +13,11 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { VenueService } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
+import { useVenueGames } from "@/hooks/useGames";
 
 interface ServiceBookingDialogProps {
   service: VenueService | null;
+  venueId?: string;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: {
@@ -38,6 +40,7 @@ interface ServiceBookingDialogProps {
 
 const ServiceBookingDialog = ({ 
   service, 
+  venueId,
   isOpen, 
   onClose, 
   onConfirm,
@@ -54,24 +57,9 @@ const ServiceBookingDialog = ({
   const [isGameComboboxOpen, setIsGameComboboxOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // Available games list
-  const availableGames = [
-    "Counter-Strike 2",
-    "Fortnite",
-    "League of Legends",
-    "Valorant",
-    "Call of Duty: Warzone",
-    "Apex Legends",
-    "Overwatch 2",
-    "Rocket League",
-    "FIFA 24",
-    "Grand Theft Auto V",
-    "Minecraft",
-    "Among Us",
-    "Fall Guys",
-    "Cyberpunk 2077",
-    "The Witcher 3"
-  ];
+  // Fetch venue games
+  const { data: venueGames } = useVenueGames(venueId || '');
+  const availableGames = venueGames?.map(vg => vg.game?.name).filter(Boolean) || [];
 
   // Set initial values when dialog opens with existing data
   useEffect(() => {

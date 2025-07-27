@@ -3,30 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useCreateVenue } from '@/hooks/usePartnerVenues';
-import { useVenueCategories, useAmenities } from '@/hooks/useVenueData';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useCreateVenue } from '@/hooks/usePartnerVenues';
+import { useVenueCategories } from '@/hooks/useVenueData';
+import { useGames, useVenueGamesMutation } from '@/hooks/useGames';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Plus, X, Check, ChevronsUpDown, Gamepad2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import PartnerLayout from '@/components/PartnerLayout';
 
 const AddVenue = () => {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     location: '',
     categoryId: '',
     images: [''],
     uploadedImages: [] as File[],
-    amenityIds: [] as string[],
+    selectedGameIds: [] as string[],
     services: [{ 
       name: '', 
-      description: '', 
       price: '', 
       duration: '', 
       images: [] as string[], 
@@ -39,12 +39,14 @@ const AddVenue = () => {
   });
 
   const [uploading, setUploading] = useState(false);
+  const [isGameComboboxOpen, setIsGameComboboxOpen] = useState(false);
 
   const navigate = useNavigate();
   const createVenue = useCreateVenue();
   const { toast } = useToast();
   const { data: categories, isLoading: categoriesLoading } = useVenueCategories();
-  const { data: amenities, isLoading: amenitiesLoading } = useAmenities();
+  const { data: games, isLoading: gamesLoading } = useGames();
+  const { updateVenueGames } = useVenueGamesMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +73,6 @@ const AddVenue = () => {
       });
       return;
     }
-
 
     try {
       setUploading(true);
@@ -105,22 +106,17 @@ const AddVenue = () => {
         ...uploadedImageUrls
       ];
 
-      // Get selected amenity names for the venue
-      const selectedAmenities = amenities?.filter(amenity => 
-        formData.amenityIds.includes(amenity.id)
-      ).map(amenity => amenity.name) || [];
-
       // Get category name
       const selectedCategory = categories?.find(cat => cat.id === formData.categoryId)?.name || '';
 
       const venueData = await createVenue.mutateAsync({
         name: formData.name,
-        description: formData.description,
+        description: '', // Empty description since we removed it
         location: formData.location,
         category: selectedCategory,
         price: parseFloat(validServices[0].price), // Use first service price as base venue price
         images: allImages,
-        amenities: selectedAmenities,
+        amenities: [], // No amenities
         openingTime: formData.openingTime,
         closingTime: formData.closingTime,
       });
@@ -159,12 +155,20 @@ const AddVenue = () => {
           await supabase.from('venue_services').insert({
             venue_id: venueData.id,
             name: service.name,
-            description: service.description,
+            description: '', // No description
             price: parseFloat(service.price),
             duration: service.duration,
             images: allServiceImages,
           });
         }
+      }
+
+      // Add selected games to venue
+      if (formData.selectedGameIds.length > 0) {
+        await updateVenueGames.mutateAsync({
+          venueId: venueData.id,
+          gameIds: formData.selectedGameIds,
+        });
       }
 
       toast({
@@ -205,13 +209,11 @@ const AddVenue = () => {
     }));
   };
 
-
   const addService = () => {
     setFormData(prev => ({
       ...prev,
       services: [...prev.services, { 
         name: '', 
-        description: '', 
         price: '', 
         duration: '', 
         images: [''], 
@@ -398,13 +400,33 @@ const AddVenue = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-gray-900 dark:text-white font-medium">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
+                <Label htmlFor="location" className="text-gray-900 dark:text-white font-medium">Location *</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-gray-900 dark:text-white font-medium">Category *</Label>
+                <Select 
+                  value={formData.categoryId} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
+                  disabled={categoriesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Working Hours Section */}
@@ -448,36 +470,83 @@ const AddVenue = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-gray-900 dark:text-white font-medium">Location *</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  required
-                />
+              {/* Games Selection */}
+              <div className="space-y-3">
+                <Label className="text-gray-900 dark:text-white font-medium">Available Games</Label>
+                <Popover open={isGameComboboxOpen} onOpenChange={setIsGameComboboxOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isGameComboboxOpen}
+                      className="w-full justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Gamepad2 className="h-4 w-4" />
+                        {formData.selectedGameIds.length > 0 
+                          ? `${formData.selectedGameIds.length} game${formData.selectedGameIds.length > 1 ? 's' : ''} selected` 
+                          : "Choose games"}
+                      </div>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search games..." />
+                      <CommandList className="max-h-[200px]">
+                        <CommandEmpty>No game found.</CommandEmpty>
+                        <CommandGroup>
+                          {games?.map((game) => (
+                            <CommandItem
+                              key={game.id}
+                              value={game.name}
+                              onSelect={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  selectedGameIds: prev.selectedGameIds.includes(game.id)
+                                    ? prev.selectedGameIds.filter(id => id !== game.id)
+                                    : [...prev.selectedGameIds, game.id]
+                                }));
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.selectedGameIds.includes(game.id) ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <Gamepad2 className="mr-2 h-4 w-4" />
+                              {game.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {formData.selectedGameIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.selectedGameIds.map((gameId) => {
+                      const game = games?.find(g => g.id === gameId);
+                      return game ? (
+                        <Badge key={gameId} variant="secondary" className="flex items-center gap-1">
+                          <Gamepad2 className="h-3 w-3" />
+                          {game.name}
+                          <X
+                            className="h-3 w-3 cursor-pointer hover:text-destructive"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                selectedGameIds: prev.selectedGameIds.filter(id => id !== gameId)
+                              }));
+                            }}
+                          />
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category" className="text-gray-900 dark:text-white font-medium">Category *</Label>
-                <Select 
-                  value={formData.categoryId} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
-                  disabled={categoriesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories?.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
 
               <div className="space-y-4">
                 <Label className="text-gray-900 dark:text-white font-medium">Images</Label>
@@ -563,64 +632,6 @@ const AddVenue = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label className="text-gray-900 dark:text-white font-medium">Amenities</Label>
-                {amenitiesLoading ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Loading amenities...</p>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {amenities?.map((amenity) => (
-                      <div key={amenity.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`amenity-${amenity.id}`}
-                          checked={formData.amenityIds.includes(amenity.id)}
-                          onCheckedChange={(checked) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              amenityIds: checked
-                                ? [...prev.amenityIds, amenity.id]
-                                : prev.amenityIds.filter(id => id !== amenity.id)
-                            }));
-                          }}
-                        />
-                        <Label
-                          htmlFor={`amenity-${amenity.id}`}
-                          className="text-sm font-normal cursor-pointer text-gray-900 dark:text-white"
-                        >
-                          {amenity.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Display selected amenities */}
-                {formData.amenityIds.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {formData.amenityIds.map((amenityId) => {
-                      const amenity = amenities?.find(a => a.id === amenityId);
-                      return amenity ? (
-                        <Badge key={amenityId} variant="secondary" className="flex items-center gap-1">
-                          {amenity.name}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                amenityIds: prev.amenityIds.filter(id => id !== amenityId)
-                              }));
-                            }}
-                            className="ml-1 hover:text-destructive"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ) : null;
-                    })}
-                  </div>
-                )}
-              </div>
-
               {/* Services Section */}
               <div className="space-y-4">
                 <Label className="text-lg font-medium text-gray-900 dark:text-white">Services</Label>
@@ -685,16 +696,6 @@ const AddVenue = () => {
                           placeholder="0"
                         />
                       </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-gray-900 dark:text-white font-medium">Description (Optional)</Label>
-                      <Textarea
-                        value={service.description}
-                        onChange={(e) => updateService(index, 'description', e.target.value)}
-                        placeholder="Describe what's included in this service..."
-                        rows={2}
-                      />
                     </div>
 
                     {/* Service Images Section */}

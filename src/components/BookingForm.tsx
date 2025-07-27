@@ -593,6 +593,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             {/* Service Booking Dialog */}
             <ServiceBookingDialog
               service={dialogService}
+              venueId={venueId}
               isOpen={isDialogOpen}
               onClose={() => {
                 setIsDialogOpen(false);
