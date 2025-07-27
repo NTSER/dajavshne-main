@@ -72,6 +72,17 @@ serve(async (req) => {
 
     console.log('Payment verified successfully');
 
+    // Extract selected games from service bookings
+    let selectedGames: string[] = [];
+    if (bookingData.serviceBookings && bookingData.serviceBookings.length > 0) {
+      // Collect all selected games from all service bookings
+      bookingData.serviceBookings.forEach((booking: any) => {
+        if (booking.selectedGames && booking.selectedGames.length > 0) {
+          selectedGames = [...selectedGames, ...booking.selectedGames];
+        }
+      });
+    }
+
     // Create booking in database
     const bookingInsert = {
       user_id: user.id,
@@ -84,6 +95,7 @@ serve(async (req) => {
       status: 'pending',
       special_requests: bookingData.specialRequests || null,
       user_email: user.email,
+      selected_games: selectedGames.length > 0 ? selectedGames : null,
     };
 
     console.log('Creating booking:', bookingInsert);

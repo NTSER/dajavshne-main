@@ -12,6 +12,7 @@ export interface Booking {
   total_price: number;
   status: string;
   special_requests: string | null;
+  selected_games: string[] | null;
   created_at: string;
   updated_at: string;
   venues?: {

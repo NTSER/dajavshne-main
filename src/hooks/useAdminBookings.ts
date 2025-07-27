@@ -10,6 +10,7 @@ interface AdminBooking {
   total_price: number;
   status: string;
   special_requests: string | null;
+  selected_games: string[] | null;
   user_email: string | null;
   created_at: string;
   venue_id: string;

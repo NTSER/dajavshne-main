@@ -121,6 +121,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
               venueId: bookingData.venueId,
               venueName: bookingData.venueName,
               serviceIds: bookingData.serviceIds,
+              serviceBookings: bookingData.serviceBookings,
               date: bookingData.date,
               time: bookingData.arrivalTime,
               guests: bookingData.guests,
@@ -257,6 +258,7 @@ interface BookingData {
     serviceId: string;
     arrivalTime: string;
     departureTime: string;
+    selectedGames?: string[];
   }>;
   guests: number;
   specialRequests?: string;

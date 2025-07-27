@@ -42,6 +42,7 @@ export type Database = {
           created_at: string | null
           guest_count: number
           id: string
+          selected_games: string[] | null
           service_id: string | null
           special_requests: string | null
           status: string | null
@@ -58,6 +59,7 @@ export type Database = {
           created_at?: string | null
           guest_count?: number
           id?: string
+          selected_games?: string[] | null
           service_id?: string | null
           special_requests?: string | null
           status?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           created_at?: string | null
           guest_count?: number
           id?: string
+          selected_games?: string[] | null
           service_id?: string | null
           special_requests?: string | null
           status?: string | null
