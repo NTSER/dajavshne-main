@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import BookingHistory from "@/components/BookingHistory";
 import { useAuth } from "@/hooks/useAuth";
 import AuthDialog from "@/components/AuthDialog";
+import { RealtimeDemo } from "@/components/RealtimeDemo";
 
 const BookingHistoryPage = () => {
   const { user } = useAuth();
@@ -63,6 +64,11 @@ const BookingHistoryPage = () => {
           <p className="text-muted-foreground">
             View all your past and upcoming bookings. Click on any venue to book again.
           </p>
+        </div>
+        
+        {/* Real-time Demo - temporary for testing */}
+        <div className="mb-8">
+          <RealtimeDemo />
         </div>
         
         <BookingHistory />
