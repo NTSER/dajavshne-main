@@ -18,6 +18,7 @@ interface PendingBooking {
   total_price: number;
   user_email: string;
   special_requests?: string;
+  selected_games?: string[];
   venue_name: string;
   venue_id: string;
   created_at: string;
@@ -83,6 +84,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         total_price: Number(booking.total_price),
         user_email: booking.user_email,
         special_requests: booking.special_requests,
+        selected_games: booking.selected_games,
         venue_name: booking.venues.name,
         venue_id: booking.venue_id,
         created_at: booking.created_at,
@@ -138,6 +140,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               total_price: Number(data.total_price),
               user_email: data.user_email,
               special_requests: data.special_requests,
+              selected_games: data.selected_games,
               venue_name: data.venues.name,
               venue_id: data.venue_id,
               created_at: data.created_at,
