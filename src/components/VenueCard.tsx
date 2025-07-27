@@ -71,20 +71,27 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             <span className="text-sm">{venue.location}</span>
           </div>
           
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-            {venue.description}
-          </p>
+          {/* Show service names instead of description */}
+          <div className="mb-3 min-h-[40px]">
+            {services && services.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {services.slice(0, 3).map((service) => (
+                  <Badge key={service.id} variant="outline" className="text-xs">
+                    {service.name}
+                  </Badge>
+                ))}
+                {services.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{services.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-400">No services available</div>
+            )}
+          </div>
           
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              {venue.amenities?.slice(0, 2).map((amenity) => (
-                <div key={amenity} className="flex items-center text-xs text-gray-500">
-                  {amenity === 'WiFi' && <Wifi className="h-3 w-3 mr-1" />}
-                  {amenity === 'Parking' && <Car className="h-3 w-3 mr-1" />}
-                  <span>{amenity}</span>
-                </div>
-              ))}
-            </div>
+          <div className="flex items-center justify-end">
             <div className="text-right">
               <span className="font-semibold text-blue-600">
                 ${services && services.length > 0 

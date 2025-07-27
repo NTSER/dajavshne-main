@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { Venue } from "@/hooks/useVenues";
+import { Venue, useVenueServices } from "@/hooks/useVenues";
 import { MapPin, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,57 @@ interface VenueMarker extends Venue {
   lat: number;
   lng: number;
 }
+
+const VenueMarkerContent = ({ venue }: { venue: VenueMarker }) => {
+  const { data: services } = useVenueServices(venue.id);
+  
+  return (
+    <HoverCardContent className="w-80 p-4">
+      <div className="space-y-3">
+        <div className="flex justify-between items-start">
+          <h4 className="font-semibold text-lg">{venue.name}</h4>
+          <Badge variant="secondary">{venue.category}</Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">{venue.location}</p>
+        
+        {/* Show service names instead of description */}
+        <div className="min-h-[40px]">
+          {services && services.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {services.slice(0, 3).map((service) => (
+                <Badge key={service.id} variant="outline" className="text-xs">
+                  {service.name}
+                </Badge>
+              ))}
+              {services.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{services.length - 3} more
+                </Badge>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-400">No services available</div>
+          )}
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-1">
+            <span className="text-sm">⭐ {venue.rating}</span>
+            <span className="text-sm text-muted-foreground">({venue.review_count})</span>
+          </div>
+          <div className="text-right">
+            <span className="font-semibold text-primary">
+              ${services && services.length > 0 
+                ? Math.min(...services.map(s => s.price)) 
+                : venue.price}
+            </span>
+            <span className="text-sm text-muted-foreground">/hour</span>
+          </div>
+        </div>
+      </div>
+    </HoverCardContent>
+  );
+};
 
 const InteractiveMap = ({ venues, onBoundsChange }: InteractiveMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -157,26 +208,7 @@ const InteractiveMap = ({ venues, onBoundsChange }: InteractiveMapProps) => {
                 </div>
               </div>
             </HoverCardTrigger>
-            <HoverCardContent className="w-80 p-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-semibold text-lg">{venue.name}</h4>
-                  <Badge variant="secondary">{venue.category}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">{venue.location}</p>
-                <p className="text-sm line-clamp-2">{venue.description}</p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm">⭐ {venue.rating}</span>
-                    <span className="text-sm text-muted-foreground">({venue.review_count})</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-primary">${venue.price}</span>
-                    <span className="text-sm text-muted-foreground">/hour</span>
-                  </div>
-                </div>
-              </div>
-            </HoverCardContent>
+            <VenueMarkerContent venue={venue} />
           </HoverCard>
         ))}
       </div>
