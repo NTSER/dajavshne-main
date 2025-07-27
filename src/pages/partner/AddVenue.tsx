@@ -89,7 +89,6 @@ const AddVenue = () => {
         name: venue.name,
         description: '', // Empty description since we removed it
         location: venue.location,
-        category: 'Gaming', // Default category since we removed category selection
         price: validServices[0].price, // Use first service price as base venue price
         images: venue.images,
         openingTime: venue.opening_time,

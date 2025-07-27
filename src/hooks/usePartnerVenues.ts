@@ -7,7 +7,6 @@ export interface CreateVenueData {
   name: string;
   description: string;
   location: string;
-  category: string;
   price: number;
   images: string[];
   openingTime: string;
@@ -49,7 +48,6 @@ export const useCreateVenue = () => {
           name: venueData.name,
           description: venueData.description,
           location: venueData.location,
-          category: venueData.category,
           price: venueData.price,
           images: venueData.images,
           opening_time: venueData.openingTime,
