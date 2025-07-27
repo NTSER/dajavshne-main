@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Minus, Plus, Users, Clock, Gamepad2 } from "lucide-react";
+import { CalendarIcon, Minus, Plus, Users, Clock, Gamepad2, Check, ChevronsUpDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -49,6 +50,7 @@ const ServiceBookingDialog = ({
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
   const [selectedGame, setSelectedGame] = useState("");
+  const [isGameComboboxOpen, setIsGameComboboxOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Available games list
@@ -289,26 +291,51 @@ const ServiceBookingDialog = ({
           {selectedDate && (
             <div className="space-y-3">
               <label className="text-sm font-medium">Select Game</label>
-              <Select value={selectedGame} onValueChange={setSelectedGame}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose a game">
+              <Popover open={isGameComboboxOpen} onOpenChange={setIsGameComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isGameComboboxOpen}
+                    className="w-full justify-between"
+                  >
                     <div className="flex items-center gap-2">
                       <Gamepad2 className="h-4 w-4" />
                       {selectedGame || "Choose a game"}
                     </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="max-h-[160px]">
-                  {availableGames.map((game) => (
-                    <SelectItem key={game} value={game}>
-                      <div className="flex items-center gap-2">
-                        <Gamepad2 className="h-4 w-4" />
-                        {game}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search games..." />
+                    <CommandList className="max-h-[160px]">
+                      <CommandEmpty>No game found.</CommandEmpty>
+                      <CommandGroup>
+                        {availableGames.map((game) => (
+                          <CommandItem
+                            key={game}
+                            value={game}
+                            onSelect={(currentValue) => {
+                              setSelectedGame(currentValue === selectedGame ? "" : currentValue);
+                              setIsGameComboboxOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedGame === game ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <Gamepad2 className="mr-2 h-4 w-4" />
+                            {game}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
 
