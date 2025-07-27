@@ -425,15 +425,43 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                           })()}
                         </span>
                       </div>
-                      {/* Selected Games section - extract from special requests or show service name */}
+                      {/* Selected Games section - extract from special requests */}
                       <div className="space-y-2">
                         <span className="text-muted-foreground text-sm">Selected Games:</span>
                         <div className="flex flex-wrap gap-1">
                           {(() => {
-                            // Try to extract games from special requests or fall back to service name
-                            const gamesText = selectedBooking.special_requests || '';
-                            const gameMatches = gamesText.match(/Games?:\s*([^.]+)/i);
-                            const games = gameMatches ? gameMatches[1].split(',').map(g => g.trim()) : [selectedBooking.service_name];
+                            // Try to extract games from special requests with better parsing
+                            const specialReq = selectedBooking.special_requests || '';
+                            
+                            // Look for various game patterns in special requests
+                            let games: string[] = [];
+                            
+                            // Pattern 1: "Games: 8-Ball Pool, 9-Ball Pool"
+                            const gamesMatch = specialReq.match(/Games?:\s*([^.\n]+)/i);
+                            if (gamesMatch) {
+                              games = gamesMatch[1].split(',').map(g => g.trim()).filter(g => g.length > 0);
+                            }
+                            
+                            // Pattern 2: Look for game names directly mentioned
+                            const gameKeywords = ['ball pool', 'pool', 'billiards', 'snooker', 'darts', 'ping pong', 'table tennis'];
+                            if (games.length === 0) {
+                              const lowerSpecialReq = specialReq.toLowerCase();
+                              const foundGames = gameKeywords.filter(keyword => 
+                                lowerSpecialReq.includes(keyword)
+                              );
+                              if (foundGames.length > 0) {
+                                games = foundGames.map(game => 
+                                  game.split(' ').map(word => 
+                                    word.charAt(0).toUpperCase() + word.slice(1)
+                                  ).join(' ')
+                                );
+                              }
+                            }
+                            
+                            // Fallback: show service name if no games found
+                            if (games.length === 0) {
+                              games = [selectedBooking.service_name || 'General Booking'];
+                            }
                             
                             return games.map((game, index) => (
                               <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
