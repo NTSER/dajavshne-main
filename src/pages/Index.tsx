@@ -69,22 +69,10 @@ const Index = () => {
       {/* Enhanced Featured Venues Section */}
       <section className="section-padding bg-white">
         <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-8"
-          >
-            <h2 className="text-3xl font-bold mb-4">Discover Gaming Venues</h2>
-            <p className="text-muted-foreground text-lg mb-8">Find the perfect gaming spot for your next session</p>
-            
-            {/* Filter Component */}
-            <HomePageFilters 
-              onFiltersChange={handleFiltersChange}
-              className="mb-12 flex justify-center"
-            />
-          </motion.div>
+          {/* Filter Component - positioned on the left above venues */}
+          <div className="flex justify-start mb-8">
+            <HomePageFilters onFiltersChange={handleFiltersChange} />
+          </div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
