@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { VenueService } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
+import { calculateGuestPrice, isValidGuestCount, getMaxGuestCount } from "@/utils/guestPricing";
 
 interface ServiceBookingDialogProps {
   service: VenueService | null;
@@ -198,16 +199,20 @@ const ServiceBookingDialog = ({
 
   if (!service) return null;
 
-  // Calculate total price based on duration and guests
+  // Calculate total price based on duration and guests using new pricing logic
   const calculateTotalPrice = () => {
-    if (!arrivalTime || !departureTime) return service.price * guests;
+    if (!arrivalTime || !departureTime) {
+      const guestPrice = calculateGuestPrice(service, guests);
+      return guestPrice || 0;
+    }
     
     const start = new Date(`2000-01-01T${arrivalTime}:00`);
     const end = new Date(`2000-01-01T${departureTime}:00`);
     const diffMs = end.getTime() - start.getTime();
     const hours = diffMs / (1000 * 60 * 60);
     
-    return service.price * guests * hours;
+    const guestPrice = calculateGuestPrice(service, guests);
+    return guestPrice ? guestPrice * hours : 0;
   };
 
   const totalPrice = calculateTotalPrice();
@@ -216,7 +221,7 @@ const ServiceBookingDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Book {service.name} - ₾{service.price}/guest</DialogTitle>
+          <DialogTitle className="text-xl">Book {service.name}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -233,7 +238,12 @@ const ServiceBookingDialog = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setGuests(Math.max(1, guests - 1))}
+                  onClick={() => {
+                    const newGuestCount = Math.max(1, guests - 1);
+                    if (isValidGuestCount(service, newGuestCount)) {
+                      setGuests(newGuestCount);
+                    }
+                  }}
                   disabled={guests <= 1}
                   className="h-8 w-8 p-0"
                 >
@@ -243,8 +253,13 @@ const ServiceBookingDialog = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setGuests(Math.min(20, guests + 1))}
-                  disabled={guests >= 20}
+                  onClick={() => {
+                    const newGuestCount = Math.min(getMaxGuestCount(service) || 20, guests + 1);
+                    if (isValidGuestCount(service, newGuestCount)) {
+                      setGuests(newGuestCount);
+                    }
+                  }}
+                  disabled={guests >= (getMaxGuestCount(service) || 20) || !isValidGuestCount(service, guests + 1)}
                   className="h-8 w-8 p-0"
                 >
                   <Plus className="h-3 w-3" />
@@ -429,13 +444,20 @@ const ServiceBookingDialog = ({
                 <span>₾{totalPrice}</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                ₾{service.price} × {guests} guest{guests !== 1 ? 's' : ''} × {(() => {
+                {(() => {
+                  const guestPrice = calculateGuestPrice(service, guests);
+                  if (!guestPrice) return 'Not available for this guest count';
+                  
+                  if (!arrivalTime || !departureTime) {
+                    return `₾${guestPrice} total for ${guests} guest${guests !== 1 ? 's' : ''}`;
+                  }
+                  
                   const start = new Date(`2000-01-01T${arrivalTime}:00`);
                   const end = new Date(`2000-01-01T${departureTime}:00`);
                   const diffMs = end.getTime() - start.getTime();
                   const hours = diffMs / (1000 * 60 * 60);
-                  return hours.toFixed(1);
-                })()} hours
+                  return `₾${guestPrice} × ${hours} hour${hours !== 1 ? 's' : ''} = ₾${(guestPrice * hours).toFixed(0)}`;
+                })()}
               </p>
             </div>
           )}

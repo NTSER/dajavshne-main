@@ -21,6 +21,7 @@ export interface VenueService {
   service_type: 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
   images: string[];
   service_games?: string[];
+  guest_pricing_rules?: Array<{ maxGuests: number; price: number }>;
 }
 
 export const useVenues = (showHidden = true) => {
@@ -82,7 +83,12 @@ export const useVenueServices = (venueId: string) => {
         throw error;
       }
 
-      return data as VenueService[];
+      return data?.map(service => ({
+        ...service,
+        guest_pricing_rules: Array.isArray(service.guest_pricing_rules) 
+          ? service.guest_pricing_rules as Array<{ maxGuests: number; price: number }>
+          : []
+      })) as VenueService[];
     },
     enabled: !!venueId,
   });

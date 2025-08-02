@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Percent, Tag, Clock, Zap } from "lucide-react";
 import { VenueService } from "@/hooks/useVenues";
+import { getServiceDisplayPrice } from "@/utils/guestPricing";
 
 interface ServiceDiscountBannerProps {
   services: VenueService[];
@@ -52,7 +53,7 @@ const ServiceDiscountBanner = ({
                 className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
               >
                 <Percent className="h-3 w-3 mr-1" />
-                {service.name} from ₾{service.price}
+                {service.name} {getServiceDisplayPrice(service)}
               </Badge>
             ))}
             

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, DollarSign } from "lucide-react";
 import { VenueService } from "@/hooks/useVenues";
+import { getServiceDisplayPrice } from "@/utils/guestPricing";
 
 interface VenueServicesProps {
   services: VenueService[];
@@ -54,20 +55,20 @@ const VenueServices = ({
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{service.name}</CardTitle>
                      <Badge variant="secondary" className="bg-primary/10 text-primary">
-                       ₾{service.price}
+                       {getServiceDisplayPrice(service)}
                      </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                     <div className="flex items-center gap-1">
-                       <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">{service.service_type}</span>
-                     </div>
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" />
-                        ₾{service.price}/guest
-                      </div>
                    </div>
+                 </CardHeader>
+                 <CardContent>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">{service.service_type}</span>
+                      </div>
+                       <div className="flex items-center gap-1">
+                         <DollarSign className="h-4 w-4" />
+                         {getServiceDisplayPrice(service)}
+                       </div>
+                    </div>
                   <Button 
                     variant={selectedService?.id === service.id ? "default" : "outline"}
                     size="sm"

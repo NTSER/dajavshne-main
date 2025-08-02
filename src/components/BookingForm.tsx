@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useVenueDiscounts, calculateDiscountedPrice } from "@/hooks/useDiscounts";
 import ServiceBookingDialog from "@/components/ServiceBookingDialog";
 import { VenueService } from "@/hooks/useVenues";
+import { calculateGuestPrice, getServiceDisplayPrice } from "@/utils/guestPricing";
 
 interface BookingFormProps {
   venueId: string;
@@ -76,7 +77,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       return venuePrice * durationHours;
     }
 
-    // For service bookings, calculate each service separately
+    // For service bookings, calculate each service separately using guest pricing rules
     let totalPrice = 0;
     formData.serviceBookings.forEach(serviceBooking => {
       const service = services.find(s => s.id === serviceBooking.serviceId);
@@ -85,7 +86,12 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
         const diffMs = end.getTime() - start.getTime();
         const durationHours = diffMs / (1000 * 60 * 60);
-        totalPrice += service.price * formData.guests * durationHours;
+        
+        // Use new guest pricing logic
+        const guestPrice = calculateGuestPrice(service, formData.guests);
+        if (guestPrice !== null) {
+          totalPrice += guestPrice * durationHours;
+        }
       }
     });
     return totalPrice;
@@ -540,8 +546,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
                            <p className="text-muted-foreground">
-                              ₾{service.price} / guest · {service.service_type}
-                            </p>
+                              {getServiceDisplayPrice(service)} · {service.service_type}
+                             </p>
                         </div>
                       </div>
                       
@@ -579,11 +585,13 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                             <span className="text-muted-foreground font-medium">Total:</span>
                              <span className="font-bold text-primary">
                                ₾{(() => {
+                                 if (!serviceBooking.arrivalTime || !serviceBooking.departureTime) return '0';
                                  const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
                                  const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
                                  const diffMs = end.getTime() - start.getTime();
                                  const hours = diffMs / (1000 * 60 * 60);
-                                 return (service.price * formData.guests * hours).toFixed(0);
+                                 const guestPrice = calculateGuestPrice(service, formData.guests);
+                                 return guestPrice ? (guestPrice * hours).toFixed(0) : '0';
                                })()}
                              </span>
                           </div>

@@ -551,31 +551,34 @@ const EditVenue = () => {
                         serviceIndex={index}
                       />
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Price per Guest ($) *</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={service.price}
-                            onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
-                            placeholder="0.00"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label>Service Discount (%)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={service.discount_percentage}
-                            onChange={(e) => updateService(index, 'discount_percentage', parseInt(e.target.value) || 0)}
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
+                       <div className="grid grid-cols-1 gap-4">
+                         <div className="space-y-2">
+                           <Label className="text-muted-foreground">Legacy Price Field (Deprecated)</Label>
+                           <p className="text-sm text-muted-foreground">
+                             Price is now managed through Guest Count Pricing rules below. This field is kept for backward compatibility.
+                           </p>
+                           <Input
+                             type="number"
+                             step="0.01"
+                             min="0"
+                             value={service.price}
+                             onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                             placeholder="0.00"
+                             disabled
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <Label>Service Discount (%)</Label>
+                           <Input
+                             type="number"
+                             min="0"
+                             max="100"
+                             value={service.discount_percentage}
+                             onChange={(e) => updateService(index, 'discount_percentage', parseInt(e.target.value) || 0)}
+                             placeholder="0"
+                           />
+                         </div>
+                       </div>
                       
                       {/* Guest Count Pricing Rules */}
                       <GuestPricingRules
