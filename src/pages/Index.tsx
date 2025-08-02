@@ -4,13 +4,51 @@ import EnhancedSearchFilters from "@/components/EnhancedSearchFilters";
 import VenueCard from "@/components/VenueCard";
 import CategoryCard from "@/components/CategoryCard";
 import Header from "@/components/Header";
+import HomePageFilters from "@/components/HomePageFilters";
 import { useVenues } from "@/hooks/useVenues";
 import { categories } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Zap, Trophy } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const Index = () => {
   const { data: venues, isLoading } = useVenues();
+  const [filteredVenues, setFilteredVenues] = useState(venues);
+
+  // Update filtered venues when venues data changes
+  useEffect(() => {
+    setFilteredVenues(venues);
+  }, [venues]);
+
+  const handleFiltersChange = (filters: any) => {
+    if (!venues) return;
+
+    let filtered = venues;
+
+    // Apply category filter
+    if (filters.category) {
+      // This would need to be implemented based on your venue data structure
+      // For now, we'll keep all venues
+    }
+
+    // Apply location filter
+    if (filters.location) {
+      filtered = filtered.filter(venue => 
+        venue.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+
+    // Apply rating filter
+    if (filters.rating) {
+      const minRating = parseFloat(filters.rating);
+      filtered = filtered.filter(venue => venue.rating >= minRating);
+    }
+
+    // Apply price range filter (would need service data)
+    // Apply games filter (would need service data)
+
+    setFilteredVenues(filtered);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -36,8 +74,16 @@ const Index = () => {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-8"
           >
+            <h2 className="text-3xl font-bold mb-4">Discover Gaming Venues</h2>
+            <p className="text-muted-foreground text-lg mb-8">Find the perfect gaming spot for your next session</p>
+            
+            {/* Filter Component */}
+            <HomePageFilters 
+              onFiltersChange={handleFiltersChange}
+              className="mb-12 flex justify-center"
+            />
           </motion.div>
 
           {isLoading ? (
@@ -52,7 +98,7 @@ const Index = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {venues?.slice(0, 6).map((venue, index) => (
+              {(filteredVenues || venues)?.slice(0, 6).map((venue, index) => (
                 <motion.div
                   key={venue.id}
                   initial={{ opacity: 0, y: 30 }}
