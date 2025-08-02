@@ -632,17 +632,6 @@ const ConfirmAndPay = () => {
                     </div>
                   )}
 
-                  {/* Guests */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-foreground">Guests</h4>
-                      <p className="text-sm text-muted-foreground">{bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="text-primary">
-                      Change
-                    </Button>
-                  </div>
-
                   {/* Location */}
                   <div>
                     <h4 className="font-medium text-foreground mb-1">Location</h4>
