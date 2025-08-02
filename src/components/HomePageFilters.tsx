@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Filter, X, MapPin, Gamepad2, Tag, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Filter, X, MapPin, Gamepad2, Tag, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface FilterState {
@@ -58,7 +59,7 @@ const gameOptions = [
 
 const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showAllGames, setShowAllGames] = useState(false);
+  const [gameSearchQuery, setGameSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>({
     category: "",
     location: "",
@@ -110,6 +111,10 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
     Array.isArray(value) ? value.length > 0 : value !== ""
   );
 
+  // Filter games based on search query
+  const filteredGames = gameOptions.filter(game => 
+    game.toLowerCase().includes(gameSearchQuery.toLowerCase())
+  );
   const activeFilterCount = [
     filters.category,
     filters.location
@@ -230,49 +235,45 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
 
                 {/* Games Filter */}
                 <div className="mt-8 sm:mt-10 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                      <div className="p-1 bg-primary/10 rounded">
-                        <Gamepad2 className="h-3 w-3 text-primary" />
-                      </div>
-                      Available Games
-                    </label>
-                    {gameOptions.length > 10 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowAllGames(!showAllGames)}
-                        className="text-xs text-primary hover:text-primary/80"
-                      >
-                        {showAllGames ? (
-                          <>
-                            <ChevronUp className="h-3 w-3 mr-1" />
-                            Show Less
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown className="h-3 w-3 mr-1" />
-                            Show All ({gameOptions.length})
-                          </>
-                        )}
-                      </Button>
-                    )}
+                  <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                    <div className="p-1 bg-primary/10 rounded">
+                      <Gamepad2 className="h-3 w-3 text-primary" />
+                    </div>
+                    Available Games
+                  </label>
+                  
+                  {/* Game Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search games..."
+                      value={gameSearchQuery}
+                      onChange={(e) => setGameSearchQuery(e.target.value)}
+                      className="pl-10 h-11 border-2 border-muted hover:border-primary/50 transition-colors"
+                    />
                   </div>
-                  <div className="flex flex-wrap gap-2 sm:gap-3">
-                    {(showAllGames ? gameOptions : gameOptions.slice(0, 10)).map((game) => (
-                      <Badge
-                        key={game}
-                        variant={filters.games.includes(game) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium ${
-                          filters.games.includes(game)
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
-                            : 'hover:bg-primary/10 hover:border-primary border-2'
-                        }`}
-                        onClick={() => handleGameToggle(game)}
-                      >
-                        {game}
-                      </Badge>
-                    ))}
+                  
+                  <div className="flex flex-wrap gap-2 sm:gap-3 max-h-32 overflow-y-auto">
+                    {filteredGames.length > 0 ? (
+                      filteredGames.map((game) => (
+                        <Badge
+                          key={game}
+                          variant={filters.games.includes(game) ? "default" : "outline"}
+                          className={`cursor-pointer transition-all duration-200 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium ${
+                            filters.games.includes(game)
+                              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                              : 'hover:bg-primary/10 hover:border-primary border-2'
+                          }`}
+                          onClick={() => handleGameToggle(game)}
+                        >
+                          {game}
+                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-4">
+                        No games found matching "{gameSearchQuery}"
+                      </div>
+                    )}
                   </div>
                 </div>
 
