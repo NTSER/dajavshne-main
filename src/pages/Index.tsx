@@ -83,31 +83,8 @@ const Index = () => {
       console.log('After location filter:', filtered.length, 'venues');
     }
 
-    // Apply rating filter
-    if (filters.rating) {
-      const minRating = parseFloat(filters.rating);
-      filtered = filtered.filter(venue => venue.rating >= minRating);
-      console.log('After rating filter:', filtered.length, 'venues');
-    }
-
-    // Apply price range filter
-    if (filters.priceRange) {
-      const [minPrice, maxPrice] = filters.priceRange.split('-').map((p: string) => {
-        if (p.includes('+')) return [parseInt(p.replace('+', '')), Infinity];
-        return parseInt(p);
-      });
-      
-      const venueIdsInPriceRange = allVenueServices
-        .filter(service => {
-          const price = service.price;
-          if (maxPrice === undefined) return price >= minPrice; // For "50+" case
-          return price >= minPrice && price <= maxPrice;
-        })
-        .map(service => service.venue_id);
-      
-      filtered = filtered.filter(venue => venueIdsInPriceRange.includes(venue.id));
-      console.log('After price filter:', filtered.length, 'venues');
-    }
+    // Note: Price range and rating filters have been removed from the UI
+    // The filtering logic below is commented out but kept for future use if needed
 
     console.log('Final filtered venues:', filtered.length);
     setFilteredVenues(filtered);

@@ -3,14 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Filter, X, MapPin, Gamepad2, Tag, Star } from "lucide-react";
+import { Filter, X, MapPin, Gamepad2, Tag, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface FilterState {
   category: string;
   location: string;
-  priceRange: string;
-  rating: string;
   games: string[];
 }
 
@@ -45,16 +43,25 @@ const gameOptions = [
   "CS:GO",
   "8-Ball Pool",
   "9-Ball Pool",
-  "Table Tennis"
+  "Table Tennis",
+  "Dota 2",
+  "League of Legends",
+  "Apex Legends",
+  "Overwatch 2",
+  "Rocket League",
+  "Minecraft",
+  "Grand Theft Auto V",
+  "Among Us",
+  "Fall Guys",
+  "Rainbow Six Siege"
 ];
 
 const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAllGames, setShowAllGames] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     category: "",
     location: "",
-    priceRange: "",
-    rating: "",
     games: []
   });
   const filterRef = useRef<HTMLDivElement>(null);
@@ -93,8 +100,6 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
     const emptyFilters = {
       category: "",
       location: "",
-      priceRange: "",
-      rating: "",
       games: []
     };
     setFilters(emptyFilters);
@@ -107,9 +112,7 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
 
   const activeFilterCount = [
     filters.category,
-    filters.location,
-    filters.priceRange,
-    filters.rating
+    filters.location
   ].filter(Boolean).length + filters.games.length;
 
   return (
@@ -179,7 +182,7 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {/* Category Filter */}
                   <div className="space-y-4">
                     <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
@@ -222,61 +225,41 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-
-                  {/* Price Range Filter */}
-                  <div className="space-y-4">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                      <div className="p-1 bg-primary/10 rounded">
-                        <span className="text-xs text-primary font-bold">₾</span>
-                      </div>
-                      Price Range
-                    </label>
-                    <Select value={filters.priceRange} onValueChange={(value) => handleFilterChange('priceRange', value)}>
-                      <SelectTrigger className="w-full h-11 border-2 border-muted hover:border-primary/50 transition-colors">
-                        <SelectValue placeholder="Choose price range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0-10">0₾ - 10₾</SelectItem>
-                        <SelectItem value="10-25">10₾ - 25₾</SelectItem>
-                        <SelectItem value="25-50">25₾ - 50₾</SelectItem>
-                        <SelectItem value="50+">50₾+</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Rating Filter */}
-                  <div className="space-y-4">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                      <div className="p-1 bg-primary/10 rounded">
-                        <Star className="h-3 w-3 text-primary" />
-                      </div>
-                      Minimum Rating
-                    </label>
-                    <Select value={filters.rating} onValueChange={(value) => handleFilterChange('rating', value)}>
-                      <SelectTrigger className="w-full h-11 border-2 border-muted hover:border-primary/50 transition-colors">
-                        <SelectValue placeholder="Choose rating" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="4">4+ Stars</SelectItem>
-                        <SelectItem value="3">3+ Stars</SelectItem>
-                        <SelectItem value="2">2+ Stars</SelectItem>
-                        <SelectItem value="1">1+ Stars</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                   </div>
                 </div>
 
                 {/* Games Filter */}
                 <div className="mt-8 sm:mt-10 space-y-4">
-                  <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                    <div className="p-1 bg-primary/10 rounded">
-                      <Gamepad2 className="h-3 w-3 text-primary" />
-                    </div>
-                    Available Games
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="p-1 bg-primary/10 rounded">
+                        <Gamepad2 className="h-3 w-3 text-primary" />
+                      </div>
+                      Available Games
+                    </label>
+                    {gameOptions.length > 10 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAllGames(!showAllGames)}
+                        className="text-xs text-primary hover:text-primary/80"
+                      >
+                        {showAllGames ? (
+                          <>
+                            <ChevronUp className="h-3 w-3 mr-1" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-3 w-3 mr-1" />
+                            Show All ({gameOptions.length})
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-2 sm:gap-3">
-                    {gameOptions.map((game) => (
+                    {(showAllGames ? gameOptions : gameOptions.slice(0, 10)).map((game) => (
                       <Badge
                         key={game}
                         variant={filters.games.includes(game) ? "default" : "outline"}
@@ -295,40 +278,30 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
 
                 {/* Active Filters Summary */}
                 {hasActiveFilters && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="mt-6 pt-4 border-t border-muted"
-                  >
-                    <p className="text-sm text-muted-foreground mb-2">Active Filters:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {filters.category && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary">
-                          Category: {filters.category}
-                        </Badge>
-                      )}
-                      {filters.location && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary">
-                          Location: {filters.location}
-                        </Badge>
-                      )}
-                      {filters.priceRange && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary">
-                          Price: {filters.priceRange}₾
-                        </Badge>
-                      )}
-                      {filters.rating && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary">
-                          {filters.rating}+ Stars
-                        </Badge>
-                      )}
-                      {filters.games.map((game) => (
-                        <Badge key={game} variant="secondary" className="bg-primary/10 text-primary">
-                          {game}
-                        </Badge>
-                      ))}
-                    </div>
-                  </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-6 pt-4 border-t border-muted"
+                      >
+                        <p className="text-sm text-muted-foreground mb-2">Active Filters:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {filters.category && (
+                            <Badge variant="secondary" className="bg-primary/10 text-primary">
+                              Category: {filters.category}
+                            </Badge>
+                          )}
+                          {filters.location && (
+                            <Badge variant="secondary" className="bg-primary/10 text-primary">
+                              Location: {filters.location}
+                            </Badge>
+                          )}
+                          {filters.games.map((game) => (
+                            <Badge key={game} variant="secondary" className="bg-primary/10 text-primary">
+                              {game}
+                            </Badge>
+                          ))}
+                        </div>
+                      </motion.div>
                 )}
               </CardContent>
             </Card>
