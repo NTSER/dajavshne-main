@@ -35,6 +35,66 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_services: {
+        Row: {
+          arrival_time: string
+          booking_id: string
+          created_at: string
+          departure_time: string
+          duration_hours: number
+          guest_count: number
+          id: string
+          price_per_hour: number
+          selected_games: string[] | null
+          service_id: string
+          subtotal: number
+          updated_at: string
+        }
+        Insert: {
+          arrival_time: string
+          booking_id: string
+          created_at?: string
+          departure_time: string
+          duration_hours: number
+          guest_count?: number
+          id?: string
+          price_per_hour: number
+          selected_games?: string[] | null
+          service_id: string
+          subtotal: number
+          updated_at?: string
+        }
+        Update: {
+          arrival_time?: string
+          booking_id?: string
+          created_at?: string
+          departure_time?: string
+          duration_hours?: number
+          guest_count?: number
+          id?: string
+          price_per_hour?: number
+          selected_games?: string[] | null
+          service_id?: string
+          subtotal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_booking_services_booking_id"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_booking_services_service_id"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "venue_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string

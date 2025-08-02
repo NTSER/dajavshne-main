@@ -83,11 +83,11 @@ serve(async (req) => {
       });
     }
 
-    // Create booking in database
+    // Create main booking in database
     const bookingInsert = {
       user_id: user.id,
       venue_id: bookingData.venueId,
-      service_id: bookingData.serviceIds && bookingData.serviceIds.length > 0 ? bookingData.serviceIds[0] : null,
+      service_id: null, // We'll store services separately now
       booking_date: bookingData.date,
       booking_time: bookingData.time,
       guest_count: bookingData.guests,
@@ -112,6 +112,60 @@ serve(async (req) => {
     }
 
     console.log('Booking created successfully:', booking.id);
+
+    // Create individual service bookings if multiple services
+    if (bookingData.serviceBookings && bookingData.serviceBookings.length > 0) {
+      console.log('Creating service bookings:', bookingData.serviceBookings);
+      
+      // Get service details for pricing calculation
+      const serviceIds = bookingData.serviceBookings.map((sb: any) => sb.serviceId);
+      const { data: services, error: servicesError } = await supabaseClient
+        .from('venue_services')
+        .select('id, price')
+        .in('id', serviceIds);
+
+      if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+        throw new Error(`Failed to fetch service details: ${servicesError.message}`);
+      }
+
+      const serviceBookingsToInsert = bookingData.serviceBookings.map((serviceBooking: any) => {
+        const service = services.find(s => s.id === serviceBooking.serviceId);
+        if (!service) {
+          throw new Error(`Service not found: ${serviceBooking.serviceId}`);
+        }
+
+        // Calculate duration and subtotal
+        const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
+        const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
+        const diffMs = end.getTime() - start.getTime();
+        const durationHours = diffMs / (1000 * 60 * 60);
+        const subtotal = service.price * bookingData.guests * durationHours;
+
+        return {
+          booking_id: booking.id,
+          service_id: serviceBooking.serviceId,
+          arrival_time: serviceBooking.arrivalTime,
+          departure_time: serviceBooking.departureTime,
+          guest_count: bookingData.guests,
+          price_per_hour: service.price,
+          duration_hours: durationHours,
+          subtotal: subtotal,
+          selected_games: serviceBooking.selectedGames || [],
+        };
+      });
+
+      const { error: serviceBookingsError } = await supabaseClient
+        .from('booking_services')
+        .insert(serviceBookingsToInsert);
+
+      if (serviceBookingsError) {
+        console.error('Service bookings creation error:', serviceBookingsError);
+        throw new Error(`Failed to create service bookings: ${serviceBookingsError.message}`);
+      }
+
+      console.log('Service bookings created successfully');
+    }
 
     // Create notification for the user
     const notificationData = {

@@ -63,38 +63,42 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   }, [selectedServiceId, formData.serviceIds]);
 
   const selectedServices = services.filter(s => formData.serviceIds.includes(s.id));
-  const totalServicePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
-  const basePrice = totalServicePrice > 0 ? totalServicePrice : venuePrice;
   
-  // Calculate duration in hours for pricing
-  const calculateDuration = () => {
-    // For services, use service booking times if available
-    if (services.length > 0 && formData.serviceBookings.length > 0) {
-      const serviceBooking = formData.serviceBookings[0];
-      if (!serviceBooking.arrivalTime || !serviceBooking.departureTime) return 0;
-      const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
-      const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
+  // Calculate total price for multiple services correctly
+  const calculateServicesTotalPrice = () => {
+    if (services.length === 0) {
+      // For basic venue booking
+      if (!formData.arrivalTime || !formData.departureTime) return 0;
+      const start = new Date(`2000-01-01T${formData.arrivalTime}:00`);
+      const end = new Date(`2000-01-01T${formData.departureTime}:00`);
       const diffMs = end.getTime() - start.getTime();
-      return diffMs / (1000 * 60 * 60);
+      const durationHours = diffMs / (1000 * 60 * 60);
+      return venuePrice * durationHours;
     }
-    
-    // For basic venue booking, use main booking times
-    if (!formData.arrivalTime || !formData.departureTime) return 0;
-    const start = new Date(`2000-01-01T${formData.arrivalTime}:00`);
-    const end = new Date(`2000-01-01T${formData.departureTime}:00`);
-    const diffMs = end.getTime() - start.getTime();
-    return diffMs / (1000 * 60 * 60);
+
+    // For service bookings, calculate each service separately
+    let totalPrice = 0;
+    formData.serviceBookings.forEach(serviceBooking => {
+      const service = services.find(s => s.id === serviceBooking.serviceId);
+      if (service && serviceBooking.arrivalTime && serviceBooking.departureTime) {
+        const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
+        const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
+        const diffMs = end.getTime() - start.getTime();
+        const durationHours = diffMs / (1000 * 60 * 60);
+        totalPrice += service.price * durationHours;
+      }
+    });
+    return totalPrice;
   };
   
-  const durationHours = calculateDuration();
-  const baseTotalPrice = basePrice * durationHours;
+  const baseTotalPrice = calculateServicesTotalPrice();
   
   // Apply discounts to the total price
   const discountCalculation = calculateDiscountedPrice(
     baseTotalPrice,
     defaultDiscount,
     discounts,
-    durationHours
+    1 // Duration is already factored into baseTotalPrice
   );
   
   const totalPrice = discountCalculation.finalPrice;
@@ -651,7 +655,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               disabled={
                 isSubmitting || 
                 !formData.date || 
-                durationHours <= 0 ||
+                baseTotalPrice <= 0 ||
                 (services.length > 0 && formData.serviceIds.length === 0) ||
                 (services.length === 0 && (!formData.arrivalTime || !formData.departureTime)) ||
                 (formData.serviceIds.length > 0 && formData.serviceBookings.some(sb => !sb.arrivalTime || !sb.departureTime))

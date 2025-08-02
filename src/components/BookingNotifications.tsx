@@ -10,6 +10,22 @@ import { usePartnerAuth } from '@/hooks/usePartnerAuth';
 import { audioAlert } from '@/utils/audioAlert';
 import { cn } from '@/lib/utils';
 
+interface BookingService {
+  id: string;
+  service_id: string;
+  arrival_time: string;
+  departure_time: string;
+  guest_count: number;
+  price_per_hour: number;
+  duration_hours: number;
+  subtotal: number;
+  selected_games: string[];
+  venue_services: {
+    name: string;
+    service_type: string;
+  };
+}
+
 interface PendingBooking {
   id: string;
   booking_date: string;
@@ -23,6 +39,7 @@ interface PendingBooking {
   venue_id: string;
   created_at: string;
   service_name?: string;
+  booking_services?: BookingService[];
 }
 
 interface BookingNotificationsProps {
@@ -61,7 +78,22 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         .select(`
           *,
           venues(name, partner_id),
-          venue_services(name)
+          venue_services(name),
+          booking_services (
+            id,
+            service_id,
+            arrival_time,
+            departure_time,
+            guest_count,
+            price_per_hour,
+            duration_hours,
+            subtotal,
+            selected_games,
+            venue_services (
+              name,
+              service_type
+            )
+          )
         `)
         .eq('status', 'pending')
         .not('venues', 'is', null)
@@ -88,7 +120,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         venue_name: booking.venues.name,
         venue_id: booking.venue_id,
         created_at: booking.created_at,
-        service_name: booking.venue_services?.name
+        service_name: booking.venue_services?.name,
+        booking_services: booking.booking_services || []
       }));
 
       console.log('Partner bookings filtered:', partnerBookings);
@@ -122,7 +155,22 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
             .select(`
               *,
               venues!inner(name, partner_id),
-              venue_services(name)
+              venue_services(name),
+              booking_services (
+                id,
+                service_id,
+                arrival_time,
+                departure_time,
+                guest_count,
+                price_per_hour,
+                duration_hours,
+                subtotal,
+                selected_games,
+                venue_services (
+                  name,
+                  service_type
+                )
+              )
             `)
             .eq('id', payload.new.id)
             .single();
@@ -144,7 +192,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               venue_name: data.venues.name,
               venue_id: data.venue_id,
               created_at: data.created_at,
-              service_name: data.venue_services?.name
+              service_name: data.venue_services?.name,
+              booking_services: data.booking_services || []
             };
 
             console.log('🎯 Adding booking to state:', newBooking);
@@ -390,8 +439,78 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                 </div>
               </div>
 
-              {/* Service Information - EXACT same layout as client side */}
-              {selectedBooking.service_name && (
+              {/* Service Information - Multiple Services Support */}
+              {(selectedBooking.booking_services && selectedBooking.booking_services.length > 0) ? (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Service Details</h3>
+                  {selectedBooking.booking_services.map((bookingService, index) => (
+                    <div key={bookingService.id} className={cn(
+                      "p-4 rounded-xl border-2 border-primary bg-primary/5"
+                    )}>
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-lg mb-1">{bookingService.venue_services.name}</h4>
+                          <p className="text-muted-foreground">
+                            ${bookingService.price_per_hour.toFixed(0)} / guest · {bookingService.venue_services.service_type}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Individual service booking information */}
+                      <div className="mt-4 pt-4 border-t border-border space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Guests:</span>
+                          <span className="font-medium">{bookingService.guest_count}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Date:</span>
+                          <span className="font-medium">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Time:</span>
+                          <span className="font-medium">
+                            {bookingService.arrival_time?.substring(0, 5)} - {bookingService.departure_time?.substring(0, 5)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Duration:</span>
+                          <span className="font-medium">{bookingService.duration_hours.toFixed(1)}h</span>
+                        </div>
+                        {/* Selected Games for this service */}
+                        {bookingService.selected_games && bookingService.selected_games.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-muted-foreground text-sm">Selected Games:</span>
+                            <div className="flex flex-wrap gap-1">
+                              {bookingService.selected_games.map((game: string, gameIndex: number) => (
+                                <Badge key={gameIndex} variant="secondary" className="text-xs flex items-center gap-1">
+                                  <span>🎮</span>
+                                  {game}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between text-sm pt-2 border-t">
+                          <span className="text-muted-foreground font-medium">Subtotal:</span>
+                          <span className="font-bold text-primary">
+                            ${bookingService.subtotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Total for all services */}
+                  <div className="bg-muted/30 rounded-lg p-4 border-2 border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-lg">Total Amount:</span>
+                      <span className="font-bold text-xl text-primary">
+                        ${selectedBooking.total_price.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedBooking.service_name && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Service Details</h3>
                   <div className={cn(
@@ -407,7 +526,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                       </div>
                     </div>
                     
-                    {/* Selected booking information - EXACT same as client */}
+                    {/* Fallback display for legacy bookings */}
                     <div className="mt-4 pt-4 border-t border-border space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Guests:</span>
@@ -428,38 +547,10 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                           })()}
                         </span>
                       </div>
-                      {/* Selected Games section - read from database */}
-                      <div className="space-y-2">
-                        <span className="text-muted-foreground text-sm">Selected Games:</span>
-                        <div className="flex flex-wrap gap-1">
-                          {(() => {
-                            // Use selected_games from database if available
-                            const selectedGames = (selectedBooking as any).selected_games;
-                            
-                            if (selectedGames && selectedGames.length > 0) {
-                              // Display games from database
-                              return selectedGames.map((game: string, index: number) => (
-                                <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
-                                  <span>🎮</span>
-                                  {game}
-                                </Badge>
-                              ));
-                            } else {
-                              // Fallback to service name if no games stored
-                              return (
-                                <Badge variant="outline" className="text-xs flex items-center gap-1">
-                                  <span>🎮</span>
-                                  {selectedBooking.service_name || 'General Booking'}
-                                </Badge>
-                              );
-                            }
-                          })()}
-                        </div>
-                      </div>
                       <div className="flex items-center justify-between text-sm pt-2 border-t">
                         <span className="text-muted-foreground font-medium">Total:</span>
                         <span className="font-bold text-primary">
-                          ${selectedBooking.total_price.toFixed(0)}
+                          ${selectedBooking.total_price.toFixed(2)}
                         </span>
                       </div>
                     </div>
