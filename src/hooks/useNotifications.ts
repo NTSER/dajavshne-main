@@ -170,14 +170,12 @@ export const useDeleteNotification = () => {
   
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
+      const { data, error } = await supabase.rpc('delete_notification_with_log', {
+        notification_id: notificationId
+      });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      if (!data) throw new Error('Failed to delete notification');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });

@@ -232,6 +232,51 @@ export type Database = {
           },
         ]
       }
+      notifications_log: {
+        Row: {
+          booking_id: string
+          created_at: string
+          deleted_at: string
+          deleted_by: string
+          id: string
+          message: string
+          original_notification_id: string
+          read: boolean
+          scheduled_for: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at: string
+          deleted_at?: string
+          deleted_by: string
+          id?: string
+          message: string
+          original_notification_id: string
+          read?: boolean
+          scheduled_for?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          deleted_at?: string
+          deleted_by?: string
+          id?: string
+          message?: string
+          original_notification_id?: string
+          read?: boolean
+          scheduled_for?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -582,6 +627,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_notification_with_log: {
+        Args: { notification_id: string }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
