@@ -516,6 +516,7 @@ export type Database = {
       venue_services: {
         Row: {
           created_at: string | null
+          guest_pricing_rules: Json | null
           id: string
           images: string[] | null
           name: string
@@ -526,6 +527,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          guest_pricing_rules?: Json | null
           id?: string
           images?: string[] | null
           name: string
@@ -536,6 +538,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          guest_pricing_rules?: Json | null
           id?: string
           images?: string[] | null
           name?: string

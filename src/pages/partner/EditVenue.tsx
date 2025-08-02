@@ -21,6 +21,7 @@ import PartnerLayout from '@/components/PartnerLayout';
 
 import VenueImageUpload from '@/components/VenueImageUpload';
 import { ServiceImageUpload } from '@/components/ServiceImageUpload';
+import { GuestPricingRules, GuestPricingRule } from '@/components/GuestPricingRules';
 
 type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
 
@@ -31,6 +32,7 @@ interface VenueService {
   images: string[];
   discount_percentage: number;
   service_games?: string[];
+  guest_pricing_rules: Array<{ maxGuests: number; price: number }>;
 }
 
 interface VenueData {
@@ -97,7 +99,10 @@ const EditVenue = () => {
         price: service.price,
         images: service.images || [],
         discount_percentage: 0, // Services don't have discount_percentage in DB yet
-        service_games: service.service_games || [] // Load service games from database
+        service_games: service.service_games || [], // Load service games from database
+        guest_pricing_rules: Array.isArray(service.guest_pricing_rules) 
+          ? service.guest_pricing_rules as Array<{ maxGuests: number; price: number }>
+          : []
       })) || []);
 
     } catch (error: any) {
@@ -140,7 +145,8 @@ const EditVenue = () => {
               service_type: service.service_type,
               price: service.price,
               images: service.images,
-              service_games: service.service_games || []
+              service_games: service.service_games || [],
+              guest_pricing_rules: service.guest_pricing_rules || []
             })
             .eq('id', service.id);
 
@@ -155,7 +161,8 @@ const EditVenue = () => {
               service_type: service.service_type,
               price: service.price,
               images: service.images,
-              service_games: service.service_games || []
+              service_games: service.service_games || [],
+              guest_pricing_rules: service.guest_pricing_rules || []
             });
 
           if (insertError) throw insertError;
@@ -185,7 +192,8 @@ const EditVenue = () => {
       price: 0,
       images: [],
       discount_percentage: 0,
-      service_games: []
+      service_games: [],
+      guest_pricing_rules: []
     }]);
   };
 
@@ -568,6 +576,12 @@ const EditVenue = () => {
                           />
                         </div>
                       </div>
+                      
+                      {/* Guest Count Pricing Rules */}
+                      <GuestPricingRules
+                        rules={service.guest_pricing_rules}
+                        onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                      />
                     </CardContent>
                   </Card>
                 ))
