@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import ServiceDiscountBanner from "@/components/ServiceDiscountBanner";
+import { getServiceDisplayPrice } from "@/utils/guestPricing";
 import { useState } from "react";
 
 const VenuePage = () => {
@@ -156,16 +157,30 @@ const VenuePage = () => {
                 <div className="flex items-baseline gap-2 mb-6">
                    <span className="text-3xl font-bold text-foreground">
                       {services && services.length > 0 
-                        ? `${Math.min(...services.map(s => s.price))}₾` 
+                        ? (() => {
+                            const prices = services.map(service => {
+                              const displayPrice = getServiceDisplayPrice(service);
+                              // Extract numeric value from pricing display
+                              const numericMatch = displayPrice.match(/(\d+)₾/);
+                              return numericMatch ? parseInt(numericMatch[1]) : service.price;
+                            });
+                            return `From ${Math.min(...prices)}₾`;
+                          })()
                         : 'Contact'}
                    </span>
-                  <span className="text-lg text-muted-foreground">per hour</span>
                 </div>
                 
                 <BookingForm 
                   venueId={venue.id}
                   venueName={venue.name}
-                  venuePrice={services && services.length > 0 ? Math.min(...services.map(s => s.price)) : 0}
+                  venuePrice={services && services.length > 0 ? (() => {
+                    const prices = services.map(service => {
+                      const displayPrice = getServiceDisplayPrice(service);
+                      const numericMatch = displayPrice.match(/(\d+)₾/);
+                      return numericMatch ? parseInt(numericMatch[1]) : service.price;
+                    });
+                    return Math.min(...prices);
+                  })() : 0}
                   defaultDiscount={0}
                   openingTime={venue.opening_time}
                   closingTime={venue.closing_time}
