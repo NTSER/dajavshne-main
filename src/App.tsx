@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { useRealtimeBookings } from "@/hooks/useRealtimeBookings";
 import EmailConfirmationGuard from "@/components/EmailConfirmationGuard";
 import Header from "@/components/Header";
+import { PostVisitReviewDialog } from "@/components/PostVisitReviewDialog";
 
 const Index = lazy(() => import("./pages/Index"));
 const SearchResults = lazy(() => import("./pages/SearchResults"));
@@ -47,6 +48,7 @@ const AppWrapper = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <PostVisitReviewDialog />
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/" element={<Index />} />
