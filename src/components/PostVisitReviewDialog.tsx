@@ -22,31 +22,55 @@ export const PostVisitReviewDialog = () => {
     if (!user || !bookings || bookings.length === 0) return;
 
     const now = new Date();
+    console.log('PostVisitReviewDialog: Current time:', now.toISOString());
+    console.log('PostVisitReviewDialog: Available bookings:', bookings.length);
     
     // Find completed bookings that haven't been reviewed
     const completedBookingsNeedingReview = bookings.filter(booking => {
+      console.log('PostVisitReviewDialog: Checking booking:', booking.id, 'Status:', booking.status, 'Date:', booking.booking_date, 'Time:', booking.booking_time);
+      
       // Skip if we already showed review dialog for this booking
-      if (reviewedBookings.has(booking.id)) return false;
+      if (reviewedBookings.has(booking.id)) {
+        console.log('PostVisitReviewDialog: Already reviewed:', booking.id);
+        return false;
+      }
       
       // Skip if booking isn't confirmed
-      if (booking.status !== 'confirmed') return false;
+      if (booking.status !== 'confirmed') {
+        console.log('PostVisitReviewDialog: Not confirmed:', booking.id, booking.status);
+        return false;
+      }
       
       // Check if booking time has passed
-      const bookingDateTime = parse(
-        `${booking.booking_date} ${booking.booking_time}`,
-        'yyyy-MM-dd HH:mm',
-        new Date()
-      );
-      
-      // Add 1 hour to booking time (assuming 1 hour duration)
-      const bookingEndTime = new Date(bookingDateTime.getTime() + 60 * 60 * 1000);
-      
-      return isAfter(now, bookingEndTime);
+      try {
+        const bookingDateTime = parse(
+          `${booking.booking_date} ${booking.booking_time}`,
+          'yyyy-MM-dd HH:mm:ss',
+          new Date()
+        );
+        
+        // Add duration based on booking data (default to 1 hour)
+        const durationMs = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
+        const bookingEndTime = new Date(bookingDateTime.getTime() + durationMs);
+        
+        console.log('PostVisitReviewDialog: Booking', booking.id, 'ends at:', bookingEndTime.toISOString(), 'Current time:', now.toISOString());
+        
+        const hasEnded = isAfter(now, bookingEndTime);
+        console.log('PostVisitReviewDialog: Booking has ended:', hasEnded);
+        
+        return hasEnded;
+      } catch (error) {
+        console.error('PostVisitReviewDialog: Error parsing booking time:', error);
+        return false;
+      }
     });
 
+    console.log('PostVisitReviewDialog: Completed bookings needing review:', completedBookingsNeedingReview.length);
+    
     // Show dialog for the first completed booking that needs review
     if (completedBookingsNeedingReview.length > 0 && !dialogOpen) {
       const bookingToReview = completedBookingsNeedingReview[0];
+      console.log('PostVisitReviewDialog: Setting booking for review:', bookingToReview.id);
       setCurrentBookingForReview(bookingToReview);
       setDialogOpen(true);
     }
