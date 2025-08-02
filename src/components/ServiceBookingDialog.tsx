@@ -97,10 +97,13 @@ const ServiceBookingDialog = ({
     
     // Get current time in Georgian timezone (GMT+4) for filtering (add 30 minutes buffer for today's bookings)
     const now = new Date();
+    console.log('Browser time:', now.toISOString());
     const georgianTime = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Convert to GMT+4
+    console.log('Georgian time:', georgianTime.toISOString());
     const bufferTime = new Date(georgianTime.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
+    console.log('Buffer time (30min after Georgian):', bufferTime.toISOString());
     const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
-    
+    console.log('Current time string for filtering:', currentTimeString);
     while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
       const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
       
@@ -344,10 +347,19 @@ const ServiceBookingDialog = ({
                   mode="single"
                   selected={selectedDate}
                   onSelect={(date) => {
+                    console.log('Calendar onSelect called with:', date);
                     setSelectedDate(date);
                     setIsDatePickerOpen(false);
                   }}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => {
+                    const now = new Date();
+                    const georgianToday = new Date(now.getTime() + (4 * 60 * 60 * 1000));
+                    const georgianTodayStart = new Date(georgianToday);
+                    georgianTodayStart.setHours(0, 0, 0, 0);
+                    const isDisabled = date < georgianTodayStart;
+                    console.log('Calendar disabled check - Date:', date.toISOString(), 'Georgian today start:', georgianTodayStart.toISOString(), 'Disabled:', isDisabled);
+                    return isDisabled;
+                  }}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />
