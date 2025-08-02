@@ -95,16 +95,18 @@ const ServiceBookingDialog = ({
       currentMinute = 30;
     }
     
-    // Get current time for filtering (add 30 minutes buffer for today's bookings)
+    // Get current time in Georgian timezone (GMT+4) for filtering (add 30 minutes buffer for today's bookings)
     const now = new Date();
-    const bufferTime = new Date(now.getTime() + 30 * 60 * 1000); // Add 30 minutes
+    const georgianTime = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Convert to GMT+4
+    const bufferTime = new Date(georgianTime.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
     const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
     
     while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
       const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
       
       // Only add times that are not in the past (for today's bookings)
-      const todayString = new Date().toISOString().split('T')[0];
+      const georgianToday = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Current date in Georgian time
+      const todayString = georgianToday.toISOString().split('T')[0];
       const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
       
       if (selectedDateString === todayString) {
@@ -128,12 +130,15 @@ const ServiceBookingDialog = ({
 
   const handleArrivalTimeChange = (value: string) => {
     // Validate against current time for today's bookings
-    const todayString = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const georgianToday = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Current date in Georgian time
+    const todayString = georgianToday.toISOString().split('T')[0];
     const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
     
     if (selectedDateString === todayString) {
       const now = new Date();
-      const bufferTime = new Date(now.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
+      const georgianTime = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Convert to GMT+4
+      const bufferTime = new Date(georgianTime.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
       const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
       
       if (value < currentTimeString) {
