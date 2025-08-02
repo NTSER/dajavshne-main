@@ -117,13 +117,15 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       <Header />
       
-      {/* Admin Access Button */}
-      <div className="fixed top-20 right-4 z-50">
+      {/* Admin Access Button - Mobile responsive */}
+      <div className="fixed top-20 right-2 sm:right-4 z-40">
         <Button 
           onClick={() => window.location.href = '/admin'}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
+          size="sm"
         >
-          Admin Panel
+          <span className="hidden sm:inline">Admin Panel</span>
+          <span className="sm:hidden">Admin</span>
         </Button>
       </div>
       
@@ -131,24 +133,24 @@ const Index = () => {
 
       {/* Enhanced Featured Venues Section */}
       <section className="section-padding bg-white">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Filter Component - positioned on the left above venues */}
-          <div className="flex justify-start mb-8">
+          <div className="flex justify-start mb-6 sm:mb-8">
             <HomePageFilters onFiltersChange={handleFiltersChange} />
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="animate-pulse">
-                  <div className="bg-gray-200 h-64 rounded-2xl mb-4 shimmer" />
+                  <div className="bg-gray-200 h-48 sm:h-56 lg:h-64 rounded-2xl mb-4 shimmer" />
                   <div className="bg-gray-200 h-4 rounded mb-2 shimmer" />
                   <div className="bg-gray-200 h-4 rounded w-2/3 shimmer" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {(filteredVenues || venues)?.slice(0, 6).map((venue, index) => (
                 <motion.div
                   key={venue.id}
@@ -186,7 +188,7 @@ const Index = () => {
 
       {/* Enhanced Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 section-padding">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-3 mb-6">

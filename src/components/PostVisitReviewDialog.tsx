@@ -120,13 +120,13 @@ export const PostVisitReviewDialog = () => {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={handleCloseDialog}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-w-[95vw] mx-4">
         <DialogHeader>
-          <DialogTitle>How was your visit?</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">How was your visit?</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="text-center">
-            <h3 className="font-semibold text-lg">
+            <h3 className="font-semibold text-base sm:text-lg">
               {currentBookingForReview.venues?.name}
             </h3>
             <p className="text-sm text-muted-foreground">
@@ -144,18 +144,18 @@ export const PostVisitReviewDialog = () => {
             onSuccess={handleReviewSuccess}
           />
           
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 pt-4">
             <Button
               variant="outline"
               onClick={handleIgnoreDialog}
-              className="flex-1"
+              className="flex-1 text-sm"
             >
               Don't ask again
             </Button>
             <Button
               variant="ghost"
               onClick={handleCloseDialog}
-              className="flex-1"
+              className="flex-1 text-sm"
             >
               Maybe later
             </Button>

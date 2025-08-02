@@ -24,16 +24,17 @@ const VenueCard = ({ venue }: VenueCardProps) => {
         {/* Service Offer Banner - At top of venue card */}
         {hasServiceOffers && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
-            <div className="px-4 py-2 flex items-center gap-2">
+            <div className="px-3 sm:px-4 py-2 flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <Zap className="h-4 w-4 text-blue-600 animate-pulse" />
-                <Tag className="h-3 w-3 text-blue-600" />
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 animate-pulse" />
+                <Tag className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600" />
               </div>
-              <span className="text-sm font-medium text-blue-600">
+              <span className="text-xs sm:text-sm font-medium text-blue-600">
                 {serviceCount} Service{serviceCount > 1 ? 's' : ''} Available
               </span>
-              <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-700 text-xs">
-                View Details
+              <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-700 text-xs px-2 py-1">
+                <span className="hidden sm:inline">View Details</span>
+                <span className="sm:hidden">Details</span>
               </Badge>
             </div>
           </div>
@@ -45,51 +46,51 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             alt={venue.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
             <FavoriteButton venueId={venue.id} size="sm" />
           </div>
         </div>
         
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">
+            <h3 className="font-semibold text-sm sm:text-lg text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
               {venue.name}
             </h3>
-            <div className="flex items-center gap-1 text-sm">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <div className="flex items-center gap-1 text-xs sm:text-sm flex-shrink-0 ml-2">
+              <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
               <span className="text-gray-900">{venue.rating}</span>
-              <span className="text-gray-500">({venue.review_count})</span>
+              <span className="text-gray-500 hidden sm:inline">({venue.review_count})</span>
             </div>
           </div>
           
-          <div className="flex items-center text-gray-500 mb-3">
-            <MapPin className="h-4 w-4 mr-1" />
-            <span className="text-sm">{venue.location}</span>
+          <div className="flex items-center text-gray-500 mb-2 sm:mb-3">
+            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+            <span className="text-xs sm:text-sm truncate">{venue.location}</span>
           </div>
           
           {/* Show service names instead of description */}
-          <div className="mb-3 min-h-[40px]">
+          <div className="mb-2 sm:mb-3 min-h-[32px] sm:min-h-[40px]">
             {services && services.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {services.slice(0, 3).map((service) => (
-                  <Badge key={service.id} variant="outline" className="text-xs">
+                  <Badge key={service.id} variant="outline" className="text-xs px-2 py-0.5">
                     {service.name}
                   </Badge>
                 ))}
                 {services.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
                     +{services.length - 3} more
                   </Badge>
                 )}
               </div>
             ) : (
-              <div className="text-sm text-gray-400">No services available</div>
+              <div className="text-xs sm:text-sm text-gray-400">No services available</div>
             )}
           </div>
           
           <div className="flex items-center justify-end">
             <div className="text-right">
-              <span className="font-semibold text-blue-600">
+              <span className="font-semibold text-blue-600 text-sm sm:text-base">
                 {services && services.length > 0 
                   ? (() => {
                       const prices = services.map(service => {
