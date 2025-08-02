@@ -159,15 +159,15 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Category Filter */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <Tag className="h-4 w-4 text-primary" />
                       Category
                     </label>
                     <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -181,13 +181,13 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   </div>
 
                   {/* Location Filter */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-primary" />
                       Location
                     </label>
                     <Select value={filters.location} onValueChange={(value) => handleFilterChange('location', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select location" />
                       </SelectTrigger>
                       <SelectContent>
@@ -201,13 +201,13 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   </div>
 
                   {/* Price Range Filter */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <span className="text-primary">₾</span>
                       Price Range
                     </label>
                     <Select value={filters.priceRange} onValueChange={(value) => handleFilterChange('priceRange', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select price range" />
                       </SelectTrigger>
                       <SelectContent>
@@ -220,13 +220,13 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   </div>
 
                   {/* Rating Filter */}
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <Star className="h-4 w-4 text-primary" />
                       Minimum Rating
                     </label>
                     <Select value={filters.rating} onValueChange={(value) => handleFilterChange('rating', value)}>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select rating" />
                       </SelectTrigger>
                       <SelectContent>
@@ -240,7 +240,7 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                 </div>
 
                 {/* Games Filter */}
-                <div className="mt-6 space-y-3">
+                <div className="mt-8 space-y-4">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Gamepad2 className="h-4 w-4 text-primary" />
                     Available Games
