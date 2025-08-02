@@ -204,9 +204,10 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       currentMinute = 30;
     }
     
-    // Get current time for filtering
+    // Get current time for filtering (add 30 minutes buffer for today's bookings)
     const now = new Date();
-    const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const bufferTime = new Date(now.getTime() + 30 * 60 * 1000); // Add 30 minutes
+    const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
     
     while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
       const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
@@ -242,12 +243,13 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     
     if (selectedDateString === todayString && field === 'arrivalTime') {
       const now = new Date();
-      const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const bufferTime = new Date(now.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
+      const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
       
       if (value < currentTimeString) {
         toast({
           title: "Invalid time",
-          description: "Cannot select arrival time in the past",
+          description: "Cannot select arrival time less than 30 minutes from now",
           variant: "destructive",
         });
         return;
@@ -296,12 +298,13 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     
     if (selectedDateString === todayString && field === 'arrivalTime') {
       const now = new Date();
-      const currentTimeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const bufferTime = new Date(now.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
+      const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
       
       if (value < currentTimeString) {
         toast({
           title: "Invalid time",
-          description: "Cannot select arrival time in the past",
+          description: "Cannot select arrival time less than 30 minutes from now",
           variant: "destructive",
         });
         return;
