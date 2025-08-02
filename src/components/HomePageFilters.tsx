@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -57,6 +57,24 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
     rating: "",
     games: []
   });
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close filter panel when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isExpanded]);
 
   const handleFilterChange = (key: keyof FilterState, value: string | string[]) => {
     const newFilters = { ...filters, [key]: value };
@@ -95,7 +113,7 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
   ].filter(Boolean).length + filters.games.length;
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={filterRef}>
       {/* Filter Toggle Button */}
       <Button
         variant="outline"
