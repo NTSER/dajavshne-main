@@ -575,8 +575,46 @@ const ConfirmAndPay = () => {
                   <div>
                     <h4 className="font-medium text-foreground mb-1">Date</h4>
                     <p className="text-sm text-muted-foreground">{formatDate(bookingData.date)}</p>
-                    <div className="mt-2">
-                      <h5 className="text-sm font-medium text-foreground mb-1">Booking Time</h5>
+                  </div>
+
+                  {/* Services and Times */}
+                  {bookingData.serviceBookings && bookingData.serviceBookings.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-foreground mb-2">Selected Services</h4>
+                      <div className="space-y-3">
+                        {bookingData.serviceBookings.map((booking, index) => (
+                          <div key={index} className="p-3 bg-muted/30 rounded-lg border border-border/30">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-sm font-medium text-foreground">Service {index + 1}</h5>
+                              <Badge variant="secondary" className="text-xs">
+                                {formatTime(booking.arrivalTime)} - {formatTime(booking.departureTime)}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Duration: {calculateDuration(booking.arrivalTime, booking.departureTime)}
+                            </p>
+                            {booking.selectedGames && booking.selectedGames.length > 0 && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Selected Games:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {booking.selectedGames.map((game, gameIndex) => (
+                                    <Badge key={gameIndex} variant="outline" className="text-xs">
+                                      {game}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Overall Time Range (if services are selected) */}
+                  {(!bookingData.serviceBookings || bookingData.serviceBookings.length === 0) && (
+                    <div>
+                      <h4 className="font-medium text-foreground mb-1">Booking Time</h4>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
                           {formatTime(bookingData.arrivalTime)} - {formatTime(bookingData.departureTime)}
@@ -586,7 +624,7 @@ const ConfirmAndPay = () => {
                         Duration: {calculateDuration(bookingData.arrivalTime, bookingData.departureTime)}
                       </p>
                     </div>
-                  </div>
+                  )}
 
                   {/* Guests */}
                   <div className="flex items-center justify-between">
@@ -607,18 +645,41 @@ const ConfirmAndPay = () => {
                       <p className="text-sm text-muted-foreground">{venue.location}</p>
                     </div>
                   </div>
+
+                  {/* Special Requests */}
+                  {bookingData.specialRequests && (
+                    <div>
+                      <h4 className="font-medium text-foreground mb-1">Special Requests</h4>
+                      <p className="text-sm text-muted-foreground">{bookingData.specialRequests}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Price Details */}
                 <div className="border-t border-border/50 pt-4 space-y-3">
                   <h4 className="font-medium text-foreground">Price details</h4>
                   
+                  {bookingData.serviceBookings && bookingData.serviceBookings.length > 0 ? (
+                    <div className="space-y-2">
+                      {bookingData.serviceBookings.map((booking, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Service {index + 1} × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''} × {calculateDuration(booking.arrivalTime, booking.departureTime).replace('h', ' hours').replace('m', ' mins')}
+                          </span>
+                          <span className="text-sm text-foreground">
+                            ₾{Math.round((bookingData.totalPrice / bookingData.serviceBookings.length))}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">
                         Service booking × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
                       </span>
                       <span className="text-sm text-foreground">₾{bookingData.totalPrice}</span>
                     </div>
+                  )}
                   
                   <div className="border-t border-border/50 pt-3 flex justify-between font-semibold">
                     <span className="text-foreground">Total USD</span>
