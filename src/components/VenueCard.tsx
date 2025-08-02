@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Wifi, Car, Tag, Zap } from "lucide-react";
 import { Venue, useVenueServices } from "@/hooks/useVenues";
 import FavoriteButton from "./FavoriteButton";
+import { getServiceDisplayPrice } from "@/utils/guestPricing";
 
 interface VenueCardProps {
   venue: Venue;
@@ -89,11 +90,18 @@ const VenueCard = ({ venue }: VenueCardProps) => {
           <div className="flex items-center justify-end">
             <div className="text-right">
               <span className="font-semibold text-blue-600">
-                ${services && services.length > 0 
-                  ? Math.min(...services.map(s => s.price)) 
+                {services && services.length > 0 
+                  ? (() => {
+                      const prices = services.map(service => {
+                        const displayPrice = getServiceDisplayPrice(service);
+                        // Extract numeric value from "From ₾X" or "₾X/guest" format
+                        const numericMatch = displayPrice.match(/₾(\d+)/);
+                        return numericMatch ? parseInt(numericMatch[1]) : service.price;
+                      });
+                      return `From ₾${Math.min(...prices)}`;
+                    })()
                   : 'Contact'}
               </span>
-              <span className="text-sm text-gray-500">/hour</span>
             </div>
           </div>
         </CardContent>
