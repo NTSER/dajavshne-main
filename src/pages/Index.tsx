@@ -5,15 +5,30 @@ import VenueCard from "@/components/VenueCard";
 import CategoryCard from "@/components/CategoryCard";
 import Header from "@/components/Header";
 import HomePageFilters from "@/components/HomePageFilters";
-import { useVenues } from "@/hooks/useVenues";
+import { useVenues, useVenueServices } from "@/hooks/useVenues";
 import { categories } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Zap, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { data: venues, isLoading } = useVenues();
   const [filteredVenues, setFilteredVenues] = useState(venues);
+
+  // Fetch all venue services for filtering
+  const { data: allVenueServices } = useQuery({
+    queryKey: ['all-venue-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('venue_services')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Update filtered venues when venues data changes
   useEffect(() => {
@@ -21,14 +36,43 @@ const Index = () => {
   }, [venues]);
 
   const handleFiltersChange = (filters: any) => {
-    if (!venues) return;
+    if (!venues || !allVenueServices) {
+      setFilteredVenues(venues);
+      return;
+    }
 
     let filtered = venues;
 
+    console.log('Applying filters:', filters);
+    console.log('Total venues:', venues.length);
+    console.log('Total services:', allVenueServices.length);
+
     // Apply category filter
     if (filters.category) {
-      // This would need to be implemented based on your venue data structure
-      // For now, we'll keep all venues
+      const venueIdsWithCategory = allVenueServices
+        .filter(service => service.service_type === filters.category)
+        .map(service => service.venue_id);
+      
+      filtered = filtered.filter(venue => venueIdsWithCategory.includes(venue.id));
+      console.log('After category filter:', filtered.length, 'venues');
+    }
+
+    // Apply games filter
+    if (filters.games && filters.games.length > 0) {
+      const venueIdsWithGames = allVenueServices
+        .filter(service => {
+          // Check if service has any of the selected games
+          const serviceGames = service.service_games || [];
+          return filters.games.some((game: string) => 
+            serviceGames.includes(game) || 
+            service.service_type?.toLowerCase().includes(game.toLowerCase()) ||
+            service.name?.toLowerCase().includes(game.toLowerCase())
+          );
+        })
+        .map(service => service.venue_id);
+      
+      filtered = filtered.filter(venue => venueIdsWithGames.includes(venue.id));
+      console.log('After games filter:', filtered.length, 'venues');
     }
 
     // Apply location filter
@@ -36,17 +80,36 @@ const Index = () => {
       filtered = filtered.filter(venue => 
         venue.location.toLowerCase().includes(filters.location.toLowerCase())
       );
+      console.log('After location filter:', filtered.length, 'venues');
     }
 
     // Apply rating filter
     if (filters.rating) {
       const minRating = parseFloat(filters.rating);
       filtered = filtered.filter(venue => venue.rating >= minRating);
+      console.log('After rating filter:', filtered.length, 'venues');
     }
 
-    // Apply price range filter (would need service data)
-    // Apply games filter (would need service data)
+    // Apply price range filter
+    if (filters.priceRange) {
+      const [minPrice, maxPrice] = filters.priceRange.split('-').map((p: string) => {
+        if (p.includes('+')) return [parseInt(p.replace('+', '')), Infinity];
+        return parseInt(p);
+      });
+      
+      const venueIdsInPriceRange = allVenueServices
+        .filter(service => {
+          const price = service.price;
+          if (maxPrice === undefined) return price >= minPrice; // For "50+" case
+          return price >= minPrice && price <= maxPrice;
+        })
+        .map(service => service.venue_id);
+      
+      filtered = filtered.filter(venue => venueIdsInPriceRange.includes(venue.id));
+      console.log('After price filter:', filtered.length, 'venues');
+    }
 
+    console.log('Final filtered venues:', filtered.length);
     setFilteredVenues(filtered);
   };
 
