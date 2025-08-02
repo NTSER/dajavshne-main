@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { useUserBookings } from '@/hooks/useBookings';
 import { useUserReviewForVenue } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +13,11 @@ export const PostVisitReviewDialog = () => {
   const [currentBookingForReview, setCurrentBookingForReview] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reviewedBookings, setReviewedBookings] = useState<Set<string>>(new Set());
+  const [ignoredBookings, setIgnoredBookings] = useState<Set<string>>(() => {
+    // Load ignored bookings from localStorage
+    const stored = localStorage.getItem('ignoredReviewBookings');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
 
   // Check if user has existing review for the current booking's venue
   const { data: existingReview } = useUserReviewForVenue(
@@ -32,6 +38,12 @@ export const PostVisitReviewDialog = () => {
       // Skip if we already showed review dialog for this booking
       if (reviewedBookings.has(booking.id)) {
         console.log('PostVisitReviewDialog: Already reviewed:', booking.id);
+        return false;
+      }
+      
+      // Skip if user permanently ignored this booking
+      if (ignoredBookings.has(booking.id)) {
+        console.log('PostVisitReviewDialog: Permanently ignored:', booking.id);
         return false;
       }
       
@@ -74,12 +86,27 @@ export const PostVisitReviewDialog = () => {
       setCurrentBookingForReview(bookingToReview);
       setDialogOpen(true);
     }
-  }, [bookings, user, dialogOpen, reviewedBookings]);
+  }, [bookings, user, dialogOpen, reviewedBookings, ignoredBookings]);
 
   const handleCloseDialog = () => {
     if (currentBookingForReview) {
       // Mark this booking as having been shown the review dialog
       setReviewedBookings(prev => new Set(prev).add(currentBookingForReview.id));
+    }
+    setDialogOpen(false);
+    setCurrentBookingForReview(null);
+  };
+
+  const handleIgnoreDialog = () => {
+    if (currentBookingForReview) {
+      // Permanently ignore this booking
+      const newIgnoredBookings = new Set(ignoredBookings).add(currentBookingForReview.id);
+      setIgnoredBookings(newIgnoredBookings);
+      
+      // Save to localStorage
+      localStorage.setItem('ignoredReviewBookings', JSON.stringify([...newIgnoredBookings]));
+      
+      console.log('PostVisitReviewDialog: Permanently ignored booking:', currentBookingForReview.id);
     }
     setDialogOpen(false);
     setCurrentBookingForReview(null);
@@ -116,6 +143,23 @@ export const PostVisitReviewDialog = () => {
             existingReview={existingReview}
             onSuccess={handleReviewSuccess}
           />
+          
+          <div className="flex gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleIgnoreDialog}
+              className="flex-1"
+            >
+              Don't ask again
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleCloseDialog}
+              className="flex-1"
+            >
+              Maybe later
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -137,13 +137,15 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute top-full left-0 right-0 mt-4 z-50"
+            className="absolute top-full left-0 mt-4 z-50 w-full min-w-[800px] max-w-4xl"
           >
-            <Card className="border-2 border-primary/20 shadow-2xl bg-card/95 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-primary" />
+            <Card className="border-2 border-primary/20 shadow-2xl bg-white backdrop-blur-sm rounded-xl overflow-hidden">
+              <CardContent className="p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-semibold flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Filter className="h-5 w-5 text-primary" />
+                    </div>
                     Filter Venues
                   </h3>
                   {hasActiveFilters && (
@@ -151,24 +153,26 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                       variant="ghost"
                       size="sm"
                       onClick={clearFilters}
-                      className="text-muted-foreground hover:text-destructive"
+                      className="text-muted-foreground hover:text-destructive transition-colors"
                     >
-                      <X className="h-4 w-4 mr-1" />
-                      Clear All
+                      <X className="h-4 w-4 mr-2" />
+                      Clear All Filters
                     </Button>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Category Filter */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-primary" />
+                  <div className="space-y-4">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="p-1 bg-primary/10 rounded">
+                        <Tag className="h-3 w-3 text-primary" />
+                      </div>
                       Category
                     </label>
                     <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select category" />
+                      <SelectTrigger className="w-full h-11 border-2 border-muted hover:border-primary/50 transition-colors">
+                        <SelectValue placeholder="Choose category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -181,14 +185,16 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   </div>
 
                   {/* Location Filter */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" />
+                  <div className="space-y-4">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="p-1 bg-primary/10 rounded">
+                        <MapPin className="h-3 w-3 text-primary" />
+                      </div>
                       Location
                     </label>
                     <Select value={filters.location} onValueChange={(value) => handleFilterChange('location', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select location" />
+                      <SelectTrigger className="w-full h-11 border-2 border-muted hover:border-primary/50 transition-colors">
+                        <SelectValue placeholder="Choose location" />
                       </SelectTrigger>
                       <SelectContent>
                         {locations.map((location) => (
@@ -201,14 +207,16 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   </div>
 
                   {/* Price Range Filter */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <span className="text-primary">₾</span>
+                  <div className="space-y-4">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="p-1 bg-primary/10 rounded">
+                        <span className="text-xs text-primary font-bold">₾</span>
+                      </div>
                       Price Range
                     </label>
                     <Select value={filters.priceRange} onValueChange={(value) => handleFilterChange('priceRange', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select price range" />
+                      <SelectTrigger className="w-full h-11 border-2 border-muted hover:border-primary/50 transition-colors">
+                        <SelectValue placeholder="Choose price range" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="0-10">0₾ - 10₾</SelectItem>
@@ -220,14 +228,16 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                   </div>
 
                   {/* Rating Filter */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <Star className="h-4 w-4 text-primary" />
+                  <div className="space-y-4">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="p-1 bg-primary/10 rounded">
+                        <Star className="h-3 w-3 text-primary" />
+                      </div>
                       Minimum Rating
                     </label>
                     <Select value={filters.rating} onValueChange={(value) => handleFilterChange('rating', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select rating" />
+                      <SelectTrigger className="w-full h-11 border-2 border-muted hover:border-primary/50 transition-colors">
+                        <SelectValue placeholder="Choose rating" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="4">4+ Stars</SelectItem>
@@ -240,20 +250,22 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
                 </div>
 
                 {/* Games Filter */}
-                <div className="mt-8 space-y-4">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Gamepad2 className="h-4 w-4 text-primary" />
+                <div className="mt-10 space-y-4">
+                  <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                    <div className="p-1 bg-primary/10 rounded">
+                      <Gamepad2 className="h-3 w-3 text-primary" />
+                    </div>
                     Available Games
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {gameOptions.map((game) => (
                       <Badge
                         key={game}
                         variant={filters.games.includes(game) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 ${
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 text-sm font-medium ${
                           filters.games.includes(game)
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                            : 'hover:bg-primary/10 hover:border-primary'
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                            : 'hover:bg-primary/10 hover:border-primary border-2'
                         }`}
                         onClick={() => handleGameToggle(game)}
                       >
