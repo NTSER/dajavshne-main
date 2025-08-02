@@ -182,3 +182,40 @@ export const useDeleteNotification = () => {
     },
   });
 };
+
+export const useDeleteAllNotifications = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
+      // Get all notification IDs for the user
+      const { data: notifications, error: fetchError } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (fetchError) throw fetchError;
+      
+      // Delete each notification using the log function
+      const deletePromises = notifications?.map(notification => 
+        supabase.rpc('delete_notification_with_log', {
+          notification_id: notification.id
+        })
+      ) || [];
+
+      const results = await Promise.all(deletePromises);
+      
+      // Check if any deletions failed
+      const failed = results.filter(result => result.error);
+      if (failed.length > 0) {
+        throw new Error(`Failed to delete ${failed.length} notifications`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+    },
+  });
+};

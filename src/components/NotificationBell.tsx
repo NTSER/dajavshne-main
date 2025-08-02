@@ -1,5 +1,5 @@
 
-import { Bell, CheckCheck, X } from "lucide-react";
+import { Bell, CheckCheck, X, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useNotifications";
+import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ const NotificationBell = ({}: NotificationBellProps) => {
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
   const deleteNotification = useDeleteNotification();
+  const deleteAllNotifications = useDeleteAllNotifications();
   const navigate = useNavigate();
   
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -41,6 +42,24 @@ const NotificationBell = ({}: NotificationBellProps) => {
         toast({
           title: "Error",
           description: "Failed to mark notifications as read",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
+  const handleDeleteAllNotifications = () => {
+    deleteAllNotifications.mutate(undefined, {
+      onSuccess: () => {
+        toast({
+          title: "All notifications deleted",
+          description: "All your notifications have been removed.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: "Failed to delete all notifications",
           variant: "destructive"
         });
       }
@@ -131,18 +150,32 @@ const NotificationBell = ({}: NotificationBellProps) => {
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between p-2">
           <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkAllAsRead}
-              className="h-8 px-2 text-xs"
-              disabled={markAllAsRead.isPending}
-            >
-              <CheckCheck className="h-3 w-3 mr-1" />
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAllAsRead}
+                className="h-8 px-2 text-xs"
+                disabled={markAllAsRead.isPending}
+              >
+                <CheckCheck className="h-3 w-3 mr-1" />
+                Mark all read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDeleteAllNotifications}
+                className="h-8 px-2 text-xs text-destructive hover:text-destructive"
+                disabled={deleteAllNotifications.isPending}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Delete all
+              </Button>
+            )}
+          </div>
         </div>
         <DropdownMenuSeparator />
         <ScrollArea className="h-64">
