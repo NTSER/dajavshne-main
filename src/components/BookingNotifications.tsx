@@ -387,7 +387,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold">₾{booking.total_price.toFixed(2)}</div>
+                    <div className="font-semibold">{booking.total_price.toFixed(2)}₾</div>
                     <div className="text-sm text-muted-foreground">
                       {booking.guest_count} guest{booking.guest_count !== 1 ? 's' : ''}
                     </div>
@@ -452,7 +452,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-lg mb-1">{bookingService.venue_services.name}</h4>
                           <p className="text-muted-foreground">
-                            ₾{bookingService.price_per_hour.toFixed(0)} / guest · {bookingService.venue_services.service_type}
+                            {bookingService.price_per_hour.toFixed(0)}₾ / guest · {bookingService.venue_services.service_type}
                           </p>
                         </div>
                       </div>
@@ -494,7 +494,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                         <div className="flex items-center justify-between text-sm pt-2 border-t">
                           <span className="text-muted-foreground font-medium">Subtotal:</span>
                           <span className="font-bold text-primary">
-                            ₾{bookingService.subtotal.toFixed(2)}
+                            {bookingService.subtotal.toFixed(2)}₾
                           </span>
                         </div>
                       </div>
@@ -505,7 +505,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-lg">Total Amount:</span>
                       <span className="font-bold text-xl text-primary">
-                         ₾{selectedBooking.total_price.toFixed(2)}
+                          {selectedBooking.total_price.toFixed(2)}₾
                       </span>
                     </div>
                   </div>
@@ -521,7 +521,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-lg mb-1">{selectedBooking.service_name}</h4>
                         <p className="text-muted-foreground">
-                          ₾{(selectedBooking.total_price / selectedBooking.guest_count).toFixed(0)} / guest · {selectedBooking.service_name}
+                          {(selectedBooking.total_price / selectedBooking.guest_count).toFixed(0)}₾ / guest · {selectedBooking.service_name}
                         </p>
                       </div>
                     </div>
@@ -550,7 +550,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                       <div className="flex items-center justify-between text-sm pt-2 border-t">
                         <span className="text-muted-foreground font-medium">Total:</span>
                         <span className="font-bold text-primary">
-                          ₾{selectedBooking.total_price.toFixed(2)}
+                          {selectedBooking.total_price.toFixed(2)}₾
                         </span>
                       </div>
                     </div>

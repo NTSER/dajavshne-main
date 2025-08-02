@@ -239,7 +239,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
         ) : (
           <>
             <CreditCard className="w-4 h-4 mr-2" />
-            Pay ₾{bookingData.totalPrice}
+            Pay {bookingData.totalPrice}₾
           </>
         )}
       </Button>
@@ -662,7 +662,7 @@ const ConfirmAndPay = () => {
                             {getServiceName(booking.serviceId)} × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''} × {calculateDuration(booking.arrivalTime, booking.departureTime).replace('h', ' hours').replace('m', ' mins')}
                           </span>
                           <span className="text-sm text-foreground">
-                            ₾{Math.round((bookingData.totalPrice / bookingData.serviceBookings.length))}
+                            {Math.round((bookingData.totalPrice / bookingData.serviceBookings.length))}₾
                           </span>
                         </div>
                       ))}
@@ -672,13 +672,13 @@ const ConfirmAndPay = () => {
                       <span className="text-sm text-muted-foreground">
                         Service booking × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
                       </span>
-                      <span className="text-sm text-foreground">₾{bookingData.totalPrice}</span>
+                      <span className="text-sm text-foreground">{bookingData.totalPrice}₾</span>
                     </div>
                   )}
                   
                   <div className="border-t border-border/50 pt-3 flex justify-between font-semibold">
                     <span className="text-foreground">Total USD</span>
-                    <span className="text-foreground gradient-text text-lg">₾{bookingData.totalPrice}</span>
+                    <span className="text-foreground gradient-text text-lg">{bookingData.totalPrice}₾</span>
                   </div>
                 </div>
               </CardContent>

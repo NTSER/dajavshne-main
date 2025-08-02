@@ -441,7 +441,7 @@ const ServiceBookingDialog = ({
             <div className="border-t pt-4">
               <div className="flex items-center justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>₾{totalPrice}</span>
+                <span>{totalPrice}₾</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {(() => {
@@ -449,14 +449,14 @@ const ServiceBookingDialog = ({
                   if (!guestPrice) return 'Not available for this guest count';
                   
                   if (!arrivalTime || !departureTime) {
-                    return `₾${guestPrice} total for ${guests} guest${guests !== 1 ? 's' : ''}`;
+                    return `${guestPrice}₾ total for ${guests} guest${guests !== 1 ? 's' : ''}`;
                   }
                   
                   const start = new Date(`2000-01-01T${arrivalTime}:00`);
                   const end = new Date(`2000-01-01T${departureTime}:00`);
                   const diffMs = end.getTime() - start.getTime();
                   const hours = diffMs / (1000 * 60 * 60);
-                  return `₾${guestPrice} × ${hours} hour${hours !== 1 ? 's' : ''} = ₾${(guestPrice * hours).toFixed(0)}`;
+                  return `${guestPrice}₾ × ${hours} hour${hours !== 1 ? 's' : ''} = ${(guestPrice * hours).toFixed(0)}₾`;
                 })()}
               </p>
             </div>

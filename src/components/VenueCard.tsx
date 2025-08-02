@@ -94,11 +94,11 @@ const VenueCard = ({ venue }: VenueCardProps) => {
                   ? (() => {
                       const prices = services.map(service => {
                         const displayPrice = getServiceDisplayPrice(service);
-                        // Extract numeric value from "From ₾X" or "₾X/guest" format
-                        const numericMatch = displayPrice.match(/₾(\d+)/);
+                        // Extract numeric value from "From X₾" or "X₾/guest" format
+                        const numericMatch = displayPrice.match(/(\d+)₾/);
                         return numericMatch ? parseInt(numericMatch[1]) : service.price;
                       });
-                      return `From ₾${Math.min(...prices)}`;
+                      return `From ${Math.min(...prices)}₾`;
                     })()
                   : 'Contact'}
               </span>

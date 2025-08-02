@@ -584,7 +584,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                           <div className="flex items-center justify-between text-sm pt-2 border-t">
                             <span className="text-muted-foreground font-medium">Total:</span>
                              <span className="font-bold text-primary">
-                               ₾{(() => {
+                               {(() => {
                                  if (!serviceBooking.arrivalTime || !serviceBooking.departureTime) return '0';
                                  const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
                                  const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
@@ -592,7 +592,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                                  const hours = diffMs / (1000 * 60 * 60);
                                  const guestPrice = calculateGuestPrice(service, formData.guests);
                                  return guestPrice ? (guestPrice * hours).toFixed(0) : '0';
-                               })()}
+                               })()}₾
                              </span>
                           </div>
                         </div>
@@ -653,13 +653,13 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             <div className="flex-1">
                {discountCalculation.savings > 0 && (
                  <div className="text-sm text-muted-foreground line-through">
-                   ₾{baseTotalPrice.toFixed(2)}
+                   {baseTotalPrice.toFixed(2)}₾
                  </div>
                )}
-               <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">₾{totalPrice.toFixed(2)}</span>
+               <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{totalPrice.toFixed(2)}₾</span>
                {discountCalculation.savings > 0 && (
                  <div className="text-sm text-green-600 font-medium">
-                   Save ₾{discountCalculation.savings.toFixed(2)}
+                   Save {discountCalculation.savings.toFixed(2)}₾
                  </div>
                )}
             </div>
