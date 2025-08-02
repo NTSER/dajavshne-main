@@ -95,21 +95,23 @@ const ServiceBookingDialog = ({
       currentMinute = 30;
     }
     
-    // Get current time in Georgian timezone (GMT+4) for filtering (add 30 minutes buffer for today's bookings)
+    // Get current time with 30 minutes buffer for today's bookings
     const now = new Date();
-    console.log('Browser time:', now.toISOString());
-    const georgianTime = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Convert to GMT+4
-    console.log('Georgian time:', georgianTime.toISOString());
-    const bufferTime = new Date(georgianTime.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
-    console.log('Buffer time (30min after Georgian):', bufferTime.toISOString());
+    console.log('Current browser time:', now.toISOString());
+    console.log('Current local time:', now.toString());
+    
+    // Add 30 minutes buffer to current time
+    const bufferTime = new Date(now.getTime() + 30 * 60 * 1000);
+    console.log('Buffer time (30min after current):', bufferTime.toString());
     const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
     console.log('Current time string for filtering:', currentTimeString);
+    
     while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
       const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
       
       // Only add times that are not in the past (for today's bookings)
-      const georgianToday = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Current date in Georgian time
-      const todayString = georgianToday.toISOString().split('T')[0];
+      const today = new Date();
+      const todayString = format(today, 'yyyy-MM-dd');
       const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
       
       if (selectedDateString === todayString) {
@@ -134,14 +136,12 @@ const ServiceBookingDialog = ({
   const handleArrivalTimeChange = (value: string) => {
     // Validate against current time for today's bookings
     const now = new Date();
-    const georgianToday = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Current date in Georgian time
-    const todayString = georgianToday.toISOString().split('T')[0];
+    const today = new Date();
+    const todayString = format(today, 'yyyy-MM-dd');
     const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
     
     if (selectedDateString === todayString) {
-      const now = new Date();
-      const georgianTime = new Date(now.getTime() + (4 * 60 * 60 * 1000)); // Convert to GMT+4
-      const bufferTime = new Date(georgianTime.getTime() + 30 * 60 * 1000); // Add 30 minutes buffer
+      const bufferTime = new Date(now.getTime() + 30 * 60 * 1000);
       const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
       
       if (value < currentTimeString) {
@@ -353,11 +353,10 @@ const ServiceBookingDialog = ({
                   }}
                   disabled={(date) => {
                     const now = new Date();
-                    const georgianToday = new Date(now.getTime() + (4 * 60 * 60 * 1000));
-                    const georgianTodayStart = new Date(georgianToday);
-                    georgianTodayStart.setHours(0, 0, 0, 0);
-                    const isDisabled = date < georgianTodayStart;
-                    console.log('Calendar disabled check - Date:', date.toISOString(), 'Georgian today start:', georgianTodayStart.toISOString(), 'Disabled:', isDisabled);
+                    const todayStart = new Date(now);
+                    todayStart.setHours(0, 0, 0, 0);
+                    const isDisabled = date < todayStart;
+                    console.log('Calendar disabled check - Date:', date.toISOString(), 'Today start:', todayStart.toISOString(), 'Disabled:', isDisabled);
                     return isDisabled;
                   }}
                   initialFocus
