@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, MapPin, Users, Calendar, CreditCard, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useVenue } from "@/hooks/useVenues";
+import { useVenue, useVenueServices } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -280,6 +280,7 @@ const ConfirmAndPay = () => {
   const bookingData = locationState?.bookingData;
   
   const { data: venue } = useVenue(bookingData?.venueId);
+  const { data: services } = useVenueServices(bookingData?.venueId || '');
   
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentMethodAdded, setPaymentMethodAdded] = useState(false);
@@ -369,6 +370,11 @@ const ConfirmAndPay = () => {
     } else {
       return `${diffMinutes}m`;
     }
+  };
+
+  const getServiceName = (serviceId: string) => {
+    const service = services?.find(s => s.id === serviceId);
+    return service?.name || 'Unknown Service';
   };
 
   return (
@@ -585,13 +591,13 @@ const ConfirmAndPay = () => {
                         {bookingData.serviceBookings.map((booking, index) => (
                           <div key={index} className="p-3 bg-muted/30 rounded-lg border border-border/30">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-sm font-medium text-foreground">Service {index + 1}</h5>
+                              <h5 className="text-sm font-medium text-foreground">{getServiceName(booking.serviceId)}</h5>
                               <Badge variant="secondary" className="text-xs">
                                 {formatTime(booking.arrivalTime)} - {formatTime(booking.departureTime)}
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground mb-2">
-                              Duration: {calculateDuration(booking.arrivalTime, booking.departureTime)}
+                              Duration: {calculateDuration(booking.arrivalTime, booking.departureTime)} • {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
                             </p>
                             {booking.selectedGames && booking.selectedGames.length > 0 && (
                               <div>
@@ -664,7 +670,7 @@ const ConfirmAndPay = () => {
                       {bookingData.serviceBookings.map((booking, index) => (
                         <div key={index} className="flex justify-between">
                           <span className="text-sm text-muted-foreground">
-                            Service {index + 1} × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''} × {calculateDuration(booking.arrivalTime, booking.departureTime).replace('h', ' hours').replace('m', ' mins')}
+                            {getServiceName(booking.serviceId)} × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''} × {calculateDuration(booking.arrivalTime, booking.departureTime).replace('h', ' hours').replace('m', ' mins')}
                           </span>
                           <span className="text-sm text-foreground">
                             ₾{Math.round((bookingData.totalPrice / bookingData.serviceBookings.length))}
