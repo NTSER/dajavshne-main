@@ -53,9 +53,9 @@ const VenueServices = ({
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{service.name}</CardTitle>
-                    <Badge variant="secondary" className="bg-primary/10 text-primary">
-                      ${service.price}
-                    </Badge>
+                     <Badge variant="secondary" className="bg-primary/10 text-primary">
+                       ₾{service.price}
+                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -63,10 +63,10 @@ const VenueServices = ({
                      <div className="flex items-center gap-1">
                        <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">{service.service_type}</span>
                      </div>
-                     <div className="flex items-center gap-1">
-                       <DollarSign className="h-4 w-4" />
-                       ${service.price}/guest
-                     </div>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-4 w-4" />
+                        ₾{service.price}/guest
+                      </div>
                    </div>
                   <Button 
                     variant={selectedService?.id === service.id ? "default" : "outline"}

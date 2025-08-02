@@ -85,7 +85,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
         const diffMs = end.getTime() - start.getTime();
         const durationHours = diffMs / (1000 * 60 * 60);
-        totalPrice += service.price * durationHours;
+        totalPrice += service.price * formData.guests * durationHours;
       }
     });
     return totalPrice;
@@ -534,8 +534,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
                            <p className="text-muted-foreground">
-                             ${service.price} / guest · {service.service_type}
-                           </p>
+                              ₾{service.price} / guest · {service.service_type}
+                            </p>
                         </div>
                       </div>
                       
@@ -571,15 +571,15 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                           )}
                           <div className="flex items-center justify-between text-sm pt-2 border-t">
                             <span className="text-muted-foreground font-medium">Total:</span>
-                            <span className="font-bold text-primary">
-                              ${(() => {
-                                const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
-                                const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
-                                const diffMs = end.getTime() - start.getTime();
-                                const hours = diffMs / (1000 * 60 * 60);
-                                return (service.price * formData.guests * hours).toFixed(0);
-                              })()}
-                            </span>
+                             <span className="font-bold text-primary">
+                               ₾{(() => {
+                                 const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
+                                 const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
+                                 const diffMs = end.getTime() - start.getTime();
+                                 const hours = diffMs / (1000 * 60 * 60);
+                                 return (service.price * formData.guests * hours).toFixed(0);
+                               })()}
+                             </span>
                           </div>
                         </div>
                       )}
@@ -637,17 +637,17 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              {discountCalculation.savings > 0 && (
-                <div className="text-sm text-muted-foreground line-through">
-                  ${baseTotalPrice.toFixed(2)}
-                </div>
-              )}
-              <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">${totalPrice.toFixed(2)}</span>
-              {discountCalculation.savings > 0 && (
-                <div className="text-sm text-green-600 font-medium">
-                  Save ${discountCalculation.savings.toFixed(2)}
-                </div>
-              )}
+               {discountCalculation.savings > 0 && (
+                 <div className="text-sm text-muted-foreground line-through">
+                   ₾{baseTotalPrice.toFixed(2)}
+                 </div>
+               )}
+               <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">₾{totalPrice.toFixed(2)}</span>
+               {discountCalculation.savings > 0 && (
+                 <div className="text-sm text-green-600 font-medium">
+                   Save ₾{discountCalculation.savings.toFixed(2)}
+                 </div>
+               )}
             </div>
             <Button 
               onClick={handleSubmit}

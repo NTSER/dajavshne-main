@@ -98,7 +98,7 @@ const BookingHistory = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-primary text-xl">${booking.total_price}</div>
+                  <div className="font-bold text-primary text-xl">₾{booking.total_price}</div>
                 </div>
               </div>
 

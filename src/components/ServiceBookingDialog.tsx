@@ -206,7 +206,7 @@ const ServiceBookingDialog = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Book {service.name} - ${service.price}/guest</DialogTitle>
+          <DialogTitle className="text-xl">Book {service.name} - ₾{service.price}/guest</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -408,10 +408,10 @@ const ServiceBookingDialog = ({
             <div className="border-t pt-4">
               <div className="flex items-center justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>${totalPrice}</span>
+                <span>₾{totalPrice}</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                ${service.price} × {guests} guest{guests !== 1 ? 's' : ''} × {(() => {
+                ₾{service.price} × {guests} guest{guests !== 1 ? 's' : ''} × {(() => {
                   const start = new Date(`2000-01-01T${arrivalTime}:00`);
                   const end = new Date(`2000-01-01T${departureTime}:00`);
                   const diffMs = end.getTime() - start.getTime();

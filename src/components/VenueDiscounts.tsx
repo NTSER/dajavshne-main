@@ -133,7 +133,7 @@ export const VenueDiscounts = ({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-green-700 dark:text-green-300">Original Price:</span>
-                <span className="text-green-700 dark:text-green-300">${servicePrice.toFixed(2)}</span>
+                <span className="text-green-700 dark:text-green-300">₾{servicePrice.toFixed(2)}</span>
               </div>
               {(() => {
                 const calculation = calculateDiscountedPrice(servicePrice, defaultDiscount, activeDiscounts);
@@ -142,12 +142,12 @@ export const VenueDiscounts = ({
                     {calculation.savings > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-green-600 dark:text-green-400">Total Savings:</span>
-                        <span className="text-green-600 dark:text-green-400">-${calculation.savings.toFixed(2)}</span>
+                        <span className="text-green-600 dark:text-green-400">-₾{calculation.savings.toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-semibold text-green-800 dark:text-green-200 border-t border-green-300 dark:border-green-600 pt-2">
                       <span>Final Price:</span>
-                      <span>${calculation.finalPrice.toFixed(2)}</span>
+                      <span>₾{calculation.finalPrice.toFixed(2)}</span>
                     </div>
                     {calculation.appliedDiscounts.length > 0 && (
                       <p className="text-xs text-green-600 dark:text-green-400 mt-1">
